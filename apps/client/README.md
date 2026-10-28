@@ -2,28 +2,7 @@
 
 The Flutter application for all Memuki platforms. Linux is the current development target.
 
-See the [repository README](../../README.md) for setup and the [docs](../../docs/) for architecture and roadmap.
-
-## Commands
-
-Run from this directory:
-
-```sh
-fvm flutter pub get                    # Install dependencies; regenerates localizations
-fvm flutter run -d linux               # Run on Linux
-fvm flutter test                       # Run tests
-fvm flutter analyze                    # Static analysis
-fvm dart format .                      # Format code
-fvm dart run build_runner build        # Regenerate routes (*.g.dart)
-fvm dart run build_runner watch        # Regenerate routes on change
-fvm flutter build linux                # Release build in build/linux/x64/release/bundle/
-```
-
-CI runs formatting, code generation, analysis, tests, and a Linux build. Before pushing, run:
-
-```sh
-fvm dart format . && fvm dart run build_runner build && fvm flutter analyze && fvm flutter test
-```
+For setup, commands, testing, and code generation, see the [development guide](../../docs/DEVELOPMENT.md). For architecture and roadmap, see the [docs](../../docs/).
 
 ## Layout
 
