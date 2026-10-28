@@ -1,30 +1,48 @@
 name: Client
 
+# Runs on every push and pull request so the "Client CI" gate job always
+# reports a status and can be a required check. The expensive jobs only run
+# when client files change; otherwise they are skipped and the gate passes.
 on:
   push:
     branches: [main]
-    paths:
-      - apps/client/**
-      - .fvmrc
-      - .github/workflows/client.yml
   pull_request:
-    paths:
-      - apps/client/**
-      - .fvmrc
-      - .github/workflows/client.yml
   workflow_dispatch:
 
 concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
+permissions:
+  contents: read
+  pull-requests: read
+
 defaults:
   run:
     working-directory: apps/client
 
 jobs:
+  changes:
+    name: Detect changes
+    runs-on: ubuntu-latest
+    outputs:
+      client: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.client == 'true' }}
+    steps:
+      - uses: actions/checkout@v5
+
+      - uses: dorny/paths-filter@ceb8a2b8f2d89434be7ff52d3de7ec3738c5cc9d # v4.0.3
+        id: filter
+        with:
+          filters: |
+            client:
+              - apps/client/**
+              - .fvmrc
+              - .github/workflows/client.yml
+
   check:
     name: Format, analyze, test
+    needs: changes
+    if: needs.changes.outputs.client == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -60,7 +78,8 @@ jobs:
 
   build-linux:
     name: Linux build
-    needs: check
+    needs: [changes, check]
+    if: needs.changes.outputs.client == 'true'
     runs-on: ubuntu-latest
     steps:
       - uses: actions/checkout@v5
@@ -85,3 +104,21 @@ jobs:
       - run: flutter pub get --enforce-lockfile
 
       - run: flutter build linux --release
+
+  # Single required check for branch protection. Passes when the client jobs
+  # succeeded or were skipped because no client files changed.
+  gate:
+    name: Client CI
+    needs: [changes, check, build-linux]
+    if: always()
+    runs-on: ubuntu-latest
+    steps:
+      - name: Check job results
+        working-directory: .
+        run: |
+          echo "changes: ${{ needs.changes.result }}"
+          echo "check: ${{ needs.check.result }}"
+          echo "build-linux: ${{ needs.build-linux.result }}"
+          if [ "${{ contains(needs.*.result, 'failure') || contains(needs.*.result, 'cancelled') }}" = "true" ]; then
+            exit 1
+          fi

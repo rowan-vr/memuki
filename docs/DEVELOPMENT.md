@@ -139,7 +139,7 @@ Do not edit generated files by hand.
 
 ## Continuous integration
 
-[`.github/workflows/client.yml`](../.github/workflows/client.yml) runs on pushes to `main` and on pull requests that change `apps/client/`, `.fvmrc`, or the workflow itself.
+[`.github/workflows/client.yml`](../.github/workflows/client.yml) runs on every push to `main` and every pull request. Its jobs run only when `apps/client/`, `.fvmrc`, or the workflow itself changed; otherwise they are skipped.
 
 | Job | Checks | Reproduce locally |
 |---|---|---|
@@ -150,6 +150,8 @@ Do not edit generated files by hand.
 | Linux build | Release build | `fvm flutter build linux --release` |
 
 The Linux build runs only after the checks pass. CI reads the Flutter version from `.fvmrc`.
+
+The **Client CI** job summarizes the run: it fails if any client job failed and passes if they succeeded or were skipped. Branch protection requires this one job, so pull requests that do not touch the client are not blocked waiting for skipped checks.
 
 ## IDE setup
 
