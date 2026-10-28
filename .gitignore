@@ -1,0 +1,31 @@
+# Repository-wide ignores. Project-specific rules live next to each project
+# (e.g. apps/client/.gitignore).
+
+# FVM (the pinned version in .fvmrc is committed; the local SDK cache is not)
+.fvm/
+
+# IDEs and editors
+.idea/
+*.iml
+*.ipr
+*.iws
+*.swp
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Secrets and signing material
+.env
+.env.*
+*.pem
+*.key
+*.jks
+*.keystore
+*.p12
+*.mobileprovision
+key.properties
+
+# Logs
+*.log
