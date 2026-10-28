@@ -1,0 +1,30 @@
+name: Design decision
+description: A decision to make or confirm, recorded in the roadmap and architecture docs.
+labels: ["type: decision"]
+body:
+  - type: input
+    id: phase
+    attributes:
+      label: Roadmap phase
+      placeholder: e.g. Phase 2
+    validations:
+      required: true
+  - type: textarea
+    id: context
+    attributes:
+      label: Context
+      description: What needs deciding and why it matters.
+    validations:
+      required: true
+  - type: textarea
+    id: options
+    attributes:
+      label: Options
+      description: Candidate options with trade-offs.
+    validations:
+      required: true
+  - type: textarea
+    id: outcome
+    attributes:
+      label: Outcome
+      description: Filled in when decided. Record it in the phase's decision table and, if architectural, the ARCHITECTURE.md decision log.

@@ -1,0 +1,87 @@
+name: Client
+
+on:
+  push:
+    branches: [main]
+    paths:
+      - apps/client/**
+      - .fvmrc
+      - .github/workflows/client.yml
+  pull_request:
+    paths:
+      - apps/client/**
+      - .fvmrc
+      - .github/workflows/client.yml
+  workflow_dispatch:
+
+concurrency:
+  group: ${{ github.workflow }}-${{ github.ref }}
+  cancel-in-progress: true
+
+defaults:
+  run:
+    working-directory: apps/client
+
+jobs:
+  check:
+    name: Format, analyze, test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Read pinned Flutter version
+        id: fvm
+        working-directory: .
+        run: echo "version=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm.outputs.version }}
+          channel: stable
+          cache: true
+
+      - run: flutter pub get
+
+      - name: Check formatting
+        run: dart format --output=none --set-exit-if-changed .
+
+      - name: Check generated code is up to date
+        run: |
+          dart run build_runner build
+          if [ -n "$(git status --porcelain -- .)" ]; then
+            git status --porcelain -- .
+            echo "::error::Generated code is out of date. Run 'fvm dart run build_runner build' and commit the result."
+            exit 1
+          fi
+
+      - run: flutter analyze
+
+      - run: flutter test
+
+  build-linux:
+    name: Linux build
+    needs: check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v5
+
+      - name: Read pinned Flutter version
+        id: fvm
+        working-directory: .
+        run: echo "version=$(jq -r .flutter .fvmrc)" >> "$GITHUB_OUTPUT"
+
+      - uses: subosito/flutter-action@v2
+        with:
+          flutter-version: ${{ steps.fvm.outputs.version }}
+          channel: stable
+          cache: true
+
+      - name: Install Linux build dependencies
+        working-directory: .
+        run: |
+          sudo apt-get update
+          sudo apt-get install -y clang cmake ninja-build pkg-config libgtk-3-dev
+
+      - run: flutter pub get
+
+      - run: flutter build linux --release
