@@ -39,7 +39,7 @@ Anki remains the primary study tool until Milestone D. Collections imported befo
 
 ## Phase 0 — Project Setup
 
-**Status:** In progress
+**Status:** Done
 
 **Goal:** A reproducible, buildable, tested Flutter project.
 

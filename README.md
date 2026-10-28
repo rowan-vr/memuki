@@ -2,7 +2,7 @@
 
 Memuki is a free, open-source, offline-first, cross-platform spaced-repetition and knowledge-mining application, starting with dictionary-based vocabulary mining for language learners.
 
-> **Status:** early development (Phase 0 — project setup). Not yet usable for studying.
+> **Status:** early development (Phase 1 — domain models and persistence). Not yet usable for studying.
 
 ## Documentation
 
