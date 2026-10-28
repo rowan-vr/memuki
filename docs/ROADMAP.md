@@ -10,16 +10,20 @@ A phase is complete when its acceptance criteria and tests pass, not after a fix
 
 ## Milestone overview
 
-| Milestone | Phases | Objective | Status |
-|---|---|---|---|
-| A — Functional SRS | 0–4 | Working Linux SRS application | Committed |
-| B — Desktop Mining & Migration | 5a–6 | Dictionary mining and Anki import | Committed |
-| C — Synchronization | 7–8 | Reliable offline-first multi-device sync | Committed |
-| D — Mobile & Anki Replacement | 9–11 | iOS/Android parity and 30-day Anki-free trial | Committed |
-| E — Web Application | 12–13 | Flutter Web at app.memuki.net | Planned |
-| F — Advanced Mining | 14–15 | OCR, documents, audio, and video | Horizon |
-| G — Extension Ecosystem | 16–17 | Plugin SDK and first-party browser extension | Horizon |
-| H — Education | 18–19 | Courses, classrooms, teachers, and reporting | Horizon |
+| Milestone | Phases | Objective | Scope | Progress |
+|---|---|---|---|---|
+| A — Functional SRS | 0–4 | Working Linux SRS application | Committed | In progress |
+| B — Desktop Mining & Migration | 5a–6 | Dictionary mining and Anki import | Committed | Not started |
+| C — Synchronization | 7–8 | Reliable offline-first multi-device sync | Committed | Not started |
+| D — Mobile & Anki Replacement | 9–11 | iOS/Android parity and 30-day Anki-free trial | Committed | Not started |
+| E — Web Application | 12–13 | Flutter Web at app.memuki.net | Planned | Not started |
+| F — Advanced Mining | 14–15 | OCR, documents, audio, and video | Horizon | Not started |
+| G — Extension Ecosystem | 16–17 | Plugin SDK and first-party browser extension | Horizon | Not started |
+| H — Education | 18–19 | Courses, classrooms, teachers, and reporting | Horizon | Not started |
+
+Task-level work is tracked as issues under the matching [GitHub milestones](https://github.com/rowan-vr/memuki/milestones). This document tracks phase status and acceptance criteria.
+
+Scope:
 
 - **Committed:** scoped and sequenced; work proceeds in order.
 - **Planned:** intended next; scope may change based on earlier milestones.
@@ -34,6 +38,8 @@ Anki remains the primary study tool until Milestone D. Collections imported befo
 # Milestone A — Functional SRS
 
 ## Phase 0 — Project Setup
+
+**Status:** In progress
 
 **Goal:** A reproducible, buildable, tested Flutter project.
 
@@ -69,6 +75,8 @@ Anki remains the primary study tool until Milestone D. Collections imported befo
 ---
 
 ## Phase 1 — Domain Models and Persistence
+
+**Status:** Not started
 
 **Goal:** A durable, sync-ready local data layer.
 
@@ -140,6 +148,8 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 
 ## Phase 2 — Scheduling Engine
 
+**Status:** Not started
+
 **Goal:** A reliable, deterministic, configurable SRS engine.
 
 ### Implementation
@@ -194,6 +204,8 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 
 ## Phase 3 — Notes, Fields, and Templates
 
+**Status:** Not started
+
 **Goal:** Users define what information is stored and how it is studied.
 
 ### Implementation
@@ -241,6 +253,8 @@ Initial templates:
 ---
 
 ## Phase 4 — Study Experience
+
+**Status:** Not started
 
 **Goal:** A comfortable daily study workflow on Linux.
 
@@ -308,6 +322,8 @@ Quality:
 
 ## Phase 5a — Dictionary Infrastructure and Japanese Search
 
+**Status:** Not started
+
 **Goal:** Fast, offline dictionary search for Japanese.
 
 ### Implementation
@@ -370,6 +386,8 @@ Dictionary licences, including source-specific terms such as EDRDG's, are review
 
 ## Phase 5b — Search-Based Mining and Second Language
 
+**Status:** Not started
+
 **Goal:** Turn dictionary results into notes, and validate the architecture with a second language.
 
 ### Implementation
@@ -428,6 +446,8 @@ Future or optional providers: CC-CEDICT, FreeDict, Korean learner dictionaries w
 
 ## Phase 6 — Anki Import and Data Portability
 
+**Status:** Not started
+
 **Goal:** Import existing Anki collections without losing learning history.
 
 ### Implementation
@@ -470,6 +490,8 @@ Future or optional providers: CC-CEDICT, FreeDict, Korean learner dictionaries w
 # Milestone C — Synchronization
 
 ## Phase 7 — Sync Server and Protocol
+
+**Status:** Not started
 
 **Goal:** Synchronize installations without compromising offline operation.
 
@@ -530,6 +552,8 @@ Third-party dictionary databases are not synced. Each device installs packages i
 
 ## Phase 8 — Conflict Resolution and Reliability
 
+**Status:** Not started
+
 **Goal:** Trustworthy sync under network failures and concurrent changes.
 
 ### Implementation
@@ -582,6 +606,8 @@ Third-party dictionary databases are not synced. Each device installs packages i
 
 ## Phase 9 — Android and iOS Study Client
 
+**Status:** Not started
+
 **Goal:** Daily reviews on mobile.
 
 ### Implementation
@@ -611,6 +637,8 @@ Third-party dictionary databases are not synced. Each device installs packages i
 ---
 
 ## Phase 10 — Mobile Management and Dictionary Mining
+
+**Status:** Not started
 
 **Goal:** Mobile as a complete client.
 
@@ -646,6 +674,8 @@ Desktop may use denser multi-panel layouts; mobile exposes the same functionalit
 ---
 
 ## Phase 11 — Mobile Parity and Production Readiness
+
+**Status:** Not started
 
 **Goal:** A reliable daily Anki replacement across desktop and mobile.
 
@@ -700,6 +730,8 @@ The trial covers:
 
 ## Phase 12 — Browser Runtime and Storage
 
+**Status:** Not started
+
 **Goal:** The core Memuki application in browsers, from the existing Flutter codebase.
 
 ### Implementation
@@ -743,6 +775,8 @@ The trial covers:
 
 ## Phase 13 — Offline Web and Production Deployment
 
+**Status:** Not started
+
 **Goal:** Launch `https://app.memuki.net`.
 
 ### Implementation
@@ -783,6 +817,8 @@ The trial covers:
 
 ## Phase 14 — OCR and Image Capture
 
+**Status:** Not started
+
 **Goal:** Image-based mining through the existing capture pipeline.
 
 ### Implementation
@@ -812,6 +848,8 @@ The trial covers:
 ---
 
 ## Phase 15 — Documents and Rich Media
+
+**Status:** Not started
 
 **Goal:** Mine from more types of source material.
 
@@ -849,6 +887,8 @@ All capture providers feed the existing mining pipeline.
 # Milestone G — Extension Ecosystem (Horizon)
 
 ## Phase 16 — Public Plugin SDK
+
+**Status:** Not started
 
 **Goal:** Extend Memuki without modifying the application.
 
@@ -892,6 +932,8 @@ WASM or another portable sandbox is evaluated. Downloaded executable code may no
 ---
 
 ## Phase 17 — Browser Extension and Distribution
+
+**Status:** Not started
 
 **Goal:** First-party browser integration and extension distribution.
 
@@ -940,6 +982,8 @@ WASM or another portable sandbox is evaluated. Downloaded executable code may no
 
 ## Phase 18 — Courses and Classrooms
 
+**Status:** Not started
+
 **Goal:** Institution-managed learning alongside personal study.
 
 ### Implementation
@@ -973,6 +1017,8 @@ WASM or another portable sandbox is evaluated. Downloaded executable code may no
 ---
 
 ## Phase 19 — School Administration and Reporting
+
+**Status:** Not started
 
 **Goal:** Institutional management.
 
@@ -1100,6 +1146,7 @@ Other rules:
 - Small, testable vertical slices; every phase produces verifiable functionality.
 - Explicit acceptance criteria.
 - Major architectural decisions recorded in [ARCHITECTURE.md](ARCHITECTURE.md#decision-log).
+- Commit messages follow Conventional Commits; see the [README](../README.md#commit-messages).
 - Domain logic independent of presentation.
 - No premature abstraction or package fragmentation; no empty packages.
 - Libraries and protocols chosen after evaluating actual requirements.
@@ -1125,23 +1172,6 @@ Search-based dictionary mining is the only mining method through Milestone E.
 
 ---
 
-# Phase 0 checklist
+# Current work
 
-- [x] Initialize the Git repository.
-- [x] Initialize Flutter using FVM.
-- [x] Pin the Flutter SDK version.
-- [x] Choose the application licence.
-- [ ] Add `LICENSE`, CLA, and trademark policy.
-- [ ] Choose routing, state management, and DI.
-- [ ] Configure formatting, analysis, and linting.
-- [ ] Set up localization infrastructure.
-- [ ] Configure GitHub Actions.
-- [ ] Implement a responsive application shell.
-- [ ] Implement light and dark themes.
-- [ ] Establish structured logging.
-- [ ] Implement initial unit and widget tests.
-- [ ] Verify a clean Linux build.
-- [ ] Test basic navigation and window resizing.
-- [ ] Document development and testing commands.
-
-Phase 0 is complete when the project builds and tests reproducibly from a clean checkout.
+Open tasks are tracked as issues under [Milestone A — Functional SRS](https://github.com/rowan-vr/memuki/milestone/1).

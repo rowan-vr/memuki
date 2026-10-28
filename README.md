@@ -42,6 +42,72 @@ See [apps/client/README.md](apps/client/README.md) for test, analysis, and forma
 
 Contributions require agreeing to the [Contributor License Agreement](CLA.md).
 
+### Commit messages
+
+Commits follow [Conventional Commits](https://www.conventionalcommits.org/en/v1.0.0/):
+
+```text
+<type>(<scope>): <summary>
+
+[optional body]
+
+[optional footer]
+```
+
+- **Summary:** imperative mood, lowercase, no trailing period, at most 72 characters.
+- **Scope:** optional; the part of the codebase affected.
+- **Breaking changes:** add `!` after the type or scope and explain in a `BREAKING CHANGE:` footer.
+
+Types:
+
+| Type | Use for |
+|---|---|
+| `feat` | New functionality |
+| `fix` | Bug fixes |
+| `docs` | Documentation only |
+| `refactor` | Code changes that neither fix a bug nor add functionality |
+| `perf` | Performance improvements |
+| `test` | Adding or changing tests |
+| `style` | Formatting only; no behavior change |
+| `build` | Build system, dependencies, platform runners |
+| `ci` | CI configuration |
+| `chore` | Maintenance that fits no other type |
+| `revert` | Reverting an earlier commit |
+
+Scopes:
+
+| Scope | Area |
+|---|---|
+| `client` | Flutter application in general |
+| `ui` | Presentation layer and design system |
+| `domain` | Domain models |
+| `scheduler` | Scheduling algorithms and queues |
+| `storage` | Database, migrations, media store |
+| `templates` | Note types, fields, card templates, rendering |
+| `study` | Review sessions |
+| `mining` | Mining pipeline and profiles |
+| `dict` | Dictionary providers and packages |
+| `import` | Anki import, export, backup |
+| `sync` | Client-side sync |
+| `server` | Sync server |
+| `l10n` | Localization |
+| `deps` | Dependency updates |
+
+New scopes are added here when a new area appears.
+
+Examples:
+
+```text
+feat(scheduler): add burned card state
+fix(storage): roll back partial note insert on failure
+docs: add per-phase decision tables to roadmap
+ci: cache pub dependencies
+build(deps): bump drift to 2.x
+feat(sync)!: switch change batches to protobuf
+
+BREAKING CHANGE: sync protocol v2 is incompatible with v1 clients.
+```
+
 ## Licence
 
 Memuki's code is licensed under the [GNU Affero General Public License v3.0](LICENSE).
