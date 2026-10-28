@@ -62,7 +62,10 @@ Anki remains the primary study tool until Milestone D. Collections imported befo
 
 | Decision | Status |
 |---|---|
-| Routing, state management, DI | Open |
+| Routing: go_router with typed routes from go_router_builder | Decided — D19 |
+| State management and DI: Riverpod | Decided — D20 |
+| Japanese text: bundled Noto Sans JP as the app typeface | Decided — D21 |
+| Generated code committed; CI checks it is up to date | Decided — D22 |
 | AGPL-3.0 for code, CLA for contributions, dictionary data under upstream licences, trademark policy | Decided — see [ARCHITECTURE.md](ARCHITECTURE.md#licensing) |
 
 ### Acceptance Criteria

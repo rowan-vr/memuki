@@ -16,6 +16,7 @@ Memuki is a free, open-source, offline-first, cross-platform spaced-repetition a
 ```text
 apps/client/   Flutter application
 docs/          Project documentation
+.github/       CI workflows
 ```
 
 Further components (sync server, dictionary package builders) are added as their phases begin. See [Architecture](docs/ARCHITECTURE.md#repository-structure).
