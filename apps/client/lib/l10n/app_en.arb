@@ -1,0 +1,47 @@
+{
+  "@@locale": "en",
+  "appTitle": "Memuki",
+  "@appTitle": {
+    "description": "Application name, shown in the window title and task switcher."
+  },
+  "navHome": "Home",
+  "@navHome": {
+    "description": "Navigation destination for the home screen."
+  },
+  "navDecks": "Decks",
+  "@navDecks": {
+    "description": "Navigation destination for the list of decks."
+  },
+  "navSettings": "Settings",
+  "@navSettings": {
+    "description": "Navigation destination for application settings."
+  },
+  "homeWelcomeTitle": "Welcome to Memuki",
+  "@homeWelcomeTitle": {
+    "description": "Heading on the home screen."
+  },
+  "homeWelcomeBody": "Memuki is in early development. Studying is not available yet.",
+  "@homeWelcomeBody": {
+    "description": "Explanation below the home screen heading while the app has no study features."
+  },
+  "decksEmpty": "No decks yet.",
+  "@decksEmpty": {
+    "description": "Shown on the decks screen when there are no decks."
+  },
+  "settingsThemeMode": "Theme",
+  "@settingsThemeMode": {
+    "description": "Label for the light/dark theme setting."
+  },
+  "settingsThemeModeSystem": "System",
+  "@settingsThemeModeSystem": {
+    "description": "Theme option that follows the operating system setting."
+  },
+  "settingsThemeModeLight": "Light",
+  "@settingsThemeModeLight": {
+    "description": "Light theme option."
+  },
+  "settingsThemeModeDark": "Dark",
+  "@settingsThemeModeDark": {
+    "description": "Dark theme option."
+  }
+}
