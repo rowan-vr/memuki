@@ -36,8 +36,11 @@ Code starts inside `apps/client/lib/` and is extracted into `packages/` only whe
 ```text
 Collection
 ├── Deck
+│   ├── Deck (nested)
 │   └── Card ──► SchedulingState (materialized)
 │        └──► ReviewEvent (append-only)
+├── NoteType
+│   └── CardTemplate
 ├── Note ──► NoteType
 │   └── generates Cards via CardTemplates
 ├── Tag
@@ -45,22 +48,24 @@ Collection
 ```
 
 - A user can have several collections. Each collection contains decks.
+- Decks can be nested. Each deck has an optional parent deck in the same collection.
+- Note types belong to one collection. Using a note type in another collection copies it.
 - A note belongs to one collection; its cards belong to decks in that collection.
 - A card is identified by `(note ID, card template ID)`. Template IDs are stable, so reordering or renaming templates does not change card identity.
 - Fields carry metadata (role, type, validation) so specialized field types can be added without schema redesign.
 - Source attribution (dictionary entry, import origin) is stored on notes.
 
-## Identity and change tracking — Proposed
+## Identity and change tracking
 
 Decided in Phase 1. See [ROADMAP.md](ROADMAP.md#phase-1--domain-models-and-persistence).
 
-- **IDs:** client-generated, time-ordered (UUIDv7 or ULID).
+- **IDs:** client-generated UUIDv7.
 - **Ordering:** hybrid logical clock (HLC) timestamps on every change, rather than wall-clock time.
 - **Deletion:** tombstones; rows are not hard-deleted while sync may still reference them.
-- **Merge granularity:** per-field last-writer-wins on notes, per-entity on other entities, subject to Phase 1 evaluation.
+- **Merge granularity:** per-field last-writer-wins on notes, per-entity on other entities.
 - **Outbox:** every local mutation is recorded as a change entry for later sync.
 
-## Review history and scheduling — Proposed
+## Review history and scheduling
 
 - Review events are immutable and append-only.
 - Scheduling state is a materialized cache that can be rebuilt by replaying a card's review events through the scheduler.
@@ -91,7 +96,7 @@ With this model, merging concurrent reviews from different devices reduces to me
 
 - **Native:** SQLite, with Drift evaluated for typed queries and migrations.
 - **Web:** SQLite compiled to WASM on OPFS/IndexedDB is the expected path. Feasibility, including dictionary-sized indexes, is verified in Phase 1 before the schema is finalized.
-- **Media:** stored outside the main database. **Proposed:** content-addressed by hash, so identical media is stored once and sync can verify integrity.
+- **Media:** stored outside the main database, content-addressed by hash, so identical media is stored once and sync can verify integrity.
 - **Dictionaries:** each installed package is stored and indexed separately from the user's collections, and can be removed without touching study data.
 
 ## Dictionaries and mining
@@ -171,9 +176,9 @@ memuki/
 | D3 | Multiple collections per user, each containing decks | Decided | 1 |
 | D4 | Anki is a one-time migration source, not an ongoing exchange target | Decided | 6 |
 | D5 | UI localization infrastructure from Phase 0 | Decided | 0 |
-| D6 | Client-generated time-ordered IDs, HLC timestamps, tombstones | Proposed | 1 |
-| D7 | Append-only review log with rebuildable scheduling state | Proposed | 1–2 |
-| D8 | Content-addressed media storage | Proposed | 1 |
+| D6 | Client-generated UUIDv7 IDs, HLC timestamps, tombstones | Decided | 1 |
+| D7 | Append-only review log with rebuildable scheduling state | Decided | 1–2 |
+| D8 | Content-addressed media storage | Decided | 1 |
 | D9 | SQLite via Drift on native and web | Proposed | 1 |
 | D10 | Sync server relays change batches; clients perform all merging | Decided | 7 |
 | D11 | Collections are the unit of sync, sharing, and access control | Decided | 7 |
@@ -188,6 +193,8 @@ memuki/
 | D20 | Riverpod for state management and dependency injection | Decided | 0 |
 | D21 | Bundled Noto Sans JP (variable font) as the app typeface | Decided | 0 |
 | D22 | Generated code (routes, localizations) is committed; CI fails if it is stale | Decided | 0 |
+| D23 | Note types belong to one collection; reuse across collections by copying | Decided | 1 |
+| D24 | Nested decks via an optional parent deck in the same collection | Decided | 1 |
 
 ## Open questions
 
@@ -195,5 +202,3 @@ memuki/
 - **End-to-end encryption.** Enabled by D10; whether it is default, optional, or deferred is undecided.
 - **Plugin licensing.** Whether plugins built against the Milestone G SDK must be AGPL-3.0, or whether the SDK carries a licence exception or permissive licence.
 - **FSRS.** Roadmap placement, implementation (e.g. `dart-fsrs` or a custom port), and where parameter optimization runs, including on web.
-- **Note type scope.** Whether note types are global or per collection.
-- **Deck hierarchy.** Whether decks can be nested.

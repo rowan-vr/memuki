@@ -79,7 +79,7 @@ Anki remains the primary study tool until Milestone D. Collections imported befo
 
 ## Phase 1 — Domain Models and Persistence
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** A durable, sync-ready local data layer.
 
@@ -123,18 +123,18 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 
 | Decision | Direction | Status |
 |---|---|---|
-| Entity ID format | Client-generated, time-ordered (UUIDv7 or ULID) | Proposed |
-| Change ordering | Hybrid logical clock timestamps | Proposed |
-| Deletion | Tombstones | Proposed |
-| Merge granularity | Per-field LWW on notes; per-entity elsewhere | Proposed |
-| Card identity | `(note ID, card template ID)` with stable template IDs | Proposed |
-| Scheduling state | Materialized cache, rebuildable by replaying review events | Proposed |
-| Undo | Compensating event; original event is kept | Proposed |
-| Media addressing | Content-addressed by hash | Proposed |
+| Entity ID format | Client-generated UUIDv7 | Decided |
+| Change ordering | Hybrid logical clock timestamps | Decided |
+| Deletion | Tombstones | Decided |
+| Merge granularity | Per-field LWW on notes; per-entity elsewhere | Decided |
+| Card identity | `(note ID, card template ID)` with stable template IDs | Decided |
+| Scheduling state | Materialized cache, rebuildable by replaying review events | Decided |
+| Undo | Compensating event; original event is kept | Decided |
+| Media addressing | Content-addressed by hash | Decided |
 | Database access library | Drift | Proposed |
 | Collection/deck model | Several collections per user, each with decks | Decided |
-| Note type scope | Global or per collection | Open |
-| Deck nesting | Nested or flat | Open |
+| Note type scope | Per collection; reuse elsewhere by copying | Decided |
+| Deck nesting | Nested; each deck has an optional parent deck in the same collection | Decided |
 | Browser storage feasibility | Spike: same schema on Drift + SQLite WASM (OPFS/IndexedDB), including a dictionary-sized index | To verify |
 
 ### Acceptance Criteria
