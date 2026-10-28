@@ -41,4 +41,4 @@ See [CONTRIBUTING.md](CONTRIBUTING.md). Contributions require agreeing to the [C
 
 Memuki's code is licensed under the [GNU Affero General Public License v3.0](LICENSE).
 
-Dictionary data is not covered by this licence; each dictionary package carries its own upstream licence and attribution. Use of the "Memuki" name will be covered by a separate trademark policy.
+Dictionary data is not covered by this licence; each dictionary package carries its own upstream licence and attribution. Use of the "Memuki" name is covered by the [trademark policy](docs/TRADEMARK.md).

@@ -139,7 +139,7 @@ Internal interfaces (providers, capture sources, mining processors) are designed
 - **Dictionary data:** not covered by the code licence. Each dictionary package keeps its upstream licence (e.g. CC BY-SA for JMdict, KANJIDIC2, Jitendex, KanjiVG, Kaikki/Wiktionary) and ships its own licence and attribution metadata. Source-specific conditions, such as the EDRDG licence terms, are reviewed before a package is redistributed.
 - **Bundled fonts:** keep their upstream licences. Noto Sans JP is under the SIL Open Font License 1.1 (`apps/client/assets/fonts/NotoSansJP/OFL.txt`).
 - **No reused Anki or Yomitan code.** Anki import is implemented from the file format; Japanese deinflection is implemented in Memuki.
-- **Name:** "Memuki" is protected by a trademark policy, independent of the code licence.
+- **Name:** "Memuki" is governed by the [trademark policy](TRADEMARK.md), independent of the code licence. The name is not registered yet.
 
 ## Repository structure
 
