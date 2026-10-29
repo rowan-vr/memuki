@@ -73,6 +73,21 @@ void main() {
   });
 
   group('decks', () {
+    test('watching emits on changes', () async {
+      final names = repos.collections
+          .watchDecks(japanese.id)
+          .map((ds) => ds.map((d) => d.name).toList());
+      expect(
+        names,
+        emitsInOrder([
+          ['Vocab'],
+          ['Grammar', 'Vocab'],
+        ]),
+      );
+      await pumpEventQueue();
+      await japanese.addDeck('Grammar');
+    });
+
     test('cannot have a parent in another collection', () async {
       final korean = await repos.seedCollection(name: 'Korean');
       await expectLater(

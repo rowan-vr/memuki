@@ -49,8 +49,12 @@ final _log = Logger('memuki.storage');
   include: {'triggers.drift', 'views.drift'},
 )
 class MemukiDatabase extends _$MemukiDatabase {
-  MemukiDatabase(super.e, {this.backupDirectory, DateTime Function()? now})
-    : _now = now ?? DateTime.now;
+  MemukiDatabase(
+    super.e, {
+    this.backupDirectory,
+    DateTime Function()? now,
+    @visibleForTesting this._node,
+  }) : _now = now ?? DateTime.now;
 
   /// Opens the app's database in the application support directory.
   factory MemukiDatabase.open() => MemukiDatabase(
@@ -69,6 +73,11 @@ class MemukiDatabase extends _$MemukiDatabase {
   final Future<Directory> Function()? backupDirectory;
 
   final DateTime Function() _now;
+
+  /// The node ID for a new device row instead of a random one, so tests can
+  /// produce identical timestamps.
+  final String? _node;
+
   late HlcClock _clock;
 
   /// Issues timestamps for local changes. Available once the database is
@@ -101,7 +110,10 @@ class MemukiDatabase extends _$MemukiDatabase {
     var row = await select(device).getSingleOrNull();
     if (row == null) {
       await into(device).insert(
-        DeviceCompanion.insert(id: const Value(1), node: Hlc.generateNode()),
+        DeviceCompanion.insert(
+          id: const Value(1),
+          node: _node ?? Hlc.generateNode(),
+        ),
       );
       row = await select(device).getSingle();
     }
@@ -151,7 +163,7 @@ class MemukiDatabase extends _$MemukiDatabase {
   /// Existing rows get one initial timestamp. They are not added to the
   /// outbox; the first sync uploads the whole collection.
   Future<void> _from1To2(Migrator m, Schema2 schema) async {
-    final node = Hlc.generateNode();
+    final node = _node ?? Hlc.generateNode();
     final initial = Hlc(_now().millisecondsSinceEpoch, 0, node).toString();
     await m.createTable(schema.device);
     await m.createTable(schema.outbox);

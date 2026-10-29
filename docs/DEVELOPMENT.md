@@ -124,6 +124,13 @@ xdg-open coverage/html/index.html
 
 - Find widgets by type or by their English text; tests run with the English locale.
 
+### Database tests
+
+- `test/helpers/test_database.dart`: `openTestDatabase()` gives an in-memory database, and `Repositories(db).seedCollection()` a small collection for focused tests.
+- `test/helpers/fixtures.dart`: `CollectionFixture.generate(seed: ...)` builds a whole collection (deck and tag trees, notes, cards, review history, scheduling state, media) from a seed. The same seed always gives the same entities. With `openFixtureDatabase()`, which fixes the clock and HLC node, it also gives the same rows and timestamps, so a failure can be rerun from its seed. `dumpTables(db)` returns every row of every table for before/after comparisons.
+- `test/storage/rollback_test.dart` makes every repository write fail at its last step and checks that the database is unchanged. **A new write method must be added to its `_writes` list**, or it is not checked.
+- `test/storage/persistence_test.dart` writes a generated collection to a database file and media folder, reopens both, and checks that everything reads back the same.
+
 ## Code generation
 
 Some Dart code is generated from other files:
