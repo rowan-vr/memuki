@@ -15,6 +15,9 @@ dependencies:
   intl: ^0.20.3
   flutter_localizations:
     sdk: flutter
+  freezed_annotation: ^3.1.0
+  uuid: ^4.6.0
+  crypto: ^3.0.8
 
 dev_dependencies:
   flutter_test:
@@ -22,6 +25,7 @@ dev_dependencies:
   flutter_lints: ^6.0.0
   go_router_builder: ^4.5.2
   build_runner: ^2.16.2
+  freezed: ^4.0.3
 
 flutter:
   uses-material-design: true

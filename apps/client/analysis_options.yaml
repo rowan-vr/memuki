@@ -16,6 +16,7 @@ analyzer:
     - build/**
     - linux/**
     - "**/*.g.dart"
+    - "**/*.freezed.dart"
     - lib/l10n/generated/**
 
 linter:

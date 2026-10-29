@@ -95,6 +95,7 @@ Core entities:
 - CardTemplate
 - Card
 - Tag
+- NoteTag
 - MediaAsset
 - ReviewEvent
 - SchedulingState
