@@ -27,6 +27,32 @@ class ReviewRepository {
           .map(_event)
           .get();
 
+  /// The events of every card in a collection, by card, each in the order
+  /// they happened. Includes the events of deleted cards.
+  Future<Map<StudyCardId, List<ReviewEvent>>> histories(
+    CollectionId collectionId,
+  ) async {
+    final query =
+        _db.select(_db.reviewEvents).join([
+            innerJoin(
+              _db.studyCards,
+              _db.studyCards.id.equalsExp(_db.reviewEvents.studyCardId),
+            ),
+          ])
+          ..where(_db.studyCards.collectionId.equalsValue(collectionId))
+          ..orderBy([
+            OrderingTerm(expression: _db.reviewEvents.studyCardId),
+            OrderingTerm(expression: _db.reviewEvents.at),
+            OrderingTerm(expression: _db.reviewEvents.id),
+          ]);
+    final histories = <StudyCardId, List<ReviewEvent>>{};
+    for (final row in await query.get()) {
+      final event = _event(row.readTable(_db.reviewEvents));
+      (histories[event.studyCardId] ??= []).add(event);
+    }
+    return histories;
+  }
+
   /// Appends an event. An undo event must undo an event of the same card.
   Future<void> append(ReviewEvent event) => _changes.write((hlc) async {
     final card =

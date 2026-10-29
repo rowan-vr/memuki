@@ -199,6 +199,7 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Review intervals | Hard: interval × 1.2; Good: (interval + half the days late) × ease; Easy: (interval + days late) × ease × 1.3; each at least one day more than the grade below. Ease starts at 250% with a minimum of 130%; Again −20, Hard −15, Good +5 up to the starting ease, Easy +15 percentage points | Decided |
 | Interval after a lapse | A configurable share of the previous interval (default 0%), at least the minimum interval | Decided |
 | Leeches | A lapse that reaches the leech threshold, or every half of it after (8, 12, 16, …), adds a root `leech` tag to the card's note; the card keeps being scheduled. The threshold is per preset and can be disabled | Decided |
+| Unreplayable events | Replayed with the card's current preset and scheduler, with a warning; removing them later uses undo events, so history stays append-only | Decided |
 | Fuzz | Review intervals of 3d or more are spread within a range that narrows to about ±5% for long intervals, seeded by the card and its review count so replay reproduces it | Decided |
 | Burned state | Cards whose next interval reaches a configurable threshold are burned and leave normal scheduling | Decided |
 | Burn threshold | Per preset, can be disabled; default 1 year | Decided |

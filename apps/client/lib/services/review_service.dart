@@ -1,6 +1,5 @@
 import '../domain/ids.dart';
 import '../domain/note.dart' show Tag;
-import '../domain/preset.dart';
 import '../domain/review.dart';
 import '../scheduler/scheduler_registry.dart';
 import '../scheduler/scheduling_engine.dart';
@@ -20,19 +19,6 @@ typedef DeviceNow = ({DateTime at, Duration utcOffset}) Function();
   final now = DateTime.now();
   return (at: now.toUtc(), utcOffset: now.timeZoneOffset);
 }
-
-/// The engine settings of a preset version in a collection whose study day
-/// starts at [dayStart].
-SchedulingSettings schedulingSettings(
-  PresetVersion version,
-  Duration dayStart,
-) => SchedulingSettings(
-  schedulerId: version.schedulerId,
-  schedulerConfig: version.schedulerConfig,
-  burnThreshold: version.burnThreshold,
-  leechThreshold: version.leechThreshold,
-  dayStart: dayStart,
-);
 
 /// Records reviews. A review appends a complete event to the card's history,
 /// updates its scheduling state, and tags its note when the card becomes a
@@ -77,7 +63,10 @@ class ReviewService {
     }
     final preset = await _presets.effectivePreset(card.deckId);
     final collection = (await _collections.collection(preset.collectionId))!;
-    final settings = schedulingSettings(preset.version, collection.dayStart);
+    final settings = SchedulingSettings.fromPreset(
+      preset.version,
+      dayStart: collection.dayStart,
+    );
     final before =
         await _cards.schedulingState(cardId) ?? _engine.initial(cardId);
     final scheduler = _schedulers.latest(settings.schedulerId);
