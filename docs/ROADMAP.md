@@ -131,11 +131,11 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Scheduling state | Materialized cache, rebuildable by replaying review events | Decided |
 | Undo | Compensating event; original event is kept | Decided |
 | Media addressing | Content-addressed by hash | Decided |
-| Database access library | Drift | Proposed |
+| Database access library | Drift | Decided |
 | Collection/deck model | Several collections per user, each with decks | Decided |
 | Note type scope | Per collection; reuse elsewhere by copying | Decided |
 | Deck nesting | Nested; each deck has an optional parent deck in the same collection | Decided |
-| Browser storage feasibility | Spike: same schema on Drift + SQLite WASM (OPFS/IndexedDB), including a dictionary-sized index | To verify |
+| Browser storage feasibility | Viable on OPFS; IndexedDB as fallback. See [spike results](spikes/browser-storage.md) | Verified |
 
 ### Acceptance Criteria
 
@@ -375,8 +375,8 @@ Dictionary licences, including source-specific terms such as EDRDG's, are review
 | Decision | Direction | Status |
 |---|---|---|
 | Primary Japanese dictionary | JMdict or Jitendex | Open |
-| CJK search indexing | FTS5 trigram, custom tokenizer, or dedicated index | Open |
-| Dictionary package format | Versioned, with licence and attribution metadata | Open |
+| CJK search indexing | FTS5 trigram, custom tokenizer, or dedicated index. Trigram covers three or more characters; shorter substrings need a fallback | Open |
+| Dictionary package format | Prebuilt SQLite database, versioned, with licence and attribution metadata | Proposed |
 | EDRDG licence conditions | Reviewed before redistribution | To verify |
 
 ### Acceptance Criteria
@@ -748,7 +748,7 @@ The trial covers:
 - Web-compatible media storage.
 - Dictionary package imports.
 - File import/export through browser APIs.
-- Storage quota and eviction handling.
+- Storage quota and eviction handling, including a persistent storage request.
 - Explicit handling of private-browsing limitations.
 - Browser navigation and keyboard shortcuts.
 - Responsive desktop and mobile-browser layouts.
@@ -760,7 +760,10 @@ The trial covers:
 
 | Decision | Direction | Status |
 |---|---|---|
-| Browser persistence | Follows the Phase 1 browser storage spike | Pending Phase 1 |
+| Browser persistence | Drift on OPFS; IndexedDB fallback with a warning; persistent storage requested | Decided |
+| Cross-origin isolation | COOP/COEP headers (D25); `COEP: credentialless` evaluated for cross-origin media | Decided |
+| Sign-in flow | Redirect-based, since `COOP: same-origin` breaks popups | Proposed |
+| Safari storage behaviour | Not covered by the Phase 1 spike, including seven-day eviction | To verify |
 | Supported browsers | — | Open |
 
 ### Acceptance Criteria
