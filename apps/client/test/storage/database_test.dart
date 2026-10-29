@@ -377,6 +377,21 @@ void main() {
 
     tearDown(() => dir.delete(recursive: true));
 
+    test('exceptions describe the versions involved', () {
+      expect(
+        const DatabaseTooNewException(found: 3, supported: 2).toString(),
+        contains('v3 is newer than the supported v2'),
+      );
+      expect(
+        DatabaseMigrationException(
+          from: 1,
+          to: 2,
+          cause: StateError('boom'),
+        ).toString(),
+        allOf(contains('from v1 to v2'), contains('boom')),
+      );
+    });
+
     test('refuses a database from a newer schema', () async {
       final newer = _NextVersionDatabase(NativeDatabase(file), (_) async {});
       await newer.customSelect('SELECT 1').get();
