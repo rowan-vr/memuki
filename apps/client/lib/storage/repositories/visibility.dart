@@ -3,7 +3,9 @@ import 'package:drift/drift.dart';
 import '../database.dart';
 
 /// Checks against the views in `views.drift`, which decide whether a row is
-/// visible from its own tombstone and those of its parents.
+/// visible from its own tombstone and those of its parents. Each check is a
+/// correlated `EXISTS`, so SQLite looks up the one row instead of building
+/// the whole view.
 extension Visibility on MemukiDatabase {
   Expression<bool> isVisibleCollection(Expression<Uint8List> id) =>
       _isIn(id, visibleCollections, visibleCollections.id);
@@ -33,5 +35,9 @@ extension Visibility on MemukiDatabase {
     Expression<Uint8List> id,
     ResultSetImplementation<V, R> view,
     Expression<Uint8List> column,
-  ) => id.isInQuery(selectOnly<V, R>(view)..addColumns([column]));
+  ) => existsQuery(
+    selectOnly<V, R>(view)
+      ..addColumns([column])
+      ..where(column.equalsExp(id)),
+  );
 }

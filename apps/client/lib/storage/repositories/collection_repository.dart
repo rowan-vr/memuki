@@ -92,8 +92,9 @@ class CollectionRepository {
   Stream<List<Deck>> watchDecks(CollectionId collectionId) =>
       _decksQuery(collectionId).map(_deck).watch();
 
-  /// The IDs of [id] and all decks below it.
-  Future<Set<DeckId>> deckSubtree(DeckId id) => _deckTree.subtree(id);
+  /// The IDs of [id] and all decks below it; empty if [id] is not visible.
+  Future<Set<DeckId>> deckSubtree(DeckId id) async =>
+      await _deckRow(id) == null ? const {} : _deckTree.subtree(id);
 
   Future<void> createDeck(Deck deck) => _changes.write((hlc) async {
     if (await collection(deck.collectionId) == null) {

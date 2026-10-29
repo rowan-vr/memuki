@@ -179,7 +179,7 @@ final class Schema2 extends i0.VersionedSchema {
   late final Shape1 visibleNoteTypes = Shape1(
     source: i0.VersionedView(
       entityName: 'visible_note_types',
-      createViewStmt: 'CREATE VIEW visible_note_types AS SELECT id FROM note_types WHERE deleted = 0 AND collection_id IN (SELECT id FROM visible_collections);',
+      createViewStmt: 'CREATE VIEW visible_note_types AS SELECT t.id FROM note_types AS t WHERE t.deleted = 0 AND EXISTS (SELECT 1 FROM visible_collections AS c WHERE c.id = t.collection_id);',
       columns: [_column_4],
       attachedDatabase: database,
     ),
@@ -207,7 +207,7 @@ final class Schema2 extends i0.VersionedSchema {
   late final Shape1 visibleFieldDefinitions = Shape1(
     source: i0.VersionedView(
       entityName: 'visible_field_definitions',
-      createViewStmt: 'CREATE VIEW visible_field_definitions AS SELECT id FROM field_definitions WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types);',
+      createViewStmt: 'CREATE VIEW visible_field_definitions AS SELECT f.id FROM field_definitions AS f WHERE f.deleted = 0 AND EXISTS (SELECT 1 FROM visible_note_types AS t WHERE t.id = f.note_type_id);',
       columns: [_column_4],
       attachedDatabase: database,
     ),
@@ -234,7 +234,7 @@ final class Schema2 extends i0.VersionedSchema {
   late final Shape1 visibleStudyCardTemplates = Shape1(
     source: i0.VersionedView(
       entityName: 'visible_study_card_templates',
-      createViewStmt: 'CREATE VIEW visible_study_card_templates AS SELECT id FROM study_card_templates WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types);',
+      createViewStmt: 'CREATE VIEW visible_study_card_templates AS SELECT s.id FROM study_card_templates AS s WHERE s.deleted = 0 AND EXISTS (SELECT 1 FROM visible_note_types AS t WHERE t.id = s.note_type_id);',
       columns: [_column_4],
       attachedDatabase: database,
     ),
@@ -288,11 +288,11 @@ final class Schema2 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape1 visibleStudyCards = Shape1(
+  late final Shape8 visibleStudyCards = Shape8(
     source: i0.VersionedView(
       entityName: 'visible_study_cards',
-      createViewStmt: 'CREATE VIEW visible_study_cards AS SELECT id FROM study_cards WHERE deleted = 0 AND note_id IN (SELECT id FROM notes WHERE deleted = 0) AND deck_id IN (SELECT id FROM visible_decks) AND template_id IN (SELECT id FROM visible_study_card_templates);',
-      columns: [_column_4],
+      createViewStmt: 'CREATE VIEW visible_study_cards AS SELECT c.id, c.note_id FROM study_cards AS c WHERE c.deleted = 0 AND EXISTS (SELECT 1 FROM notes AS n WHERE n.id = c.note_id AND n.deleted = 0) AND EXISTS (SELECT 1 FROM visible_study_card_templates AS s WHERE s.id = c.template_id) AND EXISTS (SELECT 1 FROM visible_decks AS d WHERE d.id = c.deck_id);',
+      columns: [_column_4, _column_16],
       attachedDatabase: database,
     ),
     alias: null,
@@ -300,33 +300,33 @@ final class Schema2 extends i0.VersionedSchema {
   late final Shape1 visibleNotes = Shape1(
     source: i0.VersionedView(
       entityName: 'visible_notes',
-      createViewStmt: 'CREATE VIEW visible_notes AS SELECT id FROM notes WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types) AND(id IN (SELECT note_id FROM study_cards WHERE id IN (SELECT id FROM visible_study_cards)) OR id NOT IN (SELECT note_id FROM study_cards));',
+      createViewStmt: 'CREATE VIEW visible_notes AS SELECT n.id FROM notes AS n WHERE n.deleted = 0 AND EXISTS (SELECT 1 FROM visible_note_types AS t WHERE t.id = n.note_type_id) AND(EXISTS (SELECT 1 FROM visible_study_cards AS c WHERE c.note_id = n.id) OR NOT EXISTS (SELECT 1 FROM study_cards AS c WHERE c.note_id = n.id));',
       columns: [_column_4],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  late final Shape8 noteFields = Shape8(
+  late final Shape9 noteFields = Shape9(
     source: i0.VersionedTable(
       entityName: 'note_fields',
       withoutRowId: false,
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(note_id, field_id)'],
-      columns: [_column_0, _column_1, _column_16, _column_17, _column_18],
+      columns: [_column_0, _column_1, _column_17, _column_18, _column_19],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  late final Shape9 visibleNoteFields = Shape9(
+  late final Shape10 visibleNoteFields = Shape10(
     source: i0.VersionedView(
       entityName: 'visible_note_fields',
-      createViewStmt: 'CREATE VIEW visible_note_fields AS SELECT note_id, field_id, value FROM note_fields WHERE deleted = 0 AND note_id IN (SELECT id FROM visible_notes) AND field_id IN (SELECT id FROM visible_field_definitions);',
-      columns: [_column_19, _column_20, _column_21],
+      createViewStmt: 'CREATE VIEW visible_note_fields AS SELECT v.note_id, v.field_id, v.value FROM note_fields AS v WHERE v.deleted = 0 AND EXISTS (SELECT 1 FROM visible_notes AS n WHERE n.id = v.note_id) AND EXISTS (SELECT 1 FROM visible_field_definitions AS f WHERE f.id = v.field_id);',
+      columns: [_column_16, _column_20, _column_21],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  late final Shape10 noteTags = Shape10(
+  late final Shape11 noteTags = Shape11(
     source: i0.VersionedTable(
       entityName: 'note_tags',
       withoutRowId: false,
@@ -341,16 +341,16 @@ final class Schema2 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape11 visibleNoteTags = Shape11(
+  late final Shape12 visibleNoteTags = Shape12(
     source: i0.VersionedView(
       entityName: 'visible_note_tags',
-      createViewStmt: 'CREATE VIEW visible_note_tags AS SELECT note_id, tag_id FROM note_tags WHERE deleted = 0 AND note_id IN (SELECT id FROM visible_notes) AND tag_id IN (SELECT id FROM visible_tags);',
-      columns: [_column_19, _column_23],
+      createViewStmt: 'CREATE VIEW visible_note_tags AS SELECT l.note_id, l.tag_id FROM note_tags AS l WHERE l.deleted = 0 AND EXISTS (SELECT 1 FROM visible_notes AS n WHERE n.id = l.note_id) AND EXISTS (SELECT 1 FROM visible_tags AS t WHERE t.id = l.tag_id);',
+      columns: [_column_16, _column_23],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  late final Shape12 device = Shape12(
+  late final Shape13 device = Shape13(
     source: i0.VersionedTable(
       entityName: 'device',
       withoutRowId: false,
@@ -361,7 +361,7 @@ final class Schema2 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape13 outbox = Shape13(
+  late final Shape14 outbox = Shape14(
     source: i0.VersionedTable(
       entityName: 'outbox',
       withoutRowId: false,
@@ -388,7 +388,7 @@ final class Schema2 extends i0.VersionedSchema {
     'study_cards_hlc',
     'CREATE INDEX study_cards_hlc ON study_cards (hlc)',
   );
-  late final Shape14 reviewEvents = Shape14(
+  late final Shape15 reviewEvents = Shape15(
     source: i0.VersionedTable(
       entityName: 'review_events',
       withoutRowId: false,
@@ -413,7 +413,7 @@ final class Schema2 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape15 schedulingStates = Shape15(
+  late final Shape16 schedulingStates = Shape16(
     source: i0.VersionedTable(
       entityName: 'scheduling_states',
       withoutRowId: false,
@@ -506,7 +506,7 @@ final class Schema2 extends i0.VersionedSchema {
     'note_tags_hlc',
     'CREATE INDEX note_tags_hlc ON note_tags (hlc)',
   );
-  late final Shape16 mediaAssets = Shape16(
+  late final Shape17 mediaAssets = Shape17(
     source: i0.VersionedTable(
       entityName: 'media_assets',
       withoutRowId: false,
@@ -871,8 +871,24 @@ i1.GeneratedColumn<i2.Uint8List> _column_15(String aliasedName) =>
       $customConstraints: 'NOT NULL',
     );
 
-class Shape8 extends i0.VersionedTable {
+class Shape8 extends i0.VersionedView {
   Shape8({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<i2.Uint8List> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get noteId =>
+      columnsByName['note_id']! as i1.GeneratedColumn<i2.Uint8List>;
+}
+
+i1.GeneratedColumn<i2.Uint8List> _column_16(String aliasedName) =>
+    i1.GeneratedColumn<i2.Uint8List>(
+      'note_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.blob,
+    );
+
+class Shape9 extends i0.VersionedTable {
+  Shape9({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get hlc =>
       columnsByName['hlc']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get deleted =>
@@ -885,7 +901,7 @@ class Shape8 extends i0.VersionedTable {
       columnsByName['value']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<i2.Uint8List> _column_16(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_17(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'note_id',
       aliasedName,
@@ -893,7 +909,7 @@ i1.GeneratedColumn<i2.Uint8List> _column_16(String aliasedName) =>
       type: i1.DriftSqlType.blob,
       $customConstraints: 'NOT NULL REFERENCES notes(id)ON DELETE CASCADE',
     );
-i1.GeneratedColumn<i2.Uint8List> _column_17(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_18(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'field_id',
       aliasedName,
@@ -902,7 +918,7 @@ i1.GeneratedColumn<i2.Uint8List> _column_17(String aliasedName) =>
       $customConstraints:
           'NOT NULL REFERENCES field_definitions(id)ON DELETE CASCADE',
     );
-i1.GeneratedColumn<String> _column_18(String aliasedName) =>
+i1.GeneratedColumn<String> _column_19(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'value',
       aliasedName,
@@ -911,8 +927,8 @@ i1.GeneratedColumn<String> _column_18(String aliasedName) =>
       $customConstraints: 'NOT NULL',
     );
 
-class Shape9 extends i0.VersionedView {
-  Shape9({required super.source, required super.alias}) : super.aliased();
+class Shape10 extends i0.VersionedView {
+  Shape10({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<i2.Uint8List> get noteId =>
       columnsByName['note_id']! as i1.GeneratedColumn<i2.Uint8List>;
   i1.GeneratedColumn<i2.Uint8List> get fieldId =>
@@ -921,13 +937,6 @@ class Shape9 extends i0.VersionedView {
       columnsByName['value']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<i2.Uint8List> _column_19(String aliasedName) =>
-    i1.GeneratedColumn<i2.Uint8List>(
-      'note_id',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.blob,
-    );
 i1.GeneratedColumn<i2.Uint8List> _column_20(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'field_id',
@@ -943,8 +952,8 @@ i1.GeneratedColumn<String> _column_21(String aliasedName) =>
       type: i1.DriftSqlType.string,
     );
 
-class Shape10 extends i0.VersionedTable {
-  Shape10({required super.source, required super.alias}) : super.aliased();
+class Shape11 extends i0.VersionedTable {
+  Shape11({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get hlc =>
       columnsByName['hlc']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get deleted =>
@@ -966,8 +975,8 @@ i1.GeneratedColumn<i2.Uint8List> _column_22(String aliasedName) =>
       $customConstraints: 'NOT NULL',
     );
 
-class Shape11 extends i0.VersionedView {
-  Shape11({required super.source, required super.alias}) : super.aliased();
+class Shape12 extends i0.VersionedView {
+  Shape12({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<i2.Uint8List> get noteId =>
       columnsByName['note_id']! as i1.GeneratedColumn<i2.Uint8List>;
   i1.GeneratedColumn<i2.Uint8List> get tagId =>
@@ -982,8 +991,8 @@ i1.GeneratedColumn<i2.Uint8List> _column_23(String aliasedName) =>
       type: i1.DriftSqlType.blob,
     );
 
-class Shape12 extends i0.VersionedTable {
-  Shape12({required super.source, required super.alias}) : super.aliased();
+class Shape13 extends i0.VersionedTable {
+  Shape13({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<int> get id =>
       columnsByName['id']! as i1.GeneratedColumn<int>;
   i1.GeneratedColumn<String> get node =>
@@ -1017,8 +1026,8 @@ i1.GeneratedColumn<String> _column_26(String aliasedName) =>
       $customConstraints: 'NULL',
     );
 
-class Shape13 extends i0.VersionedTable {
-  Shape13({required super.source, required super.alias}) : super.aliased();
+class Shape14 extends i0.VersionedTable {
+  Shape14({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<i2.Uint8List> get collectionId =>
       columnsByName['collection_id']! as i1.GeneratedColumn<i2.Uint8List>;
   i1.GeneratedColumn<String> get entityTable =>
@@ -1054,8 +1063,8 @@ i1.GeneratedColumn<i2.Uint8List> _column_29(String aliasedName) =>
       $customConstraints: 'NOT NULL',
     );
 
-class Shape14 extends i0.VersionedTable {
-  Shape14({required super.source, required super.alias}) : super.aliased();
+class Shape15 extends i0.VersionedTable {
+  Shape15({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<i2.Uint8List> get id =>
       columnsByName['id']! as i1.GeneratedColumn<i2.Uint8List>;
   i1.GeneratedColumn<i2.Uint8List> get studyCardId =>
@@ -1173,8 +1182,8 @@ i1.GeneratedColumn<int> _column_40(String aliasedName) =>
       $customConstraints: 'NOT NULL',
     );
 
-class Shape15 extends i0.VersionedTable {
-  Shape15({required super.source, required super.alias}) : super.aliased();
+class Shape16 extends i0.VersionedTable {
+  Shape16({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<i2.Uint8List> get studyCardId =>
       columnsByName['study_card_id']! as i1.GeneratedColumn<i2.Uint8List>;
   i1.GeneratedColumn<String> get state =>
@@ -1269,8 +1278,8 @@ i1.GeneratedColumn<i2.Uint8List> _column_49(String aliasedName) =>
       $customConstraints: 'NULL REFERENCES review_events(id)',
     );
 
-class Shape16 extends i0.VersionedTable {
-  Shape16({required super.source, required super.alias}) : super.aliased();
+class Shape17 extends i0.VersionedTable {
+  Shape17({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get hlc =>
       columnsByName['hlc']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get deleted =>

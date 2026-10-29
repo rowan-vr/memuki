@@ -93,6 +93,7 @@ void main() {
       expect(await repos.cards.card(card.id), isNull);
       expect(await repos.notes.note(note.id), isNull);
       expect(await outboxCounts(), {'decks': 1});
+      expect(await repos.collections.deckSubtree(child.id), isEmpty);
       final decks = await db.select(db.decks).get();
       expect(decks.where((d) => d.deleted).single.id, japanese.deck.id);
       expect((await db.select(db.studyCards).getSingle()).deleted, isFalse);
@@ -150,6 +151,7 @@ void main() {
 
     expect(await outboxCounts(), {'tags': 1});
     expect(await repos.tags.tags(japanese.id), isEmpty);
+    expect(await repos.tags.tagSubtree(cats.id), isEmpty);
     expect(await repos.notes.tagIds(note.id), isEmpty);
   });
 

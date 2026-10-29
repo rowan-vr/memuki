@@ -1604,7 +1604,7 @@ class VisibleNoteTypes extends ViewInfo<VisibleNoteTypes, VisibleNoteType>
   String get entityName => 'visible_note_types';
   @override
   Map<SqlDialect, String> get createViewStatements => {
-    SqlDialect.sqlite: 'CREATE VIEW visible_note_types AS SELECT id FROM note_types WHERE deleted = 0 AND collection_id IN (SELECT id FROM visible_collections)',
+    SqlDialect.sqlite: 'CREATE VIEW visible_note_types AS SELECT t.id FROM note_types AS t WHERE t.deleted = 0 AND EXISTS (SELECT 1 FROM visible_collections AS c WHERE c.id = t.collection_id)',
   };
   @override
   VisibleNoteTypes get asDslTable => this;
@@ -2080,7 +2080,7 @@ class VisibleFieldDefinitions
   String get entityName => 'visible_field_definitions';
   @override
   Map<SqlDialect, String> get createViewStatements => {
-    SqlDialect.sqlite: 'CREATE VIEW visible_field_definitions AS SELECT id FROM field_definitions WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types)',
+    SqlDialect.sqlite: 'CREATE VIEW visible_field_definitions AS SELECT f.id FROM field_definitions AS f WHERE f.deleted = 0 AND EXISTS (SELECT 1 FROM visible_note_types AS t WHERE t.id = f.note_type_id)',
   };
   @override
   VisibleFieldDefinitions get asDslTable => this;
@@ -2524,7 +2524,7 @@ class VisibleStudyCardTemplates
   String get entityName => 'visible_study_card_templates';
   @override
   Map<SqlDialect, String> get createViewStatements => {
-    SqlDialect.sqlite: 'CREATE VIEW visible_study_card_templates AS SELECT id FROM study_card_templates WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types)',
+    SqlDialect.sqlite: 'CREATE VIEW visible_study_card_templates AS SELECT s.id FROM study_card_templates AS s WHERE s.deleted = 0 AND EXISTS (SELECT 1 FROM visible_note_types AS t WHERE t.id = s.note_type_id)',
   };
   @override
   VisibleStudyCardTemplates get asDslTable => this;
@@ -3381,37 +3381,47 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardsData> {
 
 class VisibleStudyCard extends DataClass {
   final i2.Uint8List id;
-  const VisibleStudyCard({required this.id});
+  final i2.Uint8List noteId;
+  const VisibleStudyCard({required this.id, required this.noteId});
   factory VisibleStudyCard.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return VisibleStudyCard(id: serializer.fromJson<i2.Uint8List>(json['id']));
+    return VisibleStudyCard(
+      id: serializer.fromJson<i2.Uint8List>(json['id']),
+      noteId: serializer.fromJson<i2.Uint8List>(json['noteId']),
+    );
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{'id': serializer.toJson<i2.Uint8List>(id)};
+    return <String, dynamic>{
+      'id': serializer.toJson<i2.Uint8List>(id),
+      'noteId': serializer.toJson<i2.Uint8List>(noteId),
+    };
   }
 
-  VisibleStudyCard copyWith({i2.Uint8List? id}) =>
-      VisibleStudyCard(id: id ?? this.id);
+  VisibleStudyCard copyWith({i2.Uint8List? id, i2.Uint8List? noteId}) =>
+      VisibleStudyCard(id: id ?? this.id, noteId: noteId ?? this.noteId);
   @override
   String toString() {
     return (StringBuffer('VisibleStudyCard(')
-          ..write('id: $id')
+          ..write('id: $id, ')
+          ..write('noteId: $noteId')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => $driftBlobEquality.hash(id);
+  int get hashCode =>
+      Object.hash($driftBlobEquality.hash(id), $driftBlobEquality.hash(noteId));
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is VisibleStudyCard &&
-          $driftBlobEquality.equals(other.id, this.id));
+          $driftBlobEquality.equals(other.id, this.id) &&
+          $driftBlobEquality.equals(other.noteId, this.noteId));
 }
 
 class VisibleStudyCards extends ViewInfo<VisibleStudyCards, VisibleStudyCard>
@@ -3421,14 +3431,14 @@ class VisibleStudyCards extends ViewInfo<VisibleStudyCards, VisibleStudyCard>
   final DatabaseAtV2 attachedDatabase;
   VisibleStudyCards(this.attachedDatabase, [this._alias]);
   @override
-  List<GeneratedColumn> get $columns => [id];
+  List<GeneratedColumn> get $columns => [id, noteId];
   @override
   String get aliasedName => _alias ?? entityName;
   @override
   String get entityName => 'visible_study_cards';
   @override
   Map<SqlDialect, String> get createViewStatements => {
-    SqlDialect.sqlite: 'CREATE VIEW visible_study_cards AS SELECT id FROM study_cards WHERE deleted = 0 AND note_id IN (SELECT id FROM notes WHERE deleted = 0) AND deck_id IN (SELECT id FROM visible_decks) AND template_id IN (SELECT id FROM visible_study_card_templates)',
+    SqlDialect.sqlite: 'CREATE VIEW visible_study_cards AS SELECT c.id, c.note_id FROM study_cards AS c WHERE c.deleted = 0 AND EXISTS (SELECT 1 FROM notes AS n WHERE n.id = c.note_id AND n.deleted = 0) AND EXISTS (SELECT 1 FROM visible_study_card_templates AS s WHERE s.id = c.template_id) AND EXISTS (SELECT 1 FROM visible_decks AS d WHERE d.id = c.deck_id)',
   };
   @override
   VisibleStudyCards get asDslTable => this;
@@ -3440,6 +3450,10 @@ class VisibleStudyCards extends ViewInfo<VisibleStudyCards, VisibleStudyCard>
         DriftSqlType.blob,
         data['${effectivePrefix}id'],
       )!,
+      noteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}note_id'],
+      )!,
     );
   }
 
@@ -3449,6 +3463,13 @@ class VisibleStudyCards extends ViewInfo<VisibleStudyCards, VisibleStudyCard>
     false,
     type: DriftSqlType.blob,
   );
+  late final GeneratedColumn<i2.Uint8List> noteId =
+      GeneratedColumn<i2.Uint8List>(
+        'note_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      );
   @override
   VisibleStudyCards createAlias(String alias) {
     return VisibleStudyCards(attachedDatabase, alias);
@@ -3460,10 +3481,10 @@ class VisibleStudyCards extends ViewInfo<VisibleStudyCards, VisibleStudyCard>
   Set<String> get readTables => const {
     'study_cards',
     'notes',
+    'decks',
+    'collections',
     'study_card_templates',
     'note_types',
-    'collections',
-    'decks',
   };
 }
 
@@ -3514,7 +3535,7 @@ class VisibleNotes extends ViewInfo<VisibleNotes, VisibleNote>
   String get entityName => 'visible_notes';
   @override
   Map<SqlDialect, String> get createViewStatements => {
-    SqlDialect.sqlite: 'CREATE VIEW visible_notes AS SELECT id FROM notes WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types) AND(id IN (SELECT note_id FROM study_cards WHERE id IN (SELECT id FROM visible_study_cards)) OR id NOT IN (SELECT note_id FROM study_cards))',
+    SqlDialect.sqlite: 'CREATE VIEW visible_notes AS SELECT n.id FROM notes AS n WHERE n.deleted = 0 AND EXISTS (SELECT 1 FROM visible_note_types AS t WHERE t.id = n.note_type_id) AND(EXISTS (SELECT 1 FROM visible_study_cards AS c WHERE c.note_id = n.id) OR NOT EXISTS (SELECT 1 FROM study_cards AS c WHERE c.note_id = n.id))',
   };
   @override
   VisibleNotes get asDslTable => this;
@@ -3546,10 +3567,10 @@ class VisibleNotes extends ViewInfo<VisibleNotes, VisibleNote>
   Set<String> get readTables => const {
     'notes',
     'study_cards',
-    'study_card_templates',
-    'note_types',
     'collections',
+    'study_card_templates',
     'decks',
+    'note_types',
   };
 }
 
@@ -3942,7 +3963,7 @@ class VisibleNoteFields extends ViewInfo<VisibleNoteFields, VisibleNoteField>
   String get entityName => 'visible_note_fields';
   @override
   Map<SqlDialect, String> get createViewStatements => {
-    SqlDialect.sqlite: 'CREATE VIEW visible_note_fields AS SELECT note_id, field_id, value FROM note_fields WHERE deleted = 0 AND note_id IN (SELECT id FROM visible_notes) AND field_id IN (SELECT id FROM visible_field_definitions)',
+    SqlDialect.sqlite: 'CREATE VIEW visible_note_fields AS SELECT v.note_id, v.field_id, v.value FROM note_fields AS v WHERE v.deleted = 0 AND EXISTS (SELECT 1 FROM visible_notes AS n WHERE n.id = v.note_id) AND EXISTS (SELECT 1 FROM visible_field_definitions AS f WHERE f.id = v.field_id)',
   };
   @override
   VisibleNoteFields get asDslTable => this;
@@ -4387,7 +4408,7 @@ class VisibleNoteTags extends ViewInfo<VisibleNoteTags, VisibleNoteTag>
   String get entityName => 'visible_note_tags';
   @override
   Map<SqlDialect, String> get createViewStatements => {
-    SqlDialect.sqlite: 'CREATE VIEW visible_note_tags AS SELECT note_id, tag_id FROM note_tags WHERE deleted = 0 AND note_id IN (SELECT id FROM visible_notes) AND tag_id IN (SELECT id FROM visible_tags)',
+    SqlDialect.sqlite: 'CREATE VIEW visible_note_tags AS SELECT l.note_id, l.tag_id FROM note_tags AS l WHERE l.deleted = 0 AND EXISTS (SELECT 1 FROM visible_notes AS n WHERE n.id = l.note_id) AND EXISTS (SELECT 1 FROM visible_tags AS t WHERE t.id = l.tag_id)',
   };
   @override
   VisibleNoteTags get asDslTable => this;
@@ -4435,8 +4456,8 @@ class VisibleNoteTags extends ViewInfo<VisibleNoteTags, VisibleNoteTag>
     'notes',
     'study_cards',
     'study_card_templates',
-    'note_types',
     'decks',
+    'note_types',
   };
 }
 

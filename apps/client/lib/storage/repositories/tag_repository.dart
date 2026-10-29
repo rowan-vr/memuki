@@ -33,8 +33,9 @@ class TagRepository {
   Stream<List<Tag>> watchTags(CollectionId collectionId) =>
       _tagsQuery(collectionId).map(_tag).watch();
 
-  /// The IDs of [id] and all tags below it.
-  Future<Set<TagId>> tagSubtree(TagId id) => _tagTree.subtree(id);
+  /// The IDs of [id] and all tags below it; empty if [id] is not visible.
+  Future<Set<TagId>> tagSubtree(TagId id) async =>
+      await _tagRow(id) == null ? const {} : _tagTree.subtree(id);
 
   /// Creates a tag. Its name must be unique among its siblings, ignoring
   /// case.
