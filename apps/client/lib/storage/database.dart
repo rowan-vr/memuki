@@ -13,7 +13,7 @@ import '../domain/note_type.dart' show FieldType;
 import '../domain/review.dart' show Grade, ReviewEventKind, StudyCardState;
 import 'converters.dart';
 import 'database_exceptions.dart';
-import 'tables.dart';
+import 'tables/tables.dart';
 
 part 'database.g.dart';
 

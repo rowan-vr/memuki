@@ -638,137 +638,6 @@ class MediaAssets extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
-class FieldDefinitions extends Table with TableInfo {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  FieldDefinitions(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<i2.Uint8List> noteTypeId =
-      GeneratedColumn<i2.Uint8List>(
-        'note_type_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints:
-            'NOT NULL REFERENCES note_types(id)ON DELETE CASCADE',
-      );
-  late final GeneratedColumn<int> position = GeneratedColumn<int>(
-    'position',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> type = GeneratedColumn<String>(
-    'type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  @override
-  List<GeneratedColumn> get $columns => [id, noteTypeId, position, name, type];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'field_definitions';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
-  }
-
-  @override
-  FieldDefinitions createAlias(String alias) {
-    return FieldDefinitions(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class NoteFields extends Table with TableInfo {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  NoteFields(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<i2.Uint8List> noteId =
-      GeneratedColumn<i2.Uint8List>(
-        'note_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL REFERENCES notes(id)ON DELETE CASCADE',
-      );
-  late final GeneratedColumn<i2.Uint8List> fieldId =
-      GeneratedColumn<i2.Uint8List>(
-        'field_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints:
-            'NOT NULL REFERENCES field_definitions(id)ON DELETE CASCADE',
-      );
-  late final GeneratedColumn<String> value = GeneratedColumn<String>(
-    'value',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  @override
-  List<GeneratedColumn> get $columns => [noteId, fieldId, value];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'note_fields';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {noteId, fieldId};
-  @override
-  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
-    throw UnsupportedError('TableInfo.map in schema verification code');
-  }
-
-  @override
-  NoteFields createAlias(String alias) {
-    return NoteFields(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const [
-    'PRIMARY KEY(note_id, field_id)',
-  ];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
 class ReviewEvents extends Table with TableInfo {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1025,6 +894,137 @@ class SchedulingStates extends Table with TableInfo {
   bool get dontWriteConstraints => true;
 }
 
+class FieldDefinitions extends Table with TableInfo {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  FieldDefinitions(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<i2.Uint8List> noteTypeId =
+      GeneratedColumn<i2.Uint8List>(
+        'note_type_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL REFERENCES note_types(id)ON DELETE CASCADE',
+      );
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, noteTypeId, position, name, type];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_definitions';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
+    throw UnsupportedError('TableInfo.map in schema verification code');
+  }
+
+  @override
+  FieldDefinitions createAlias(String alias) {
+    return FieldDefinitions(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class NoteFields extends Table with TableInfo {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  NoteFields(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<i2.Uint8List> noteId =
+      GeneratedColumn<i2.Uint8List>(
+        'note_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL REFERENCES notes(id)ON DELETE CASCADE',
+      );
+  late final GeneratedColumn<i2.Uint8List> fieldId =
+      GeneratedColumn<i2.Uint8List>(
+        'field_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL REFERENCES field_definitions(id)ON DELETE CASCADE',
+      );
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [noteId, fieldId, value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'note_fields';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {noteId, fieldId};
+  @override
+  Never map(Map<String, dynamic> data, {String? tablePrefix}) {
+    throw UnsupportedError('TableInfo.map in schema verification code');
+  }
+
+  @override
+  NoteFields createAlias(String alias) {
+    return NoteFields(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(note_id, field_id)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
 class DatabaseAtV1 extends GeneratedDatabase {
   DatabaseAtV1(QueryExecutor e) : super(e);
   late final Collections collections = Collections(this);
@@ -1064,18 +1064,29 @@ class DatabaseAtV1 extends GeneratedDatabase {
     'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
     'media_assets_collection_immutable',
   );
-  late final FieldDefinitions fieldDefinitions = FieldDefinitions(this);
-  late final NoteFields noteFields = NoteFields(this);
+  late final Index studyCardsDeck = Index(
+    'study_cards_deck',
+    'CREATE INDEX study_cards_deck ON study_cards (collection_id, deck_id)',
+  );
+  late final Index studyCardsTemplate = Index(
+    'study_cards_template',
+    'CREATE INDEX study_cards_template ON study_cards (template_id)',
+  );
   late final ReviewEvents reviewEvents = ReviewEvents(this);
   late final SchedulingStates schedulingStates = SchedulingStates(this);
-  late final Index decksParent = Index(
-    'decks_parent',
-    'CREATE INDEX decks_parent ON decks (collection_id, parent_id)',
+  late final Index reviewEventsCard = Index(
+    'review_events_card',
+    'CREATE INDEX review_events_card ON review_events (study_card_id, at)',
   );
-  late final Index tagsParent = Index(
-    'tags_parent',
-    'CREATE INDEX tags_parent ON tags (collection_id, parent_id)',
+  late final Index reviewEventsAt = Index(
+    'review_events_at',
+    'CREATE INDEX review_events_at ON review_events (at)',
   );
+  late final Index schedulingStatesDue = Index(
+    'scheduling_states_due',
+    'CREATE INDEX scheduling_states_due ON scheduling_states (state, due)',
+  );
+  late final FieldDefinitions fieldDefinitions = FieldDefinitions(this);
   late final Index noteTypesCollection = Index(
     'note_types_collection',
     'CREATE INDEX note_types_collection ON note_types (collection_id)',
@@ -1088,6 +1099,7 @@ class DatabaseAtV1 extends GeneratedDatabase {
     'study_card_templates_note_type',
     'CREATE INDEX study_card_templates_note_type ON study_card_templates (note_type_id)',
   );
+  late final NoteFields noteFields = NoteFields(this);
   late final Index notesNoteType = Index(
     'notes_note_type',
     'CREATE INDEX notes_note_type ON notes (collection_id, note_type_id)',
@@ -1096,29 +1108,17 @@ class DatabaseAtV1 extends GeneratedDatabase {
     'note_fields_field',
     'CREATE INDEX note_fields_field ON note_fields (field_id)',
   );
+  late final Index tagsParent = Index(
+    'tags_parent',
+    'CREATE INDEX tags_parent ON tags (collection_id, parent_id)',
+  );
   late final Index noteTagsTag = Index(
     'note_tags_tag',
     'CREATE INDEX note_tags_tag ON note_tags (collection_id, tag_id)',
   );
-  late final Index studyCardsDeck = Index(
-    'study_cards_deck',
-    'CREATE INDEX study_cards_deck ON study_cards (collection_id, deck_id)',
-  );
-  late final Index studyCardsTemplate = Index(
-    'study_cards_template',
-    'CREATE INDEX study_cards_template ON study_cards (template_id)',
-  );
-  late final Index reviewEventsCard = Index(
-    'review_events_card',
-    'CREATE INDEX review_events_card ON review_events (study_card_id, at)',
-  );
-  late final Index reviewEventsAt = Index(
-    'review_events_at',
-    'CREATE INDEX review_events_at ON review_events (at)',
-  );
-  late final Index schedulingStatesDue = Index(
-    'scheduling_states_due',
-    'CREATE INDEX scheduling_states_due ON scheduling_states (state, due)',
+  late final Index decksParent = Index(
+    'decks_parent',
+    'CREATE INDEX decks_parent ON decks (collection_id, parent_id)',
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -1141,23 +1141,23 @@ class DatabaseAtV1 extends GeneratedDatabase {
     studyCardsCollectionImmutable,
     mediaAssets,
     mediaAssetsCollectionImmutable,
-    fieldDefinitions,
-    noteFields,
-    reviewEvents,
-    schedulingStates,
-    decksParent,
-    tagsParent,
-    noteTypesCollection,
-    fieldDefinitionsNoteType,
-    studyCardTemplatesNoteType,
-    notesNoteType,
-    noteFieldsField,
-    noteTagsTag,
     studyCardsDeck,
     studyCardsTemplate,
+    reviewEvents,
+    schedulingStates,
     reviewEventsCard,
     reviewEventsAt,
     schedulingStatesDue,
+    fieldDefinitions,
+    noteTypesCollection,
+    fieldDefinitionsNoteType,
+    studyCardTemplatesNoteType,
+    noteFields,
+    notesNoteType,
+    noteFieldsField,
+    tagsParent,
+    noteTagsTag,
+    decksParent,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -1233,6 +1233,13 @@ class DatabaseAtV1 extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'study_cards',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('scheduling_states', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'note_types',
         limitUpdateKind: UpdateKind.delete,
       ),
@@ -1251,13 +1258,6 @@ class DatabaseAtV1 extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'study_cards',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('scheduling_states', kind: UpdateKind.delete)],
     ),
   ]);
   @override

@@ -1,4 +1,4 @@
-import 'tables.dart';
+import 'tables/tables.dart';
 
 -- A row's collection never changes; moving to another collection is a copy.
 

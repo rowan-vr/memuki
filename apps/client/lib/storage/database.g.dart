@@ -2848,649 +2848,6 @@ class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
   }
 }
 
-class $FieldDefinitionsTable extends FieldDefinitions
-    with TableInfo<$FieldDefinitionsTable, FieldDefinitionRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $FieldDefinitionsTable(this.attachedDatabase, [this._alias]);
-  @override
-  late final GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> id =
-      GeneratedColumn<Uint8List>(
-        'id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-      ).withConverter<FieldDefinitionId>($FieldDefinitionsTable.$converterid);
-  @override
-  late final GeneratedColumnWithTypeConverter<NoteTypeId, Uint8List>
-  noteTypeId = GeneratedColumn<Uint8List>(
-    'note_type_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES note_types (id) ON DELETE CASCADE',
-    ),
-  ).withConverter<NoteTypeId>($FieldDefinitionsTable.$converternoteTypeId);
-  static const VerificationMeta _positionMeta = const VerificationMeta(
-    'position',
-  );
-  @override
-  late final GeneratedColumn<int> position = GeneratedColumn<int>(
-    'position',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<FieldType, String> type =
-      GeneratedColumn<String>(
-        'type',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<FieldType>($FieldDefinitionsTable.$convertertype);
-  @override
-  List<GeneratedColumn> get $columns => [id, noteTypeId, position, name, type];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'field_definitions';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<FieldDefinitionRow> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('position')) {
-      context.handle(
-        _positionMeta,
-        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_positionMeta);
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  FieldDefinitionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return FieldDefinitionRow(
-      id: $FieldDefinitionsTable.$converterid.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}id'],
-        )!,
-      ),
-      noteTypeId: $FieldDefinitionsTable.$converternoteTypeId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}note_type_id'],
-        )!,
-      ),
-      position: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}position'],
-      )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      type: $FieldDefinitionsTable.$convertertype.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}type'],
-        )!,
-      ),
-    );
-  }
-
-  @override
-  $FieldDefinitionsTable createAlias(String alias) {
-    return $FieldDefinitionsTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<FieldDefinitionId, Uint8List> $converterid =
-      fieldDefinitionIdConverter;
-  static TypeConverter<NoteTypeId, Uint8List> $converternoteTypeId =
-      noteTypeIdConverter;
-  static JsonTypeConverter2<FieldType, String, String> $convertertype =
-      const EnumNameConverter<FieldType>(FieldType.values);
-}
-
-class FieldDefinitionRow extends DataClass
-    implements Insertable<FieldDefinitionRow> {
-  final FieldDefinitionId id;
-  final NoteTypeId noteTypeId;
-  final int position;
-  final String name;
-  final FieldType type;
-  const FieldDefinitionRow({
-    required this.id,
-    required this.noteTypeId,
-    required this.position,
-    required this.name,
-    required this.type,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    {
-      map['id'] = Variable<Uint8List>(
-        $FieldDefinitionsTable.$converterid.toSql(id),
-      );
-    }
-    {
-      map['note_type_id'] = Variable<Uint8List>(
-        $FieldDefinitionsTable.$converternoteTypeId.toSql(noteTypeId),
-      );
-    }
-    map['position'] = Variable<int>(position);
-    map['name'] = Variable<String>(name);
-    {
-      map['type'] = Variable<String>(
-        $FieldDefinitionsTable.$convertertype.toSql(type),
-      );
-    }
-    return map;
-  }
-
-  FieldDefinitionsCompanion toCompanion(bool nullToAbsent) {
-    return FieldDefinitionsCompanion(
-      id: Value(id),
-      noteTypeId: Value(noteTypeId),
-      position: Value(position),
-      name: Value(name),
-      type: Value(type),
-    );
-  }
-
-  factory FieldDefinitionRow.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return FieldDefinitionRow(
-      id: serializer.fromJson<FieldDefinitionId>(json['id']),
-      noteTypeId: serializer.fromJson<NoteTypeId>(json['noteTypeId']),
-      position: serializer.fromJson<int>(json['position']),
-      name: serializer.fromJson<String>(json['name']),
-      type: $FieldDefinitionsTable.$convertertype.fromJson(
-        serializer.fromJson<String>(json['type']),
-      ),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<FieldDefinitionId>(id),
-      'noteTypeId': serializer.toJson<NoteTypeId>(noteTypeId),
-      'position': serializer.toJson<int>(position),
-      'name': serializer.toJson<String>(name),
-      'type': serializer.toJson<String>(
-        $FieldDefinitionsTable.$convertertype.toJson(type),
-      ),
-    };
-  }
-
-  FieldDefinitionRow copyWith({
-    FieldDefinitionId? id,
-    NoteTypeId? noteTypeId,
-    int? position,
-    String? name,
-    FieldType? type,
-  }) => FieldDefinitionRow(
-    id: id ?? this.id,
-    noteTypeId: noteTypeId ?? this.noteTypeId,
-    position: position ?? this.position,
-    name: name ?? this.name,
-    type: type ?? this.type,
-  );
-  FieldDefinitionRow copyWithCompanion(FieldDefinitionsCompanion data) {
-    return FieldDefinitionRow(
-      id: data.id.present ? data.id.value : this.id,
-      noteTypeId: data.noteTypeId.present
-          ? data.noteTypeId.value
-          : this.noteTypeId,
-      position: data.position.present ? data.position.value : this.position,
-      name: data.name.present ? data.name.value : this.name,
-      type: data.type.present ? data.type.value : this.type,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('FieldDefinitionRow(')
-          ..write('id: $id, ')
-          ..write('noteTypeId: $noteTypeId, ')
-          ..write('position: $position, ')
-          ..write('name: $name, ')
-          ..write('type: $type')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, noteTypeId, position, name, type);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is FieldDefinitionRow &&
-          other.id == this.id &&
-          other.noteTypeId == this.noteTypeId &&
-          other.position == this.position &&
-          other.name == this.name &&
-          other.type == this.type);
-}
-
-class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
-  final Value<FieldDefinitionId> id;
-  final Value<NoteTypeId> noteTypeId;
-  final Value<int> position;
-  final Value<String> name;
-  final Value<FieldType> type;
-  final Value<int> rowid;
-  const FieldDefinitionsCompanion({
-    this.id = const Value.absent(),
-    this.noteTypeId = const Value.absent(),
-    this.position = const Value.absent(),
-    this.name = const Value.absent(),
-    this.type = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  FieldDefinitionsCompanion.insert({
-    required FieldDefinitionId id,
-    required NoteTypeId noteTypeId,
-    required int position,
-    required String name,
-    required FieldType type,
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       noteTypeId = Value(noteTypeId),
-       position = Value(position),
-       name = Value(name),
-       type = Value(type);
-  static Insertable<FieldDefinitionRow> custom({
-    Expression<Uint8List>? id,
-    Expression<Uint8List>? noteTypeId,
-    Expression<int>? position,
-    Expression<String>? name,
-    Expression<String>? type,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (noteTypeId != null) 'note_type_id': noteTypeId,
-      if (position != null) 'position': position,
-      if (name != null) 'name': name,
-      if (type != null) 'type': type,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  FieldDefinitionsCompanion copyWith({
-    Value<FieldDefinitionId>? id,
-    Value<NoteTypeId>? noteTypeId,
-    Value<int>? position,
-    Value<String>? name,
-    Value<FieldType>? type,
-    Value<int>? rowid,
-  }) {
-    return FieldDefinitionsCompanion(
-      id: id ?? this.id,
-      noteTypeId: noteTypeId ?? this.noteTypeId,
-      position: position ?? this.position,
-      name: name ?? this.name,
-      type: type ?? this.type,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<Uint8List>(
-        $FieldDefinitionsTable.$converterid.toSql(id.value),
-      );
-    }
-    if (noteTypeId.present) {
-      map['note_type_id'] = Variable<Uint8List>(
-        $FieldDefinitionsTable.$converternoteTypeId.toSql(noteTypeId.value),
-      );
-    }
-    if (position.present) {
-      map['position'] = Variable<int>(position.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (type.present) {
-      map['type'] = Variable<String>(
-        $FieldDefinitionsTable.$convertertype.toSql(type.value),
-      );
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('FieldDefinitionsCompanion(')
-          ..write('id: $id, ')
-          ..write('noteTypeId: $noteTypeId, ')
-          ..write('position: $position, ')
-          ..write('name: $name, ')
-          ..write('type: $type, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $NoteFieldsTable extends NoteFields
-    with TableInfo<$NoteFieldsTable, NoteFieldRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $NoteFieldsTable(this.attachedDatabase, [this._alias]);
-  @override
-  late final GeneratedColumnWithTypeConverter<NoteId, Uint8List> noteId =
-      GeneratedColumn<Uint8List>(
-        'note_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        defaultConstraints: GeneratedColumn.constraintIsAlways(
-          'REFERENCES notes (id) ON DELETE CASCADE',
-        ),
-      ).withConverter<NoteId>($NoteFieldsTable.$converternoteId);
-  @override
-  late final GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List>
-  fieldId = GeneratedColumn<Uint8List>(
-    'field_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES field_definitions (id) ON DELETE CASCADE',
-    ),
-  ).withConverter<FieldDefinitionId>($NoteFieldsTable.$converterfieldId);
-  static const VerificationMeta _valueMeta = const VerificationMeta('value');
-  @override
-  late final GeneratedColumn<String> value = GeneratedColumn<String>(
-    'value',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [noteId, fieldId, value];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'note_fields';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<NoteFieldRow> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('value')) {
-      context.handle(
-        _valueMeta,
-        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_valueMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {noteId, fieldId};
-  @override
-  NoteFieldRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return NoteFieldRow(
-      noteId: $NoteFieldsTable.$converternoteId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}note_id'],
-        )!,
-      ),
-      fieldId: $NoteFieldsTable.$converterfieldId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}field_id'],
-        )!,
-      ),
-      value: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}value'],
-      )!,
-    );
-  }
-
-  @override
-  $NoteFieldsTable createAlias(String alias) {
-    return $NoteFieldsTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<NoteId, Uint8List> $converternoteId = noteIdConverter;
-  static TypeConverter<FieldDefinitionId, Uint8List> $converterfieldId =
-      fieldDefinitionIdConverter;
-}
-
-class NoteFieldRow extends DataClass implements Insertable<NoteFieldRow> {
-  final NoteId noteId;
-  final FieldDefinitionId fieldId;
-  final String value;
-  const NoteFieldRow({
-    required this.noteId,
-    required this.fieldId,
-    required this.value,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    {
-      map['note_id'] = Variable<Uint8List>(
-        $NoteFieldsTable.$converternoteId.toSql(noteId),
-      );
-    }
-    {
-      map['field_id'] = Variable<Uint8List>(
-        $NoteFieldsTable.$converterfieldId.toSql(fieldId),
-      );
-    }
-    map['value'] = Variable<String>(value);
-    return map;
-  }
-
-  NoteFieldsCompanion toCompanion(bool nullToAbsent) {
-    return NoteFieldsCompanion(
-      noteId: Value(noteId),
-      fieldId: Value(fieldId),
-      value: Value(value),
-    );
-  }
-
-  factory NoteFieldRow.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return NoteFieldRow(
-      noteId: serializer.fromJson<NoteId>(json['noteId']),
-      fieldId: serializer.fromJson<FieldDefinitionId>(json['fieldId']),
-      value: serializer.fromJson<String>(json['value']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'noteId': serializer.toJson<NoteId>(noteId),
-      'fieldId': serializer.toJson<FieldDefinitionId>(fieldId),
-      'value': serializer.toJson<String>(value),
-    };
-  }
-
-  NoteFieldRow copyWith({
-    NoteId? noteId,
-    FieldDefinitionId? fieldId,
-    String? value,
-  }) => NoteFieldRow(
-    noteId: noteId ?? this.noteId,
-    fieldId: fieldId ?? this.fieldId,
-    value: value ?? this.value,
-  );
-  NoteFieldRow copyWithCompanion(NoteFieldsCompanion data) {
-    return NoteFieldRow(
-      noteId: data.noteId.present ? data.noteId.value : this.noteId,
-      fieldId: data.fieldId.present ? data.fieldId.value : this.fieldId,
-      value: data.value.present ? data.value.value : this.value,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('NoteFieldRow(')
-          ..write('noteId: $noteId, ')
-          ..write('fieldId: $fieldId, ')
-          ..write('value: $value')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(noteId, fieldId, value);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is NoteFieldRow &&
-          other.noteId == this.noteId &&
-          other.fieldId == this.fieldId &&
-          other.value == this.value);
-}
-
-class NoteFieldsCompanion extends UpdateCompanion<NoteFieldRow> {
-  final Value<NoteId> noteId;
-  final Value<FieldDefinitionId> fieldId;
-  final Value<String> value;
-  final Value<int> rowid;
-  const NoteFieldsCompanion({
-    this.noteId = const Value.absent(),
-    this.fieldId = const Value.absent(),
-    this.value = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  NoteFieldsCompanion.insert({
-    required NoteId noteId,
-    required FieldDefinitionId fieldId,
-    required String value,
-    this.rowid = const Value.absent(),
-  }) : noteId = Value(noteId),
-       fieldId = Value(fieldId),
-       value = Value(value);
-  static Insertable<NoteFieldRow> custom({
-    Expression<Uint8List>? noteId,
-    Expression<Uint8List>? fieldId,
-    Expression<String>? value,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (noteId != null) 'note_id': noteId,
-      if (fieldId != null) 'field_id': fieldId,
-      if (value != null) 'value': value,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  NoteFieldsCompanion copyWith({
-    Value<NoteId>? noteId,
-    Value<FieldDefinitionId>? fieldId,
-    Value<String>? value,
-    Value<int>? rowid,
-  }) {
-    return NoteFieldsCompanion(
-      noteId: noteId ?? this.noteId,
-      fieldId: fieldId ?? this.fieldId,
-      value: value ?? this.value,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (noteId.present) {
-      map['note_id'] = Variable<Uint8List>(
-        $NoteFieldsTable.$converternoteId.toSql(noteId.value),
-      );
-    }
-    if (fieldId.present) {
-      map['field_id'] = Variable<Uint8List>(
-        $NoteFieldsTable.$converterfieldId.toSql(fieldId.value),
-      );
-    }
-    if (value.present) {
-      map['value'] = Variable<String>(value.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('NoteFieldsCompanion(')
-          ..write('noteId: $noteId, ')
-          ..write('fieldId: $fieldId, ')
-          ..write('value: $value, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $ReviewEventsTable extends ReviewEvents
     with TableInfo<$ReviewEventsTable, ReviewEventRow> {
   @override
@@ -4836,6 +4193,649 @@ class SchedulingStatesCompanion extends UpdateCompanion<SchedulingStateRow> {
   }
 }
 
+class $FieldDefinitionsTable extends FieldDefinitions
+    with TableInfo<$FieldDefinitionsTable, FieldDefinitionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldDefinitionsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+      ).withConverter<FieldDefinitionId>($FieldDefinitionsTable.$converterid);
+  @override
+  late final GeneratedColumnWithTypeConverter<NoteTypeId, Uint8List>
+  noteTypeId = GeneratedColumn<Uint8List>(
+    'note_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES note_types (id) ON DELETE CASCADE',
+    ),
+  ).withConverter<NoteTypeId>($FieldDefinitionsTable.$converternoteTypeId);
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<FieldType, String> type =
+      GeneratedColumn<String>(
+        'type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<FieldType>($FieldDefinitionsTable.$convertertype);
+  @override
+  List<GeneratedColumn> get $columns => [id, noteTypeId, position, name, type];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_definitions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldDefinitionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FieldDefinitionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldDefinitionRow(
+      id: $FieldDefinitionsTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+      noteTypeId: $FieldDefinitionsTable.$converternoteTypeId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}note_type_id'],
+        )!,
+      ),
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      type: $FieldDefinitionsTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $FieldDefinitionsTable createAlias(String alias) {
+    return $FieldDefinitionsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<FieldDefinitionId, Uint8List> $converterid =
+      fieldDefinitionIdConverter;
+  static TypeConverter<NoteTypeId, Uint8List> $converternoteTypeId =
+      noteTypeIdConverter;
+  static JsonTypeConverter2<FieldType, String, String> $convertertype =
+      const EnumNameConverter<FieldType>(FieldType.values);
+}
+
+class FieldDefinitionRow extends DataClass
+    implements Insertable<FieldDefinitionRow> {
+  final FieldDefinitionId id;
+  final NoteTypeId noteTypeId;
+  final int position;
+  final String name;
+  final FieldType type;
+  const FieldDefinitionRow({
+    required this.id,
+    required this.noteTypeId,
+    required this.position,
+    required this.name,
+    required this.type,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['id'] = Variable<Uint8List>(
+        $FieldDefinitionsTable.$converterid.toSql(id),
+      );
+    }
+    {
+      map['note_type_id'] = Variable<Uint8List>(
+        $FieldDefinitionsTable.$converternoteTypeId.toSql(noteTypeId),
+      );
+    }
+    map['position'] = Variable<int>(position);
+    map['name'] = Variable<String>(name);
+    {
+      map['type'] = Variable<String>(
+        $FieldDefinitionsTable.$convertertype.toSql(type),
+      );
+    }
+    return map;
+  }
+
+  FieldDefinitionsCompanion toCompanion(bool nullToAbsent) {
+    return FieldDefinitionsCompanion(
+      id: Value(id),
+      noteTypeId: Value(noteTypeId),
+      position: Value(position),
+      name: Value(name),
+      type: Value(type),
+    );
+  }
+
+  factory FieldDefinitionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldDefinitionRow(
+      id: serializer.fromJson<FieldDefinitionId>(json['id']),
+      noteTypeId: serializer.fromJson<NoteTypeId>(json['noteTypeId']),
+      position: serializer.fromJson<int>(json['position']),
+      name: serializer.fromJson<String>(json['name']),
+      type: $FieldDefinitionsTable.$convertertype.fromJson(
+        serializer.fromJson<String>(json['type']),
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<FieldDefinitionId>(id),
+      'noteTypeId': serializer.toJson<NoteTypeId>(noteTypeId),
+      'position': serializer.toJson<int>(position),
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String>(
+        $FieldDefinitionsTable.$convertertype.toJson(type),
+      ),
+    };
+  }
+
+  FieldDefinitionRow copyWith({
+    FieldDefinitionId? id,
+    NoteTypeId? noteTypeId,
+    int? position,
+    String? name,
+    FieldType? type,
+  }) => FieldDefinitionRow(
+    id: id ?? this.id,
+    noteTypeId: noteTypeId ?? this.noteTypeId,
+    position: position ?? this.position,
+    name: name ?? this.name,
+    type: type ?? this.type,
+  );
+  FieldDefinitionRow copyWithCompanion(FieldDefinitionsCompanion data) {
+    return FieldDefinitionRow(
+      id: data.id.present ? data.id.value : this.id,
+      noteTypeId: data.noteTypeId.present
+          ? data.noteTypeId.value
+          : this.noteTypeId,
+      position: data.position.present ? data.position.value : this.position,
+      name: data.name.present ? data.name.value : this.name,
+      type: data.type.present ? data.type.value : this.type,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldDefinitionRow(')
+          ..write('id: $id, ')
+          ..write('noteTypeId: $noteTypeId, ')
+          ..write('position: $position, ')
+          ..write('name: $name, ')
+          ..write('type: $type')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, noteTypeId, position, name, type);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldDefinitionRow &&
+          other.id == this.id &&
+          other.noteTypeId == this.noteTypeId &&
+          other.position == this.position &&
+          other.name == this.name &&
+          other.type == this.type);
+}
+
+class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
+  final Value<FieldDefinitionId> id;
+  final Value<NoteTypeId> noteTypeId;
+  final Value<int> position;
+  final Value<String> name;
+  final Value<FieldType> type;
+  final Value<int> rowid;
+  const FieldDefinitionsCompanion({
+    this.id = const Value.absent(),
+    this.noteTypeId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.name = const Value.absent(),
+    this.type = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldDefinitionsCompanion.insert({
+    required FieldDefinitionId id,
+    required NoteTypeId noteTypeId,
+    required int position,
+    required String name,
+    required FieldType type,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       noteTypeId = Value(noteTypeId),
+       position = Value(position),
+       name = Value(name),
+       type = Value(type);
+  static Insertable<FieldDefinitionRow> custom({
+    Expression<Uint8List>? id,
+    Expression<Uint8List>? noteTypeId,
+    Expression<int>? position,
+    Expression<String>? name,
+    Expression<String>? type,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (noteTypeId != null) 'note_type_id': noteTypeId,
+      if (position != null) 'position': position,
+      if (name != null) 'name': name,
+      if (type != null) 'type': type,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldDefinitionsCompanion copyWith({
+    Value<FieldDefinitionId>? id,
+    Value<NoteTypeId>? noteTypeId,
+    Value<int>? position,
+    Value<String>? name,
+    Value<FieldType>? type,
+    Value<int>? rowid,
+  }) {
+    return FieldDefinitionsCompanion(
+      id: id ?? this.id,
+      noteTypeId: noteTypeId ?? this.noteTypeId,
+      position: position ?? this.position,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<Uint8List>(
+        $FieldDefinitionsTable.$converterid.toSql(id.value),
+      );
+    }
+    if (noteTypeId.present) {
+      map['note_type_id'] = Variable<Uint8List>(
+        $FieldDefinitionsTable.$converternoteTypeId.toSql(noteTypeId.value),
+      );
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+        $FieldDefinitionsTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldDefinitionsCompanion(')
+          ..write('id: $id, ')
+          ..write('noteTypeId: $noteTypeId, ')
+          ..write('position: $position, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $NoteFieldsTable extends NoteFields
+    with TableInfo<$NoteFieldsTable, NoteFieldRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NoteFieldsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<NoteId, Uint8List> noteId =
+      GeneratedColumn<Uint8List>(
+        'note_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES notes (id) ON DELETE CASCADE',
+        ),
+      ).withConverter<NoteId>($NoteFieldsTable.$converternoteId);
+  @override
+  late final GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List>
+  fieldId = GeneratedColumn<Uint8List>(
+    'field_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES field_definitions (id) ON DELETE CASCADE',
+    ),
+  ).withConverter<FieldDefinitionId>($NoteFieldsTable.$converterfieldId);
+  static const VerificationMeta _valueMeta = const VerificationMeta('value');
+  @override
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [noteId, fieldId, value];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'note_fields';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NoteFieldRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('value')) {
+      context.handle(
+        _valueMeta,
+        value.isAcceptableOrUnknown(data['value']!, _valueMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_valueMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {noteId, fieldId};
+  @override
+  NoteFieldRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NoteFieldRow(
+      noteId: $NoteFieldsTable.$converternoteId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}note_id'],
+        )!,
+      ),
+      fieldId: $NoteFieldsTable.$converterfieldId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}field_id'],
+        )!,
+      ),
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+    );
+  }
+
+  @override
+  $NoteFieldsTable createAlias(String alias) {
+    return $NoteFieldsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<NoteId, Uint8List> $converternoteId = noteIdConverter;
+  static TypeConverter<FieldDefinitionId, Uint8List> $converterfieldId =
+      fieldDefinitionIdConverter;
+}
+
+class NoteFieldRow extends DataClass implements Insertable<NoteFieldRow> {
+  final NoteId noteId;
+  final FieldDefinitionId fieldId;
+  final String value;
+  const NoteFieldRow({
+    required this.noteId,
+    required this.fieldId,
+    required this.value,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['note_id'] = Variable<Uint8List>(
+        $NoteFieldsTable.$converternoteId.toSql(noteId),
+      );
+    }
+    {
+      map['field_id'] = Variable<Uint8List>(
+        $NoteFieldsTable.$converterfieldId.toSql(fieldId),
+      );
+    }
+    map['value'] = Variable<String>(value);
+    return map;
+  }
+
+  NoteFieldsCompanion toCompanion(bool nullToAbsent) {
+    return NoteFieldsCompanion(
+      noteId: Value(noteId),
+      fieldId: Value(fieldId),
+      value: Value(value),
+    );
+  }
+
+  factory NoteFieldRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NoteFieldRow(
+      noteId: serializer.fromJson<NoteId>(json['noteId']),
+      fieldId: serializer.fromJson<FieldDefinitionId>(json['fieldId']),
+      value: serializer.fromJson<String>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'noteId': serializer.toJson<NoteId>(noteId),
+      'fieldId': serializer.toJson<FieldDefinitionId>(fieldId),
+      'value': serializer.toJson<String>(value),
+    };
+  }
+
+  NoteFieldRow copyWith({
+    NoteId? noteId,
+    FieldDefinitionId? fieldId,
+    String? value,
+  }) => NoteFieldRow(
+    noteId: noteId ?? this.noteId,
+    fieldId: fieldId ?? this.fieldId,
+    value: value ?? this.value,
+  );
+  NoteFieldRow copyWithCompanion(NoteFieldsCompanion data) {
+    return NoteFieldRow(
+      noteId: data.noteId.present ? data.noteId.value : this.noteId,
+      fieldId: data.fieldId.present ? data.fieldId.value : this.fieldId,
+      value: data.value.present ? data.value.value : this.value,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NoteFieldRow(')
+          ..write('noteId: $noteId, ')
+          ..write('fieldId: $fieldId, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(noteId, fieldId, value);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NoteFieldRow &&
+          other.noteId == this.noteId &&
+          other.fieldId == this.fieldId &&
+          other.value == this.value);
+}
+
+class NoteFieldsCompanion extends UpdateCompanion<NoteFieldRow> {
+  final Value<NoteId> noteId;
+  final Value<FieldDefinitionId> fieldId;
+  final Value<String> value;
+  final Value<int> rowid;
+  const NoteFieldsCompanion({
+    this.noteId = const Value.absent(),
+    this.fieldId = const Value.absent(),
+    this.value = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NoteFieldsCompanion.insert({
+    required NoteId noteId,
+    required FieldDefinitionId fieldId,
+    required String value,
+    this.rowid = const Value.absent(),
+  }) : noteId = Value(noteId),
+       fieldId = Value(fieldId),
+       value = Value(value);
+  static Insertable<NoteFieldRow> custom({
+    Expression<Uint8List>? noteId,
+    Expression<Uint8List>? fieldId,
+    Expression<String>? value,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (noteId != null) 'note_id': noteId,
+      if (fieldId != null) 'field_id': fieldId,
+      if (value != null) 'value': value,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NoteFieldsCompanion copyWith({
+    Value<NoteId>? noteId,
+    Value<FieldDefinitionId>? fieldId,
+    Value<String>? value,
+    Value<int>? rowid,
+  }) {
+    return NoteFieldsCompanion(
+      noteId: noteId ?? this.noteId,
+      fieldId: fieldId ?? this.fieldId,
+      value: value ?? this.value,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (noteId.present) {
+      map['note_id'] = Variable<Uint8List>(
+        $NoteFieldsTable.$converternoteId.toSql(noteId.value),
+      );
+    }
+    if (fieldId.present) {
+      map['field_id'] = Variable<Uint8List>(
+        $NoteFieldsTable.$converterfieldId.toSql(fieldId.value),
+      );
+    }
+    if (value.present) {
+      map['value'] = Variable<String>(value.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NoteFieldsCompanion(')
+          ..write('noteId: $noteId, ')
+          ..write('fieldId: $fieldId, ')
+          ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$MemukiDatabase extends GeneratedDatabase {
   _$MemukiDatabase(QueryExecutor e) : super(e);
   $MemukiDatabaseManager get managers => $MemukiDatabaseManager(this);
@@ -4877,21 +4877,32 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
     'media_assets_collection_immutable',
   );
-  late final $FieldDefinitionsTable fieldDefinitions = $FieldDefinitionsTable(
-    this,
+  late final Index studyCardsDeck = Index(
+    'study_cards_deck',
+    'CREATE INDEX study_cards_deck ON study_cards (collection_id, deck_id)',
   );
-  late final $NoteFieldsTable noteFields = $NoteFieldsTable(this);
+  late final Index studyCardsTemplate = Index(
+    'study_cards_template',
+    'CREATE INDEX study_cards_template ON study_cards (template_id)',
+  );
   late final $ReviewEventsTable reviewEvents = $ReviewEventsTable(this);
   late final $SchedulingStatesTable schedulingStates = $SchedulingStatesTable(
     this,
   );
-  late final Index decksParent = Index(
-    'decks_parent',
-    'CREATE INDEX decks_parent ON decks (collection_id, parent_id)',
+  late final Index reviewEventsCard = Index(
+    'review_events_card',
+    'CREATE INDEX review_events_card ON review_events (study_card_id, at)',
   );
-  late final Index tagsParent = Index(
-    'tags_parent',
-    'CREATE INDEX tags_parent ON tags (collection_id, parent_id)',
+  late final Index reviewEventsAt = Index(
+    'review_events_at',
+    'CREATE INDEX review_events_at ON review_events (at)',
+  );
+  late final Index schedulingStatesDue = Index(
+    'scheduling_states_due',
+    'CREATE INDEX scheduling_states_due ON scheduling_states (state, due)',
+  );
+  late final $FieldDefinitionsTable fieldDefinitions = $FieldDefinitionsTable(
+    this,
   );
   late final Index noteTypesCollection = Index(
     'note_types_collection',
@@ -4905,6 +4916,7 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'study_card_templates_note_type',
     'CREATE INDEX study_card_templates_note_type ON study_card_templates (note_type_id)',
   );
+  late final $NoteFieldsTable noteFields = $NoteFieldsTable(this);
   late final Index notesNoteType = Index(
     'notes_note_type',
     'CREATE INDEX notes_note_type ON notes (collection_id, note_type_id)',
@@ -4913,29 +4925,17 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'note_fields_field',
     'CREATE INDEX note_fields_field ON note_fields (field_id)',
   );
+  late final Index tagsParent = Index(
+    'tags_parent',
+    'CREATE INDEX tags_parent ON tags (collection_id, parent_id)',
+  );
   late final Index noteTagsTag = Index(
     'note_tags_tag',
     'CREATE INDEX note_tags_tag ON note_tags (collection_id, tag_id)',
   );
-  late final Index studyCardsDeck = Index(
-    'study_cards_deck',
-    'CREATE INDEX study_cards_deck ON study_cards (collection_id, deck_id)',
-  );
-  late final Index studyCardsTemplate = Index(
-    'study_cards_template',
-    'CREATE INDEX study_cards_template ON study_cards (template_id)',
-  );
-  late final Index reviewEventsCard = Index(
-    'review_events_card',
-    'CREATE INDEX review_events_card ON review_events (study_card_id, at)',
-  );
-  late final Index reviewEventsAt = Index(
-    'review_events_at',
-    'CREATE INDEX review_events_at ON review_events (at)',
-  );
-  late final Index schedulingStatesDue = Index(
-    'scheduling_states_due',
-    'CREATE INDEX scheduling_states_due ON scheduling_states (state, due)',
+  late final Index decksParent = Index(
+    'decks_parent',
+    'CREATE INDEX decks_parent ON decks (collection_id, parent_id)',
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -4958,23 +4958,23 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     studyCardsCollectionImmutable,
     mediaAssets,
     mediaAssetsCollectionImmutable,
-    fieldDefinitions,
-    noteFields,
-    reviewEvents,
-    schedulingStates,
-    decksParent,
-    tagsParent,
-    noteTypesCollection,
-    fieldDefinitionsNoteType,
-    studyCardTemplatesNoteType,
-    notesNoteType,
-    noteFieldsField,
-    noteTagsTag,
     studyCardsDeck,
     studyCardsTemplate,
+    reviewEvents,
+    schedulingStates,
     reviewEventsCard,
     reviewEventsAt,
     schedulingStatesDue,
+    fieldDefinitions,
+    noteTypesCollection,
+    fieldDefinitionsNoteType,
+    studyCardTemplatesNoteType,
+    noteFields,
+    notesNoteType,
+    noteFieldsField,
+    tagsParent,
+    noteTagsTag,
+    decksParent,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -5036,6 +5036,13 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'study_cards',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('scheduling_states', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'note_types',
         limitUpdateKind: UpdateKind.delete,
       ),
@@ -5054,13 +5061,6 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'study_cards',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('scheduling_states', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -8948,790 +8948,6 @@ typedef $$MediaAssetsTableProcessedTableManager =
       MediaAssetRow,
       PrefetchHooks Function({bool collectionId})
     >;
-typedef $$FieldDefinitionsTableCreateCompanionBuilder =
-    FieldDefinitionsCompanion Function({
-      required FieldDefinitionId id,
-      required NoteTypeId noteTypeId,
-      required int position,
-      required String name,
-      required FieldType type,
-      Value<int> rowid,
-    });
-typedef $$FieldDefinitionsTableUpdateCompanionBuilder =
-    FieldDefinitionsCompanion Function({
-      Value<FieldDefinitionId> id,
-      Value<NoteTypeId> noteTypeId,
-      Value<int> position,
-      Value<String> name,
-      Value<FieldType> type,
-      Value<int> rowid,
-    });
-
-final class $$FieldDefinitionsTableReferences
-    extends
-        BaseReferences<
-          _$MemukiDatabase,
-          $FieldDefinitionsTable,
-          FieldDefinitionRow
-        > {
-  $$FieldDefinitionsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $NoteTypesTable _noteTypeIdTable(_$MemukiDatabase db) => db.noteTypes
-      .createAlias('field_definitions__note_type_id__note_types__id');
-
-  $$NoteTypesTableProcessedTableManager get noteTypeId {
-    final $_column = $_itemColumn<Uint8List>('note_type_id')!;
-
-    final manager = $$NoteTypesTableTableManager(
-      $_db,
-      $_db.noteTypes,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_noteTypeIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<$NoteFieldsTable, List<NoteFieldRow>>
-  _noteFieldsRefsTable(_$MemukiDatabase db) => MultiTypedResultKey.fromTable(
-    db.noteFields,
-    aliasName: 'field_definitions__id__note_fields__field_id',
-  );
-
-  $$NoteFieldsTableProcessedTableManager get noteFieldsRefs {
-    final manager = $$NoteFieldsTableTableManager(
-      $_db,
-      $_db.noteFields,
-    ).filter((f) => f.fieldId.id.sqlEquals($_itemColumn<Uint8List>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_noteFieldsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$FieldDefinitionsTableFilterComposer
-    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
-  $$FieldDefinitionsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnWithTypeConverterFilters<
-    FieldDefinitionId,
-    FieldDefinitionId,
-    Uint8List
-  >
-  get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
-  );
-
-  ColumnFilters<int> get position => $composableBuilder(
-    column: $table.position,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<FieldType, FieldType, String> get type =>
-      $composableBuilder(
-        column: $table.type,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  $$NoteTypesTableFilterComposer get noteTypeId {
-    final $$NoteTypesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteTypeId,
-      referencedTable: $db.noteTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTypesTableFilterComposer(
-            $db: $db,
-            $table: $db.noteTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> noteFieldsRefs(
-    Expression<bool> Function($$NoteFieldsTableFilterComposer f) f,
-  ) {
-    final $$NoteFieldsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.noteFields,
-      getReferencedColumn: (t) => t.fieldId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteFieldsTableFilterComposer(
-            $db: $db,
-            $table: $db.noteFields,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$FieldDefinitionsTableOrderingComposer
-    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
-  $$FieldDefinitionsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<Uint8List> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get position => $composableBuilder(
-    column: $table.position,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get type => $composableBuilder(
-    column: $table.type,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$NoteTypesTableOrderingComposer get noteTypeId {
-    final $$NoteTypesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteTypeId,
-      referencedTable: $db.noteTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTypesTableOrderingComposer(
-            $db: $db,
-            $table: $db.noteTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$FieldDefinitionsTableAnnotationComposer
-    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
-  $$FieldDefinitionsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get position =>
-      $composableBuilder(column: $table.position, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<FieldType, String> get type =>
-      $composableBuilder(column: $table.type, builder: (column) => column);
-
-  $$NoteTypesTableAnnotationComposer get noteTypeId {
-    final $$NoteTypesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteTypeId,
-      referencedTable: $db.noteTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTypesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.noteTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> noteFieldsRefs<T extends Object>(
-    Expression<T> Function($$NoteFieldsTableAnnotationComposer a) f,
-  ) {
-    final $$NoteFieldsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.noteFields,
-      getReferencedColumn: (t) => t.fieldId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteFieldsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.noteFields,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$FieldDefinitionsTableTableManager
-    extends
-        RootTableManager<
-          _$MemukiDatabase,
-          $FieldDefinitionsTable,
-          FieldDefinitionRow,
-          $$FieldDefinitionsTableFilterComposer,
-          $$FieldDefinitionsTableOrderingComposer,
-          $$FieldDefinitionsTableAnnotationComposer,
-          $$FieldDefinitionsTableCreateCompanionBuilder,
-          $$FieldDefinitionsTableUpdateCompanionBuilder,
-          (FieldDefinitionRow, $$FieldDefinitionsTableReferences),
-          FieldDefinitionRow,
-          PrefetchHooks Function({bool noteTypeId, bool noteFieldsRefs})
-        > {
-  $$FieldDefinitionsTableTableManager(
-    _$MemukiDatabase db,
-    $FieldDefinitionsTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$FieldDefinitionsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$FieldDefinitionsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$FieldDefinitionsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<FieldDefinitionId> id = const Value.absent(),
-                Value<NoteTypeId> noteTypeId = const Value.absent(),
-                Value<int> position = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<FieldType> type = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => FieldDefinitionsCompanion(
-                id: id,
-                noteTypeId: noteTypeId,
-                position: position,
-                name: name,
-                type: type,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required FieldDefinitionId id,
-                required NoteTypeId noteTypeId,
-                required int position,
-                required String name,
-                required FieldType type,
-                Value<int> rowid = const Value.absent(),
-              }) => FieldDefinitionsCompanion.insert(
-                id: id,
-                noteTypeId: noteTypeId,
-                position: position,
-                name: name,
-                type: type,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$FieldDefinitionsTable, FieldDefinitionRow>(
-                    table,
-                  ),
-                  $$FieldDefinitionsTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback:
-              ({noteTypeId = false, noteFieldsRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [if (noteFieldsRefs) db.noteFields],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (noteTypeId) {
-                          state = state.withJoin(
-                            currentTable: table,
-                            currentColumn: table.noteTypeId,
-                            referencedTable: $$FieldDefinitionsTableReferences
-                                ._noteTypeIdTable(db),
-                            referencedColumn: $$FieldDefinitionsTableReferences
-                                ._noteTypeIdTable(db)
-                                .id,
-                          ) as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (noteFieldsRefs)
-                        await $_getPrefetchedDataByColumns<
-                          FieldDefinitionRow,
-                          $FieldDefinitionsTable,
-                          NoteFieldRow,
-                          $NoteFieldsTable
-                        >(
-                          currentTable: table,
-                          referencedTable: $$FieldDefinitionsTableReferences
-                              ._noteFieldsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$FieldDefinitionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).noteFieldsRefs,
-                          currentColumn: 'id',
-                          referencedColumn: 'field_id',
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
-        ),
-      );
-}
-
-typedef $$FieldDefinitionsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$MemukiDatabase,
-      $FieldDefinitionsTable,
-      FieldDefinitionRow,
-      $$FieldDefinitionsTableFilterComposer,
-      $$FieldDefinitionsTableOrderingComposer,
-      $$FieldDefinitionsTableAnnotationComposer,
-      $$FieldDefinitionsTableCreateCompanionBuilder,
-      $$FieldDefinitionsTableUpdateCompanionBuilder,
-      (FieldDefinitionRow, $$FieldDefinitionsTableReferences),
-      FieldDefinitionRow,
-      PrefetchHooks Function({bool noteTypeId, bool noteFieldsRefs})
-    >;
-typedef $$NoteFieldsTableCreateCompanionBuilder = NoteFieldsCompanion Function({
-  required NoteId noteId,
-  required FieldDefinitionId fieldId,
-  required String value,
-  Value<int> rowid,
-});
-typedef $$NoteFieldsTableUpdateCompanionBuilder = NoteFieldsCompanion Function({
-  Value<NoteId> noteId,
-  Value<FieldDefinitionId> fieldId,
-  Value<String> value,
-  Value<int> rowid,
-});
-
-final class $$NoteFieldsTableReferences
-    extends BaseReferences<_$MemukiDatabase, $NoteFieldsTable, NoteFieldRow> {
-  $$NoteFieldsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $NotesTable _noteIdTable(_$MemukiDatabase db) =>
-      db.notes.createAlias('note_fields__note_id__notes__id');
-
-  $$NotesTableProcessedTableManager get noteId {
-    final $_column = $_itemColumn<Uint8List>('note_id')!;
-
-    final manager = $$NotesTableTableManager(
-      $_db,
-      $_db.notes,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_noteIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static $FieldDefinitionsTable _fieldIdTable(_$MemukiDatabase db) => db
-      .fieldDefinitions
-      .createAlias('note_fields__field_id__field_definitions__id');
-
-  $$FieldDefinitionsTableProcessedTableManager get fieldId {
-    final $_column = $_itemColumn<Uint8List>('field_id')!;
-
-    final manager = $$FieldDefinitionsTableTableManager(
-      $_db,
-      $_db.fieldDefinitions,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_fieldIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$NoteFieldsTableFilterComposer
-    extends Composer<_$MemukiDatabase, $NoteFieldsTable> {
-  $$NoteFieldsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<String> get value => $composableBuilder(
-    column: $table.value,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$NotesTableFilterComposer get noteId {
-    final $$NotesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteId,
-      referencedTable: $db.notes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NotesTableFilterComposer(
-            $db: $db,
-            $table: $db.notes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$FieldDefinitionsTableFilterComposer get fieldId {
-    final $$FieldDefinitionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.fieldId,
-      referencedTable: $db.fieldDefinitions,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$FieldDefinitionsTableFilterComposer(
-            $db: $db,
-            $table: $db.fieldDefinitions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$NoteFieldsTableOrderingComposer
-    extends Composer<_$MemukiDatabase, $NoteFieldsTable> {
-  $$NoteFieldsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get value => $composableBuilder(
-    column: $table.value,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$NotesTableOrderingComposer get noteId {
-    final $$NotesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteId,
-      referencedTable: $db.notes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NotesTableOrderingComposer(
-            $db: $db,
-            $table: $db.notes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$FieldDefinitionsTableOrderingComposer get fieldId {
-    final $$FieldDefinitionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.fieldId,
-      referencedTable: $db.fieldDefinitions,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$FieldDefinitionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.fieldDefinitions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$NoteFieldsTableAnnotationComposer
-    extends Composer<_$MemukiDatabase, $NoteFieldsTable> {
-  $$NoteFieldsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<String> get value =>
-      $composableBuilder(column: $table.value, builder: (column) => column);
-
-  $$NotesTableAnnotationComposer get noteId {
-    final $$NotesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteId,
-      referencedTable: $db.notes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NotesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.notes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  $$FieldDefinitionsTableAnnotationComposer get fieldId {
-    final $$FieldDefinitionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.fieldId,
-      referencedTable: $db.fieldDefinitions,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$FieldDefinitionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.fieldDefinitions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$NoteFieldsTableTableManager
-    extends
-        RootTableManager<
-          _$MemukiDatabase,
-          $NoteFieldsTable,
-          NoteFieldRow,
-          $$NoteFieldsTableFilterComposer,
-          $$NoteFieldsTableOrderingComposer,
-          $$NoteFieldsTableAnnotationComposer,
-          $$NoteFieldsTableCreateCompanionBuilder,
-          $$NoteFieldsTableUpdateCompanionBuilder,
-          (NoteFieldRow, $$NoteFieldsTableReferences),
-          NoteFieldRow,
-          PrefetchHooks Function({bool noteId, bool fieldId})
-        > {
-  $$NoteFieldsTableTableManager(_$MemukiDatabase db, $NoteFieldsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$NoteFieldsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$NoteFieldsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$NoteFieldsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<NoteId> noteId = const Value.absent(),
-                Value<FieldDefinitionId> fieldId = const Value.absent(),
-                Value<String> value = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => NoteFieldsCompanion(
-                noteId: noteId,
-                fieldId: fieldId,
-                value: value,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required NoteId noteId,
-                required FieldDefinitionId fieldId,
-                required String value,
-                Value<int> rowid = const Value.absent(),
-              }) => NoteFieldsCompanion.insert(
-                noteId: noteId,
-                fieldId: fieldId,
-                value: value,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$NoteFieldsTable, NoteFieldRow>(table),
-                  $$NoteFieldsTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({noteId = false, fieldId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (noteId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.noteId,
-                        referencedTable: $$NoteFieldsTableReferences
-                            ._noteIdTable(db),
-                        referencedColumn: $$NoteFieldsTableReferences
-                            ._noteIdTable(db)
-                            .id,
-                      ) as T;
-                    }
-                    if (fieldId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.fieldId,
-                        referencedTable: $$NoteFieldsTableReferences
-                            ._fieldIdTable(db),
-                        referencedColumn: $$NoteFieldsTableReferences
-                            ._fieldIdTable(db)
-                            .id,
-                      ) as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$NoteFieldsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$MemukiDatabase,
-      $NoteFieldsTable,
-      NoteFieldRow,
-      $$NoteFieldsTableFilterComposer,
-      $$NoteFieldsTableOrderingComposer,
-      $$NoteFieldsTableAnnotationComposer,
-      $$NoteFieldsTableCreateCompanionBuilder,
-      $$NoteFieldsTableUpdateCompanionBuilder,
-      (NoteFieldRow, $$NoteFieldsTableReferences),
-      NoteFieldRow,
-      PrefetchHooks Function({bool noteId, bool fieldId})
-    >;
 typedef $$ReviewEventsTableCreateCompanionBuilder =
     ReviewEventsCompanion Function({
       required ReviewEventId id,
@@ -10885,6 +10101,790 @@ typedef $$SchedulingStatesTableProcessedTableManager =
       SchedulingStateRow,
       PrefetchHooks Function({bool studyCardId, bool lastEventId})
     >;
+typedef $$FieldDefinitionsTableCreateCompanionBuilder =
+    FieldDefinitionsCompanion Function({
+      required FieldDefinitionId id,
+      required NoteTypeId noteTypeId,
+      required int position,
+      required String name,
+      required FieldType type,
+      Value<int> rowid,
+    });
+typedef $$FieldDefinitionsTableUpdateCompanionBuilder =
+    FieldDefinitionsCompanion Function({
+      Value<FieldDefinitionId> id,
+      Value<NoteTypeId> noteTypeId,
+      Value<int> position,
+      Value<String> name,
+      Value<FieldType> type,
+      Value<int> rowid,
+    });
+
+final class $$FieldDefinitionsTableReferences
+    extends
+        BaseReferences<
+          _$MemukiDatabase,
+          $FieldDefinitionsTable,
+          FieldDefinitionRow
+        > {
+  $$FieldDefinitionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $NoteTypesTable _noteTypeIdTable(_$MemukiDatabase db) => db.noteTypes
+      .createAlias('field_definitions__note_type_id__note_types__id');
+
+  $$NoteTypesTableProcessedTableManager get noteTypeId {
+    final $_column = $_itemColumn<Uint8List>('note_type_id')!;
+
+    final manager = $$NoteTypesTableTableManager(
+      $_db,
+      $_db.noteTypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_noteTypeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$NoteFieldsTable, List<NoteFieldRow>>
+  _noteFieldsRefsTable(_$MemukiDatabase db) => MultiTypedResultKey.fromTable(
+    db.noteFields,
+    aliasName: 'field_definitions__id__note_fields__field_id',
+  );
+
+  $$NoteFieldsTableProcessedTableManager get noteFieldsRefs {
+    final manager = $$NoteFieldsTableTableManager(
+      $_db,
+      $_db.noteFields,
+    ).filter((f) => f.fieldId.id.sqlEquals($_itemColumn<Uint8List>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_noteFieldsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$FieldDefinitionsTableFilterComposer
+    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
+  $$FieldDefinitionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<
+    FieldDefinitionId,
+    FieldDefinitionId,
+    Uint8List
+  >
+  get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<FieldType, FieldType, String> get type =>
+      $composableBuilder(
+        column: $table.type,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  $$NoteTypesTableFilterComposer get noteTypeId {
+    final $$NoteTypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteTypeId,
+      referencedTable: $db.noteTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTypesTableFilterComposer(
+            $db: $db,
+            $table: $db.noteTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> noteFieldsRefs(
+    Expression<bool> Function($$NoteFieldsTableFilterComposer f) f,
+  ) {
+    final $$NoteFieldsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.noteFields,
+      getReferencedColumn: (t) => t.fieldId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteFieldsTableFilterComposer(
+            $db: $db,
+            $table: $db.noteFields,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$FieldDefinitionsTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
+  $$FieldDefinitionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<Uint8List> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$NoteTypesTableOrderingComposer get noteTypeId {
+    final $$NoteTypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteTypeId,
+      referencedTable: $db.noteTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.noteTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldDefinitionsTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
+  $$FieldDefinitionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<FieldType, String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  $$NoteTypesTableAnnotationComposer get noteTypeId {
+    final $$NoteTypesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteTypeId,
+      referencedTable: $db.noteTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTypesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.noteTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> noteFieldsRefs<T extends Object>(
+    Expression<T> Function($$NoteFieldsTableAnnotationComposer a) f,
+  ) {
+    final $$NoteFieldsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.noteFields,
+      getReferencedColumn: (t) => t.fieldId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteFieldsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.noteFields,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$FieldDefinitionsTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $FieldDefinitionsTable,
+          FieldDefinitionRow,
+          $$FieldDefinitionsTableFilterComposer,
+          $$FieldDefinitionsTableOrderingComposer,
+          $$FieldDefinitionsTableAnnotationComposer,
+          $$FieldDefinitionsTableCreateCompanionBuilder,
+          $$FieldDefinitionsTableUpdateCompanionBuilder,
+          (FieldDefinitionRow, $$FieldDefinitionsTableReferences),
+          FieldDefinitionRow,
+          PrefetchHooks Function({bool noteTypeId, bool noteFieldsRefs})
+        > {
+  $$FieldDefinitionsTableTableManager(
+    _$MemukiDatabase db,
+    $FieldDefinitionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldDefinitionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FieldDefinitionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FieldDefinitionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<FieldDefinitionId> id = const Value.absent(),
+                Value<NoteTypeId> noteTypeId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<FieldType> type = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldDefinitionsCompanion(
+                id: id,
+                noteTypeId: noteTypeId,
+                position: position,
+                name: name,
+                type: type,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required FieldDefinitionId id,
+                required NoteTypeId noteTypeId,
+                required int position,
+                required String name,
+                required FieldType type,
+                Value<int> rowid = const Value.absent(),
+              }) => FieldDefinitionsCompanion.insert(
+                id: id,
+                noteTypeId: noteTypeId,
+                position: position,
+                name: name,
+                type: type,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$FieldDefinitionsTable, FieldDefinitionRow>(
+                    table,
+                  ),
+                  $$FieldDefinitionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({noteTypeId = false, noteFieldsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [if (noteFieldsRefs) db.noteFields],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (noteTypeId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.noteTypeId,
+                            referencedTable: $$FieldDefinitionsTableReferences
+                                ._noteTypeIdTable(db),
+                            referencedColumn: $$FieldDefinitionsTableReferences
+                                ._noteTypeIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (noteFieldsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          FieldDefinitionRow,
+                          $FieldDefinitionsTable,
+                          NoteFieldRow,
+                          $NoteFieldsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$FieldDefinitionsTableReferences
+                              ._noteFieldsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$FieldDefinitionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).noteFieldsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'field_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$FieldDefinitionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $FieldDefinitionsTable,
+      FieldDefinitionRow,
+      $$FieldDefinitionsTableFilterComposer,
+      $$FieldDefinitionsTableOrderingComposer,
+      $$FieldDefinitionsTableAnnotationComposer,
+      $$FieldDefinitionsTableCreateCompanionBuilder,
+      $$FieldDefinitionsTableUpdateCompanionBuilder,
+      (FieldDefinitionRow, $$FieldDefinitionsTableReferences),
+      FieldDefinitionRow,
+      PrefetchHooks Function({bool noteTypeId, bool noteFieldsRefs})
+    >;
+typedef $$NoteFieldsTableCreateCompanionBuilder = NoteFieldsCompanion Function({
+  required NoteId noteId,
+  required FieldDefinitionId fieldId,
+  required String value,
+  Value<int> rowid,
+});
+typedef $$NoteFieldsTableUpdateCompanionBuilder = NoteFieldsCompanion Function({
+  Value<NoteId> noteId,
+  Value<FieldDefinitionId> fieldId,
+  Value<String> value,
+  Value<int> rowid,
+});
+
+final class $$NoteFieldsTableReferences
+    extends BaseReferences<_$MemukiDatabase, $NoteFieldsTable, NoteFieldRow> {
+  $$NoteFieldsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $NotesTable _noteIdTable(_$MemukiDatabase db) =>
+      db.notes.createAlias('note_fields__note_id__notes__id');
+
+  $$NotesTableProcessedTableManager get noteId {
+    final $_column = $_itemColumn<Uint8List>('note_id')!;
+
+    final manager = $$NotesTableTableManager(
+      $_db,
+      $_db.notes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_noteIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $FieldDefinitionsTable _fieldIdTable(_$MemukiDatabase db) => db
+      .fieldDefinitions
+      .createAlias('note_fields__field_id__field_definitions__id');
+
+  $$FieldDefinitionsTableProcessedTableManager get fieldId {
+    final $_column = $_itemColumn<Uint8List>('field_id')!;
+
+    final manager = $$FieldDefinitionsTableTableManager(
+      $_db,
+      $_db.fieldDefinitions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_fieldIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$NoteFieldsTableFilterComposer
+    extends Composer<_$MemukiDatabase, $NoteFieldsTable> {
+  $$NoteFieldsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$NotesTableFilterComposer get noteId {
+    final $$NotesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteId,
+      referencedTable: $db.notes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NotesTableFilterComposer(
+            $db: $db,
+            $table: $db.notes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$FieldDefinitionsTableFilterComposer get fieldId {
+    final $$FieldDefinitionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fieldId,
+      referencedTable: $db.fieldDefinitions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldDefinitionsTableFilterComposer(
+            $db: $db,
+            $table: $db.fieldDefinitions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteFieldsTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $NoteFieldsTable> {
+  $$NoteFieldsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get value => $composableBuilder(
+    column: $table.value,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$NotesTableOrderingComposer get noteId {
+    final $$NotesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteId,
+      referencedTable: $db.notes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NotesTableOrderingComposer(
+            $db: $db,
+            $table: $db.notes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$FieldDefinitionsTableOrderingComposer get fieldId {
+    final $$FieldDefinitionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fieldId,
+      referencedTable: $db.fieldDefinitions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldDefinitionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.fieldDefinitions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteFieldsTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $NoteFieldsTable> {
+  $$NoteFieldsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<String> get value =>
+      $composableBuilder(column: $table.value, builder: (column) => column);
+
+  $$NotesTableAnnotationComposer get noteId {
+    final $$NotesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteId,
+      referencedTable: $db.notes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NotesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.notes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$FieldDefinitionsTableAnnotationComposer get fieldId {
+    final $$FieldDefinitionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.fieldId,
+      referencedTable: $db.fieldDefinitions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldDefinitionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fieldDefinitions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteFieldsTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $NoteFieldsTable,
+          NoteFieldRow,
+          $$NoteFieldsTableFilterComposer,
+          $$NoteFieldsTableOrderingComposer,
+          $$NoteFieldsTableAnnotationComposer,
+          $$NoteFieldsTableCreateCompanionBuilder,
+          $$NoteFieldsTableUpdateCompanionBuilder,
+          (NoteFieldRow, $$NoteFieldsTableReferences),
+          NoteFieldRow,
+          PrefetchHooks Function({bool noteId, bool fieldId})
+        > {
+  $$NoteFieldsTableTableManager(_$MemukiDatabase db, $NoteFieldsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NoteFieldsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NoteFieldsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NoteFieldsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<NoteId> noteId = const Value.absent(),
+                Value<FieldDefinitionId> fieldId = const Value.absent(),
+                Value<String> value = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => NoteFieldsCompanion(
+                noteId: noteId,
+                fieldId: fieldId,
+                value: value,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required NoteId noteId,
+                required FieldDefinitionId fieldId,
+                required String value,
+                Value<int> rowid = const Value.absent(),
+              }) => NoteFieldsCompanion.insert(
+                noteId: noteId,
+                fieldId: fieldId,
+                value: value,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$NoteFieldsTable, NoteFieldRow>(table),
+                  $$NoteFieldsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({noteId = false, fieldId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (noteId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.noteId,
+                        referencedTable: $$NoteFieldsTableReferences
+                            ._noteIdTable(db),
+                        referencedColumn: $$NoteFieldsTableReferences
+                            ._noteIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+                    if (fieldId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.fieldId,
+                        referencedTable: $$NoteFieldsTableReferences
+                            ._fieldIdTable(db),
+                        referencedColumn: $$NoteFieldsTableReferences
+                            ._fieldIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$NoteFieldsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $NoteFieldsTable,
+      NoteFieldRow,
+      $$NoteFieldsTableFilterComposer,
+      $$NoteFieldsTableOrderingComposer,
+      $$NoteFieldsTableAnnotationComposer,
+      $$NoteFieldsTableCreateCompanionBuilder,
+      $$NoteFieldsTableUpdateCompanionBuilder,
+      (NoteFieldRow, $$NoteFieldsTableReferences),
+      NoteFieldRow,
+      PrefetchHooks Function({bool noteId, bool fieldId})
+    >;
 
 class $MemukiDatabaseManager {
   final _$MemukiDatabase _db;
@@ -10906,12 +10906,12 @@ class $MemukiDatabaseManager {
       $$StudyCardsTableTableManager(_db, _db.studyCards);
   $$MediaAssetsTableTableManager get mediaAssets =>
       $$MediaAssetsTableTableManager(_db, _db.mediaAssets);
-  $$FieldDefinitionsTableTableManager get fieldDefinitions =>
-      $$FieldDefinitionsTableTableManager(_db, _db.fieldDefinitions);
-  $$NoteFieldsTableTableManager get noteFields =>
-      $$NoteFieldsTableTableManager(_db, _db.noteFields);
   $$ReviewEventsTableTableManager get reviewEvents =>
       $$ReviewEventsTableTableManager(_db, _db.reviewEvents);
   $$SchedulingStatesTableTableManager get schedulingStates =>
       $$SchedulingStatesTableTableManager(_db, _db.schedulingStates);
+  $$FieldDefinitionsTableTableManager get fieldDefinitions =>
+      $$FieldDefinitionsTableTableManager(_db, _db.fieldDefinitions);
+  $$NoteFieldsTableTableManager get noteFields =>
+      $$NoteFieldsTableTableManager(_db, _db.noteFields);
 }

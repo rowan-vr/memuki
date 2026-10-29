@@ -929,188 +929,42 @@
     {
       "id": 16,
       "references": [
-        5
+        12
       ],
-      "type": "table",
+      "type": "index",
       "data": {
-        "name": "field_definitions",
-        "was_declared_in_moor": false,
+        "on": 12,
+        "name": "study_cards_deck",
+        "sql": null,
+        "unique": false,
         "columns": [
           {
-            "name": "id",
-            "getter_name": "id",
-            "moor_type": "blob",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [],
-            "type_converter": {
-              "dart_expr": "fieldDefinitionIdConverter",
-              "dart_type_name": "FieldDefinitionId"
-            }
+            "column": "collection_id",
+            "order_by": null
           },
           {
-            "name": "note_type_id",
-            "getter_name": "noteTypeId",
-            "moor_type": "blob",
-            "nullable": false,
-            "customConstraints": null,
-            "defaultConstraints": "REFERENCES note_types (id) ON DELETE CASCADE",
-            "dialectAwareDefaultConstraints": {
-              "sqlite": "REFERENCES note_types (id) ON DELETE CASCADE"
-            },
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [
-              {
-                "foreign_key": {
-                  "to": {
-                    "table": "note_types",
-                    "column": "id"
-                  },
-                  "initially_deferred": false,
-                  "on_update": null,
-                  "on_delete": "cascade"
-                }
-              }
-            ],
-            "type_converter": {
-              "dart_expr": "noteTypeIdConverter",
-              "dart_type_name": "NoteTypeId"
-            }
-          },
-          {
-            "name": "position",
-            "getter_name": "position",
-            "moor_type": "int",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "name",
-            "getter_name": "name",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "type",
-            "getter_name": "type",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [],
-            "type_converter": {
-              "dart_expr": "const EnumNameConverter<FieldType>(FieldType.values)",
-              "dart_type_name": "FieldType"
-            }
+            "column": "deck_id",
+            "order_by": null
           }
-        ],
-        "is_virtual": false,
-        "without_rowid": false,
-        "constraints": [],
-        "explicit_pk": [
-          "id"
         ]
       }
     },
     {
       "id": 17,
       "references": [
-        7,
-        16
+        12
       ],
-      "type": "table",
+      "type": "index",
       "data": {
-        "name": "note_fields",
-        "was_declared_in_moor": false,
+        "on": 12,
+        "name": "study_cards_template",
+        "sql": null,
+        "unique": false,
         "columns": [
           {
-            "name": "note_id",
-            "getter_name": "noteId",
-            "moor_type": "blob",
-            "nullable": false,
-            "customConstraints": null,
-            "defaultConstraints": "REFERENCES notes (id) ON DELETE CASCADE",
-            "dialectAwareDefaultConstraints": {
-              "sqlite": "REFERENCES notes (id) ON DELETE CASCADE"
-            },
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [
-              {
-                "foreign_key": {
-                  "to": {
-                    "table": "notes",
-                    "column": "id"
-                  },
-                  "initially_deferred": false,
-                  "on_update": null,
-                  "on_delete": "cascade"
-                }
-              }
-            ],
-            "type_converter": {
-              "dart_expr": "noteIdConverter",
-              "dart_type_name": "NoteId"
-            }
-          },
-          {
-            "name": "field_id",
-            "getter_name": "fieldId",
-            "moor_type": "blob",
-            "nullable": false,
-            "customConstraints": null,
-            "defaultConstraints": "REFERENCES field_definitions (id) ON DELETE CASCADE",
-            "dialectAwareDefaultConstraints": {
-              "sqlite": "REFERENCES field_definitions (id) ON DELETE CASCADE"
-            },
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [
-              {
-                "foreign_key": {
-                  "to": {
-                    "table": "field_definitions",
-                    "column": "id"
-                  },
-                  "initially_deferred": false,
-                  "on_update": null,
-                  "on_delete": "cascade"
-                }
-              }
-            ],
-            "type_converter": {
-              "dart_expr": "fieldDefinitionIdConverter",
-              "dart_type_name": "FieldDefinitionId"
-            }
-          },
-          {
-            "name": "value",
-            "getter_name": "value",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
+            "column": "template_id",
+            "order_by": null
           }
-        ],
-        "is_virtual": false,
-        "without_rowid": false,
-        "constraints": [],
-        "explicit_pk": [
-          "note_id",
-          "field_id"
         ]
       }
     },
@@ -1486,21 +1340,21 @@
     {
       "id": 20,
       "references": [
-        1
+        18
       ],
       "type": "index",
       "data": {
-        "on": 1,
-        "name": "decks_parent",
+        "on": 18,
+        "name": "review_events_card",
         "sql": null,
         "unique": false,
         "columns": [
           {
-            "column": "collection_id",
+            "column": "study_card_id",
             "order_by": null
           },
           {
-            "column": "parent_id",
+            "column": "at",
             "order_by": null
           }
         ]
@@ -1509,21 +1363,17 @@
     {
       "id": 21,
       "references": [
-        3
+        18
       ],
       "type": "index",
       "data": {
-        "on": 3,
-        "name": "tags_parent",
+        "on": 18,
+        "name": "review_events_at",
         "sql": null,
         "unique": false,
         "columns": [
           {
-            "column": "collection_id",
-            "order_by": null
-          },
-          {
-            "column": "parent_id",
+            "column": "at",
             "order_by": null
           }
         ]
@@ -1531,6 +1381,126 @@
     },
     {
       "id": 22,
+      "references": [
+        19
+      ],
+      "type": "index",
+      "data": {
+        "on": 19,
+        "name": "scheduling_states_due",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "state",
+            "order_by": null
+          },
+          {
+            "column": "due",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 23,
+      "references": [
+        5
+      ],
+      "type": "table",
+      "data": {
+        "name": "field_definitions",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "blob",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "fieldDefinitionIdConverter",
+              "dart_type_name": "FieldDefinitionId"
+            }
+          },
+          {
+            "name": "note_type_id",
+            "getter_name": "noteTypeId",
+            "moor_type": "blob",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES note_types (id) ON DELETE CASCADE",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES note_types (id) ON DELETE CASCADE"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "note_types",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ],
+            "type_converter": {
+              "dart_expr": "noteTypeIdConverter",
+              "dart_type_name": "NoteTypeId"
+            }
+          },
+          {
+            "name": "position",
+            "getter_name": "position",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "type",
+            "getter_name": "type",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<FieldType>(FieldType.values)",
+              "dart_type_name": "FieldType"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 24,
       "references": [
         5
       ],
@@ -1549,13 +1519,13 @@
       }
     },
     {
-      "id": 23,
+      "id": 25,
       "references": [
-        16
+        23
       ],
       "type": "index",
       "data": {
-        "on": 16,
+        "on": 23,
         "name": "field_definitions_note_type",
         "sql": null,
         "unique": false,
@@ -1568,7 +1538,7 @@
       }
     },
     {
-      "id": 24,
+      "id": 26,
       "references": [
         11
       ],
@@ -1587,7 +1557,98 @@
       }
     },
     {
-      "id": 25,
+      "id": 27,
+      "references": [
+        7,
+        23
+      ],
+      "type": "table",
+      "data": {
+        "name": "note_fields",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "note_id",
+            "getter_name": "noteId",
+            "moor_type": "blob",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES notes (id) ON DELETE CASCADE",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES notes (id) ON DELETE CASCADE"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "notes",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ],
+            "type_converter": {
+              "dart_expr": "noteIdConverter",
+              "dart_type_name": "NoteId"
+            }
+          },
+          {
+            "name": "field_id",
+            "getter_name": "fieldId",
+            "moor_type": "blob",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES field_definitions (id) ON DELETE CASCADE",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES field_definitions (id) ON DELETE CASCADE"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "field_definitions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ],
+            "type_converter": {
+              "dart_expr": "fieldDefinitionIdConverter",
+              "dart_type_name": "FieldDefinitionId"
+            }
+          },
+          {
+            "name": "value",
+            "getter_name": "value",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "note_id",
+          "field_id"
+        ]
+      }
+    },
+    {
+      "id": 28,
       "references": [
         7
       ],
@@ -1610,13 +1671,13 @@
       }
     },
     {
-      "id": 26,
+      "id": 29,
       "references": [
-        17
+        27
       ],
       "type": "index",
       "data": {
-        "on": 17,
+        "on": 27,
         "name": "note_fields_field",
         "sql": null,
         "unique": false,
@@ -1629,7 +1690,30 @@
       }
     },
     {
-      "id": 27,
+      "id": 30,
+      "references": [
+        3
+      ],
+      "type": "index",
+      "data": {
+        "on": 3,
+        "name": "tags_parent",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "collection_id",
+            "order_by": null
+          },
+          {
+            "column": "parent_id",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 31,
       "references": [
         9
       ],
@@ -1652,14 +1736,14 @@
       }
     },
     {
-      "id": 28,
+      "id": 32,
       "references": [
-        12
+        1
       ],
       "type": "index",
       "data": {
-        "on": 12,
-        "name": "study_cards_deck",
+        "on": 1,
+        "name": "decks_parent",
         "sql": null,
         "unique": false,
         "columns": [
@@ -1668,91 +1752,7 @@
             "order_by": null
           },
           {
-            "column": "deck_id",
-            "order_by": null
-          }
-        ]
-      }
-    },
-    {
-      "id": 29,
-      "references": [
-        12
-      ],
-      "type": "index",
-      "data": {
-        "on": 12,
-        "name": "study_cards_template",
-        "sql": null,
-        "unique": false,
-        "columns": [
-          {
-            "column": "template_id",
-            "order_by": null
-          }
-        ]
-      }
-    },
-    {
-      "id": 30,
-      "references": [
-        18
-      ],
-      "type": "index",
-      "data": {
-        "on": 18,
-        "name": "review_events_card",
-        "sql": null,
-        "unique": false,
-        "columns": [
-          {
-            "column": "study_card_id",
-            "order_by": null
-          },
-          {
-            "column": "at",
-            "order_by": null
-          }
-        ]
-      }
-    },
-    {
-      "id": 31,
-      "references": [
-        18
-      ],
-      "type": "index",
-      "data": {
-        "on": 18,
-        "name": "review_events_at",
-        "sql": null,
-        "unique": false,
-        "columns": [
-          {
-            "column": "at",
-            "order_by": null
-          }
-        ]
-      }
-    },
-    {
-      "id": 32,
-      "references": [
-        19
-      ],
-      "type": "index",
-      "data": {
-        "on": 19,
-        "name": "scheduling_states_due",
-        "sql": null,
-        "unique": false,
-        "columns": [
-          {
-            "column": "state",
-            "order_by": null
-          },
-          {
-            "column": "due",
+            "column": "parent_id",
             "order_by": null
           }
         ]
@@ -1905,20 +1905,20 @@
       ]
     },
     {
-      "name": "field_definitions",
+      "name": "study_cards_deck",
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"field_definitions\" (\"id\" BLOB NOT NULL, \"note_type_id\" BLOB NOT NULL REFERENCES note_types (id) ON DELETE CASCADE, \"position\" INTEGER NOT NULL, \"name\" TEXT NOT NULL, \"type\" TEXT NOT NULL, PRIMARY KEY (\"id\"));"
+          "sql": "CREATE INDEX study_cards_deck ON study_cards (collection_id, deck_id)"
         }
       ]
     },
     {
-      "name": "note_fields",
+      "name": "study_cards_template",
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"note_fields\" (\"note_id\" BLOB NOT NULL REFERENCES notes (id) ON DELETE CASCADE, \"field_id\" BLOB NOT NULL REFERENCES field_definitions (id) ON DELETE CASCADE, \"value\" TEXT NOT NULL, PRIMARY KEY (\"note_id\", \"field_id\"));"
+          "sql": "CREATE INDEX study_cards_template ON study_cards (template_id)"
         }
       ]
     },
@@ -1941,20 +1941,38 @@
       ]
     },
     {
-      "name": "decks_parent",
+      "name": "review_events_card",
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE INDEX decks_parent ON decks (collection_id, parent_id)"
+          "sql": "CREATE INDEX review_events_card ON review_events (study_card_id, at)"
         }
       ]
     },
     {
-      "name": "tags_parent",
+      "name": "review_events_at",
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE INDEX tags_parent ON tags (collection_id, parent_id)"
+          "sql": "CREATE INDEX review_events_at ON review_events (at)"
+        }
+      ]
+    },
+    {
+      "name": "scheduling_states_due",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX scheduling_states_due ON scheduling_states (state, due)"
+        }
+      ]
+    },
+    {
+      "name": "field_definitions",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"field_definitions\" (\"id\" BLOB NOT NULL, \"note_type_id\" BLOB NOT NULL REFERENCES note_types (id) ON DELETE CASCADE, \"position\" INTEGER NOT NULL, \"name\" TEXT NOT NULL, \"type\" TEXT NOT NULL, PRIMARY KEY (\"id\"));"
         }
       ]
     },
@@ -1986,6 +2004,15 @@
       ]
     },
     {
+      "name": "note_fields",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"note_fields\" (\"note_id\" BLOB NOT NULL REFERENCES notes (id) ON DELETE CASCADE, \"field_id\" BLOB NOT NULL REFERENCES field_definitions (id) ON DELETE CASCADE, \"value\" TEXT NOT NULL, PRIMARY KEY (\"note_id\", \"field_id\"));"
+        }
+      ]
+    },
+    {
       "name": "notes_note_type",
       "sql": [
         {
@@ -2004,6 +2031,15 @@
       ]
     },
     {
+      "name": "tags_parent",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE INDEX tags_parent ON tags (collection_id, parent_id)"
+        }
+      ]
+    },
+    {
       "name": "note_tags_tag",
       "sql": [
         {
@@ -2013,47 +2049,11 @@
       ]
     },
     {
-      "name": "study_cards_deck",
+      "name": "decks_parent",
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE INDEX study_cards_deck ON study_cards (collection_id, deck_id)"
-        }
-      ]
-    },
-    {
-      "name": "study_cards_template",
-      "sql": [
-        {
-          "dialect": "sqlite",
-          "sql": "CREATE INDEX study_cards_template ON study_cards (template_id)"
-        }
-      ]
-    },
-    {
-      "name": "review_events_card",
-      "sql": [
-        {
-          "dialect": "sqlite",
-          "sql": "CREATE INDEX review_events_card ON review_events (study_card_id, at)"
-        }
-      ]
-    },
-    {
-      "name": "review_events_at",
-      "sql": [
-        {
-          "dialect": "sqlite",
-          "sql": "CREATE INDEX review_events_at ON review_events (at)"
-        }
-      ]
-    },
-    {
-      "name": "scheduling_states_due",
-      "sql": [
-        {
-          "dialect": "sqlite",
-          "sql": "CREATE INDEX scheduling_states_due ON scheduling_states (state, due)"
+          "sql": "CREATE INDEX decks_parent ON decks (collection_id, parent_id)"
         }
       ]
     }
