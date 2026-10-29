@@ -93,7 +93,7 @@ Core entities:
 - FieldDefinition
 - Note
 - CardTemplate
-- Card
+- StudyCard
 - Tag
 - NoteTag
 - MediaAsset

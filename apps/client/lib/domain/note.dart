@@ -9,7 +9,8 @@ part 'note.freezed.dart';
 /// so renaming one is a single change. Tags can be nested through [parentId],
 /// like decks.
 ///
-/// Names are unique per collection, ignoring case; repositories enforce this.
+/// Names are unique among tags with the same parent, ignoring case;
+/// repositories enforce this.
 @freezed
 abstract class Tag with _$Tag {
   Tag._() {

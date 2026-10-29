@@ -1,11 +1,11 @@
 import 'package:flutter_test/flutter_test.dart';
-import 'package:memuki/domain/card.dart';
 import 'package:memuki/domain/collection.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/media_asset.dart';
 import 'package:memuki/domain/note.dart';
 import 'package:memuki/domain/note_type.dart';
 import 'package:memuki/domain/review.dart';
+import 'package:memuki/domain/study_card.dart';
 
 void main() {
   final collectionId = CollectionId.generate();
@@ -139,9 +139,9 @@ void main() {
     });
   });
 
-  group('Card', () {
+  group('StudyCard', () {
     test('ID is derived from note and template', () {
-      final card = Card(
+      final card = StudyCard(
         noteId: NoteId.generate(),
         templateId: CardTemplateId.generate(),
         deckId: DeckId.generate(),

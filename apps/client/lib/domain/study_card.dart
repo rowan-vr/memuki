@@ -2,19 +2,19 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 import 'ids.dart';
 
-part 'card.freezed.dart';
+part 'study_card.freezed.dart';
 
 /// A card generated from a note by one card template. Its identity is the
 /// (note, template) pair; [id] is derived from it.
 @freezed
-abstract class Card with _$Card {
-  Card._();
+abstract class StudyCard with _$StudyCard {
+  StudyCard._();
 
-  factory Card({
+  factory StudyCard({
     required NoteId noteId,
     required CardTemplateId templateId,
     required DeckId deckId,
-  }) = _Card;
+  }) = _StudyCard;
 
   CardId get id => CardId.derive(noteId, templateId);
 }
