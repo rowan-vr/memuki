@@ -35,7 +35,7 @@ void main() {
 
   group('StudyCardId.derive', () {
     final note = NoteId.parse('018f4a2b-1c3d-7e4f-8a5b-6c7d8e9f0a1b');
-    final template = CardTemplateId.parse(
+    final template = StudyCardTemplateId.parse(
       '018f4a2b-1c3d-7e4f-8a5b-6c7d8e9f0a1c',
     );
 
@@ -55,7 +55,7 @@ void main() {
     });
 
     test('differs per template and per note', () {
-      final other = CardTemplateId.generate();
+      final other = StudyCardTemplateId.generate();
       expect(
         StudyCardId.derive(note, template),
         isNot(StudyCardId.derive(note, other)),

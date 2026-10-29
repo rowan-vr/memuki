@@ -27,13 +27,15 @@ abstract class FieldDefinition with _$FieldDefinition {
 /// Its position in [NoteType.templates] is its order; its layout is defined in
 /// Phase 3.
 @freezed
-abstract class CardTemplate with _$CardTemplate {
-  CardTemplate._() {
+abstract class StudyCardTemplate with _$StudyCardTemplate {
+  StudyCardTemplate._() {
     requireName(name, 'name');
   }
 
-  factory CardTemplate({required CardTemplateId id, required String name}) =
-      _CardTemplate;
+  factory StudyCardTemplate({
+    required StudyCardTemplateId id,
+    required String name,
+  }) = _StudyCardTemplate;
 }
 
 /// The structure of a kind of note: its fields and the cards it generates.
@@ -57,7 +59,7 @@ abstract class NoteType with _$NoteType {
     required CollectionId collectionId,
     required String name,
     required List<FieldDefinition> fields,
-    required List<CardTemplate> templates,
+    required List<StudyCardTemplate> templates,
   }) = _NoteType;
 
   /// The field with [id], or null if this note type has no such field.

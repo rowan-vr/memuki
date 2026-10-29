@@ -12,7 +12,7 @@ abstract class StudyCard with _$StudyCard {
 
   factory StudyCard({
     required NoteId noteId,
-    required CardTemplateId templateId,
+    required StudyCardTemplateId templateId,
     required DeckId deckId,
   }) = _StudyCard;
 

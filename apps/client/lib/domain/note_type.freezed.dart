@@ -283,45 +283,45 @@ as FieldType,
 }
 
 /// @nodoc
-mixin _$CardTemplate {
+mixin _$StudyCardTemplate {
 
- CardTemplateId get id; String get name;
-/// Create a copy of CardTemplate
+ StudyCardTemplateId get id; String get name;
+/// Create a copy of StudyCardTemplate
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-$CardTemplateCopyWith<CardTemplate> get copyWith => _$CardTemplateCopyWithImpl<CardTemplate>(this as CardTemplate, _$identity);
+$StudyCardTemplateCopyWith<StudyCardTemplate> get copyWith => _$StudyCardTemplateCopyWithImpl<StudyCardTemplate>(this as StudyCardTemplate, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-  final _this = this as CardTemplate;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is CardTemplate&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name));
+  final _this = this as StudyCardTemplate;
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StudyCardTemplate&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name));
 }
 
 
 @override
 int get hashCode {
-  final _this = this as CardTemplate;
+  final _this = this as StudyCardTemplate;
   return Object.hash(runtimeType,_this.id,_this.name);
 }
 
 @override
 String toString() {
-  final _this = this as CardTemplate;
-  return 'CardTemplate(id: ${_this.id}, name: ${_this.name})';
+  final _this = this as StudyCardTemplate;
+  return 'StudyCardTemplate(id: ${_this.id}, name: ${_this.name})';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class $CardTemplateCopyWith<$Res>  {
-  factory $CardTemplateCopyWith(CardTemplate value, $Res Function(CardTemplate) _then) = _$CardTemplateCopyWithImpl;
+abstract mixin class $StudyCardTemplateCopyWith<$Res>  {
+  factory $StudyCardTemplateCopyWith(StudyCardTemplate value, $Res Function(StudyCardTemplate) _then) = _$StudyCardTemplateCopyWithImpl;
 @useResult
 $Res call({
- CardTemplateId id, String name
+ StudyCardTemplateId id, String name
 });
 
 
@@ -329,19 +329,19 @@ $Res call({
 
 }
 /// @nodoc
-class _$CardTemplateCopyWithImpl<$Res>
-    implements $CardTemplateCopyWith<$Res> {
-  _$CardTemplateCopyWithImpl(this._self, this._then);
+class _$StudyCardTemplateCopyWithImpl<$Res>
+    implements $StudyCardTemplateCopyWith<$Res> {
+  _$StudyCardTemplateCopyWithImpl(this._self, this._then);
 
-  final CardTemplate _self;
-  final $Res Function(CardTemplate) _then;
+  final StudyCardTemplate _self;
+  final $Res Function(StudyCardTemplate) _then;
 
-/// Create a copy of CardTemplate
+/// Create a copy of StudyCardTemplate
 /// with the given fields replaced by the non-null parameter values.
 @pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,}) {
-  return _then(CardTemplate(
+  return _then(StudyCardTemplate(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as CardTemplateId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as StudyCardTemplateId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -349,8 +349,8 @@ as String,
 }
 
 
-/// Adds pattern-matching-related methods to [CardTemplate].
-extension CardTemplatePatterns on CardTemplate {
+/// Adds pattern-matching-related methods to [StudyCardTemplate].
+extension StudyCardTemplatePatterns on StudyCardTemplate {
 /// A variant of `map` that fallback to returning `orElse`.
 ///
 /// It is equivalent to doing:
@@ -363,10 +363,10 @@ extension CardTemplatePatterns on CardTemplate {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _CardTemplate value)?  $default,{required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>(TResult Function( _StudyCardTemplate value)?  $default,{required TResult orElse(),}){
 final _that = this;
 switch (_that) {
-case _CardTemplate() when $default != null:
+case _StudyCardTemplate() when $default != null:
 return $default(_that);case _:
   return orElse();
 
@@ -385,10 +385,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _CardTemplate value)  $default,){
+@optionalTypeArgs TResult map<TResult extends Object?>(TResult Function( _StudyCardTemplate value)  $default,){
 final _that = this;
 switch (_that) {
-case _CardTemplate():
+case _StudyCardTemplate():
 return $default(_that);case _:
   throw StateError('Unexpected subclass');
 
@@ -406,10 +406,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _CardTemplate value)?  $default,){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>(TResult? Function( _StudyCardTemplate value)?  $default,){
 final _that = this;
 switch (_that) {
-case _CardTemplate() when $default != null:
+case _StudyCardTemplate() when $default != null:
 return $default(_that);case _:
   return null;
 
@@ -427,9 +427,9 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CardTemplateId id,  String name)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( StudyCardTemplateId id,  String name)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
-case _CardTemplate() when $default != null:
+case _StudyCardTemplate() when $default != null:
 return $default(_that.id,_that.name);case _:
   return orElse();
 
@@ -448,9 +448,9 @@ return $default(_that.id,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CardTemplateId id,  String name)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( StudyCardTemplateId id,  String name)  $default,) {final _that = this;
 switch (_that) {
-case _CardTemplate():
+case _StudyCardTemplate():
 return $default(_that.id,_that.name);case _:
   throw StateError('Unexpected subclass');
 
@@ -468,9 +468,9 @@ return $default(_that.id,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CardTemplateId id,  String name)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( StudyCardTemplateId id,  String name)?  $default,) {final _that = this;
 switch (_that) {
-case _CardTemplate() when $default != null:
+case _StudyCardTemplate() when $default != null:
 return $default(_that.id,_that.name);case _:
   return null;
 
@@ -482,24 +482,24 @@ return $default(_that.id,_that.name);case _:
 /// @nodoc
 
 
-class _CardTemplate extends CardTemplate {
-   _CardTemplate({required this.id, required this.name}): super._();
+class _StudyCardTemplate extends StudyCardTemplate {
+   _StudyCardTemplate({required this.id, required this.name}): super._();
   
 
-@override final  CardTemplateId id;
+@override final  StudyCardTemplateId id;
 @override final  String name;
 
-/// Create a copy of CardTemplate
+/// Create a copy of StudyCardTemplate
 /// with the given fields replaced by the non-null parameter values.
 @override @JsonKey(includeFromJson: false, includeToJson: false)
 @pragma('vm:prefer-inline')
-_$CardTemplateCopyWith<_CardTemplate> get copyWith => __$CardTemplateCopyWithImpl<_CardTemplate>(this, _$identity);
+_$StudyCardTemplateCopyWith<_StudyCardTemplate> get copyWith => __$StudyCardTemplateCopyWithImpl<_StudyCardTemplate>(this, _$identity);
 
 
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _CardTemplate&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StudyCardTemplate&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
 }
 
 
@@ -510,18 +510,18 @@ int get hashCode {
 
 @override
 String toString() {
-    return 'CardTemplate(id: $id, name: $name)';
+    return 'StudyCardTemplate(id: $id, name: $name)';
 }
 
 
 }
 
 /// @nodoc
-abstract mixin class _$CardTemplateCopyWith<$Res> implements $CardTemplateCopyWith<$Res> {
-  factory _$CardTemplateCopyWith(_CardTemplate value, $Res Function(_CardTemplate) _then) = __$CardTemplateCopyWithImpl;
+abstract mixin class _$StudyCardTemplateCopyWith<$Res> implements $StudyCardTemplateCopyWith<$Res> {
+  factory _$StudyCardTemplateCopyWith(_StudyCardTemplate value, $Res Function(_StudyCardTemplate) _then) = __$StudyCardTemplateCopyWithImpl;
 @override @useResult
 $Res call({
- CardTemplateId id, String name
+ StudyCardTemplateId id, String name
 });
 
 
@@ -529,19 +529,19 @@ $Res call({
 
 }
 /// @nodoc
-class __$CardTemplateCopyWithImpl<$Res>
-    implements _$CardTemplateCopyWith<$Res> {
-  __$CardTemplateCopyWithImpl(this._self, this._then);
+class __$StudyCardTemplateCopyWithImpl<$Res>
+    implements _$StudyCardTemplateCopyWith<$Res> {
+  __$StudyCardTemplateCopyWithImpl(this._self, this._then);
 
-  final _CardTemplate _self;
-  final $Res Function(_CardTemplate) _then;
+  final _StudyCardTemplate _self;
+  final $Res Function(_StudyCardTemplate) _then;
 
-/// Create a copy of CardTemplate
+/// Create a copy of StudyCardTemplate
 /// with the given fields replaced by the non-null parameter values.
 @override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,}) {
-  return _then(_CardTemplate(
+  return _then(_StudyCardTemplate(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
-as CardTemplateId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as StudyCardTemplateId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -552,7 +552,7 @@ as String,
 /// @nodoc
 mixin _$NoteType {
 
- NoteTypeId get id; CollectionId get collectionId; String get name; List<FieldDefinition> get fields; List<CardTemplate> get templates;
+ NoteTypeId get id; CollectionId get collectionId; String get name; List<FieldDefinition> get fields; List<StudyCardTemplate> get templates;
 /// Create a copy of NoteType
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -588,7 +588,7 @@ abstract mixin class $NoteTypeCopyWith<$Res>  {
   factory $NoteTypeCopyWith(NoteType value, $Res Function(NoteType) _then) = _$NoteTypeCopyWithImpl;
 @useResult
 $Res call({
- NoteTypeId id, CollectionId collectionId, String name, List<FieldDefinition> fields, List<CardTemplate> templates
+ NoteTypeId id, CollectionId collectionId, String name, List<FieldDefinition> fields, List<StudyCardTemplate> templates
 });
 
 
@@ -612,7 +612,7 @@ as NoteTypeId,collectionId: null == collectionId ? _self.collectionId : collecti
 as CollectionId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,fields: null == fields ? _self.fields : fields // ignore: cast_nullable_to_non_nullable
 as List<FieldDefinition>,templates: null == templates ? _self.templates : templates // ignore: cast_nullable_to_non_nullable
-as List<CardTemplate>,
+as List<StudyCardTemplate>,
   ));
 }
 
@@ -697,7 +697,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<CardTemplate> templates)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<StudyCardTemplate> templates)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NoteType() when $default != null:
 return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templates);case _:
@@ -718,7 +718,7 @@ return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templa
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<CardTemplate> templates)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<StudyCardTemplate> templates)  $default,) {final _that = this;
 switch (_that) {
 case _NoteType():
 return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templates);case _:
@@ -738,7 +738,7 @@ return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templa
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<CardTemplate> templates)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<StudyCardTemplate> templates)?  $default,) {final _that = this;
 switch (_that) {
 case _NoteType() when $default != null:
 return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templates);case _:
@@ -753,7 +753,7 @@ return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templa
 
 
 class _NoteType extends NoteType {
-   _NoteType({required this.id, required this.collectionId, required this.name, required  List<FieldDefinition> fields, required  List<CardTemplate> templates}): _fields = fields,_templates = templates,super._();
+   _NoteType({required this.id, required this.collectionId, required this.name, required  List<FieldDefinition> fields, required  List<StudyCardTemplate> templates}): _fields = fields,_templates = templates,super._();
   
 
 @override final  NoteTypeId id;
@@ -766,8 +766,8 @@ class _NoteType extends NoteType {
   return EqualUnmodifiableListView(_fields);
 }
 
- final  List<CardTemplate> _templates;
-@override List<CardTemplate> get templates {
+ final  List<StudyCardTemplate> _templates;
+@override List<StudyCardTemplate> get templates {
   if (_templates is EqualUnmodifiableListView) return _templates;
   // ignore: implicit_dynamic_type
   return EqualUnmodifiableListView(_templates);
@@ -806,7 +806,7 @@ abstract mixin class _$NoteTypeCopyWith<$Res> implements $NoteTypeCopyWith<$Res>
   factory _$NoteTypeCopyWith(_NoteType value, $Res Function(_NoteType) _then) = __$NoteTypeCopyWithImpl;
 @override @useResult
 $Res call({
- NoteTypeId id, CollectionId collectionId, String name, List<FieldDefinition> fields, List<CardTemplate> templates
+ NoteTypeId id, CollectionId collectionId, String name, List<FieldDefinition> fields, List<StudyCardTemplate> templates
 });
 
 
@@ -830,7 +830,7 @@ as NoteTypeId,collectionId: null == collectionId ? _self.collectionId : collecti
 as CollectionId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,fields: null == fields ? _self._fields : fields // ignore: cast_nullable_to_non_nullable
 as List<FieldDefinition>,templates: null == templates ? _self._templates : templates // ignore: cast_nullable_to_non_nullable
-as List<CardTemplate>,
+as List<StudyCardTemplate>,
   ));
 }
 

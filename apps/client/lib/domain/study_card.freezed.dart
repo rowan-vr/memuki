@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StudyCard {
 
- NoteId get noteId; CardTemplateId get templateId; DeckId get deckId;
+ NoteId get noteId; StudyCardTemplateId get templateId; DeckId get deckId;
 /// Create a copy of StudyCard
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -51,7 +51,7 @@ abstract mixin class $StudyCardCopyWith<$Res>  {
   factory $StudyCardCopyWith(StudyCard value, $Res Function(StudyCard) _then) = _$StudyCardCopyWithImpl;
 @useResult
 $Res call({
- NoteId noteId, CardTemplateId templateId, DeckId deckId
+ NoteId noteId, StudyCardTemplateId templateId, DeckId deckId
 });
 
 
@@ -72,7 +72,7 @@ class _$StudyCardCopyWithImpl<$Res>
   return _then(StudyCard(
 noteId: null == noteId ? _self.noteId : noteId // ignore: cast_nullable_to_non_nullable
 as NoteId,templateId: null == templateId ? _self.templateId : templateId // ignore: cast_nullable_to_non_nullable
-as CardTemplateId,deckId: null == deckId ? _self.deckId : deckId // ignore: cast_nullable_to_non_nullable
+as StudyCardTemplateId,deckId: null == deckId ? _self.deckId : deckId // ignore: cast_nullable_to_non_nullable
 as DeckId,
   ));
 }
@@ -158,7 +158,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( NoteId noteId,  CardTemplateId templateId,  DeckId deckId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( NoteId noteId,  StudyCardTemplateId templateId,  DeckId deckId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StudyCard() when $default != null:
 return $default(_that.noteId,_that.templateId,_that.deckId);case _:
@@ -179,7 +179,7 @@ return $default(_that.noteId,_that.templateId,_that.deckId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( NoteId noteId,  CardTemplateId templateId,  DeckId deckId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( NoteId noteId,  StudyCardTemplateId templateId,  DeckId deckId)  $default,) {final _that = this;
 switch (_that) {
 case _StudyCard():
 return $default(_that.noteId,_that.templateId,_that.deckId);case _:
@@ -199,7 +199,7 @@ return $default(_that.noteId,_that.templateId,_that.deckId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( NoteId noteId,  CardTemplateId templateId,  DeckId deckId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( NoteId noteId,  StudyCardTemplateId templateId,  DeckId deckId)?  $default,) {final _that = this;
 switch (_that) {
 case _StudyCard() when $default != null:
 return $default(_that.noteId,_that.templateId,_that.deckId);case _:
@@ -218,7 +218,7 @@ class _StudyCard extends StudyCard {
   
 
 @override final  NoteId noteId;
-@override final  CardTemplateId templateId;
+@override final  StudyCardTemplateId templateId;
 @override final  DeckId deckId;
 
 /// Create a copy of StudyCard
@@ -253,7 +253,7 @@ abstract mixin class _$StudyCardCopyWith<$Res> implements $StudyCardCopyWith<$Re
   factory _$StudyCardCopyWith(_StudyCard value, $Res Function(_StudyCard) _then) = __$StudyCardCopyWithImpl;
 @override @useResult
 $Res call({
- NoteId noteId, CardTemplateId templateId, DeckId deckId
+ NoteId noteId, StudyCardTemplateId templateId, DeckId deckId
 });
 
 
@@ -274,7 +274,7 @@ class __$StudyCardCopyWithImpl<$Res>
   return _then(_StudyCard(
 noteId: null == noteId ? _self.noteId : noteId // ignore: cast_nullable_to_non_nullable
 as NoteId,templateId: null == templateId ? _self.templateId : templateId // ignore: cast_nullable_to_non_nullable
-as CardTemplateId,deckId: null == deckId ? _self.deckId : deckId // ignore: cast_nullable_to_non_nullable
+as StudyCardTemplateId,deckId: null == deckId ? _self.deckId : deckId // ignore: cast_nullable_to_non_nullable
 as DeckId,
   ));
 }

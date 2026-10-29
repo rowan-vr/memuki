@@ -58,7 +58,7 @@ abstract class ReviewEvent with _$ReviewEvent {
 
   factory ReviewEvent({
     required ReviewEventId id,
-    required StudyCardId cardId,
+    required StudyCardId studyCardId,
     required ReviewEventKind kind,
     required DateTime at,
     Grade? grade,
@@ -87,7 +87,7 @@ abstract class SchedulingState with _$SchedulingState {
   }
 
   factory SchedulingState({
-    required StudyCardId cardId,
+    required StudyCardId studyCardId,
     required StudyCardState state,
 
     /// Null for new and burned cards.

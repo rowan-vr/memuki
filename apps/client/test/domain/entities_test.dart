@@ -65,12 +65,12 @@ void main() {
   group('NoteType', () {
     FieldDefinition field(String name) =>
         FieldDefinition(id: FieldDefinitionId.generate(), name: name);
-    CardTemplate template(String name) =>
-        CardTemplate(id: CardTemplateId.generate(), name: name);
+    StudyCardTemplate template(String name) =>
+        StudyCardTemplate(id: StudyCardTemplateId.generate(), name: name);
 
     NoteType noteType({
       List<FieldDefinition>? fields,
-      List<CardTemplate>? templates,
+      List<StudyCardTemplate>? templates,
     }) => NoteType(
       id: NoteTypeId.generate(),
       collectionId: collectionId,
@@ -143,7 +143,7 @@ void main() {
     test('ID is derived from note and template', () {
       final card = StudyCard(
         noteId: NoteId.generate(),
-        templateId: CardTemplateId.generate(),
+        templateId: StudyCardTemplateId.generate(),
         deckId: DeckId.generate(),
       );
       expect(card.id, StudyCardId.derive(card.noteId, card.templateId));
@@ -166,9 +166,9 @@ void main() {
   });
 
   group('ReviewEvent', () {
-    final cardId = StudyCardId.derive(
+    final studyCardId = StudyCardId.derive(
       NoteId.generate(),
-      CardTemplateId.generate(),
+      StudyCardTemplateId.generate(),
     );
     final at = DateTime.utc(2026, 10, 29, 9);
 
@@ -180,7 +180,7 @@ void main() {
       Duration? responseTime,
     }) => ReviewEvent(
       id: ReviewEventId.generate(),
-      cardId: cardId,
+      studyCardId: studyCardId,
       kind: kind,
       at: time ?? at,
       grade: grade,
@@ -227,14 +227,14 @@ void main() {
   });
 
   group('SchedulingState', () {
-    final cardId = StudyCardId.derive(
+    final studyCardId = StudyCardId.derive(
       NoteId.generate(),
-      CardTemplateId.generate(),
+      StudyCardTemplateId.generate(),
     );
 
     test('defaults describe a new card', () {
       final state = SchedulingState(
-        cardId: cardId,
+        studyCardId: studyCardId,
         state: StudyCardState.newCard,
       );
       expect(state.due, isNull);
@@ -245,7 +245,7 @@ void main() {
     test('rejects negative counters and local due times', () {
       expect(
         () => SchedulingState(
-          cardId: cardId,
+          studyCardId: studyCardId,
           state: StudyCardState.review,
           lapses: -1,
         ),
@@ -253,7 +253,7 @@ void main() {
       );
       expect(
         () => SchedulingState(
-          cardId: cardId,
+          studyCardId: studyCardId,
           state: StudyCardState.review,
           due: DateTime(2026, 11),
         ),

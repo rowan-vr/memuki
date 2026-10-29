@@ -92,7 +92,7 @@ Core entities:
 - NoteType
 - FieldDefinition
 - Note
-- CardTemplate
+- StudyCardTemplate
 - StudyCard
 - Tag
 - NoteTag

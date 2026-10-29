@@ -46,9 +46,9 @@ extension type const FieldDefinitionId._(String value) implements Object {
   FieldDefinitionId.parse(String value) : this._(_parse(value));
 }
 
-extension type const CardTemplateId._(String value) implements Object {
-  CardTemplateId.generate() : this._(_generate());
-  CardTemplateId.parse(String value) : this._(_parse(value));
+extension type const StudyCardTemplateId._(String value) implements Object {
+  StudyCardTemplateId.generate() : this._(_generate());
+  StudyCardTemplateId.parse(String value) : this._(_parse(value));
 }
 
 extension type const NoteId._(String value) implements Object {
@@ -73,7 +73,7 @@ extension type const ReviewEventId._(String value) implements Object {
 /// The derived ID is a UUIDv8 (RFC 9562) built from the first 16 bytes of
 /// SHA-256 over both IDs' bytes.
 extension type const StudyCardId._(String value) implements Object {
-  factory StudyCardId.derive(NoteId note, CardTemplateId template) {
+  factory StudyCardId.derive(NoteId note, StudyCardTemplateId template) {
     final digest = sha256.convert([
       ...Uuid.parse(note.value),
       ...Uuid.parse(template.value),

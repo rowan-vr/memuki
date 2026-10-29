@@ -29,7 +29,7 @@ Code starts inside `apps/client/lib/` and is extracted into `packages/` only whe
 - **Theme:** light and dark themes generated from one seed color. Spacing follows a 4 px scale.
 - **Typography:** Noto Sans JP is bundled and used for all text. It covers Latin, kana, and kanji with Japanese glyph forms, so rendering does not depend on installed system fonts. It is a variable font; text theme weights set its `wght` axis.
 - **Logging:** the `logging` package with named loggers (`memuki.<area>`). Records go to `dart:developer` and the console. Uncaught framework and asynchronous errors are logged at the top level.
-- **Domain models:** immutable classes generated with `freezed`, in `lib/domain/`, with no dependency on storage or Flutter. The card entity is `StudyCard`, so it does not clash with Flutter's `Card` widget. Entities validate their invariants on construction and in `copyWith`; invariants that span entities are enforced by repositories. Each entity has its own ID type (an extension type over the UUID string). Database rows are mapped to and from domain models in the storage module.
+- **Domain models:** immutable classes generated with `freezed`, in `lib/domain/`, with no dependency on storage or Flutter. Card types are prefixed `StudyCard` (`StudyCard`, `StudyCardTemplate`, `StudyCardId`, `StudyCardState`), so they do not clash with Flutter's `Card` widget. Entities validate their invariants on construction and in `copyWith`; invariants that span entities are enforced by repositories. Each entity has its own ID type (an extension type over the UUID string). Database rows are mapped to and from domain models in the storage module.
 - **Generated code:** route, localization, and model code is generated and committed. CI regenerates it and fails if the result differs.
 
 ## Data model
@@ -41,9 +41,9 @@ Collection
 │   └── StudyCard ──► SchedulingState (materialized)
 │        └──► ReviewEvent (append-only)
 ├── NoteType
-│   └── CardTemplate
+│   └── StudyCardTemplate
 ├── Note ──► NoteType
-│   ├── generates Cards via CardTemplates
+│   ├── generates StudyCards via StudyCardTemplates
 │   └── NoteTag ──► Tag
 ├── Tag
 │   └── Tag (nested)
