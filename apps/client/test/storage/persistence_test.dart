@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:memuki/dev/collection_generator.dart';
 import 'package:memuki/storage/database.dart';
 import 'package:memuki/storage/media/io_media_store.dart';
 import 'package:memuki/storage/repositories/media_repository.dart';
@@ -31,7 +32,7 @@ void main() {
     required int seed,
   }) async {
     final (db, media) = await open(name);
-    await CollectionFixture.generate(seed: seed)
+    await GeneratedCollection.generate(seed: seed)
         .writeTo(Repositories(db), media);
     final dump = await dumpTables(db);
     await db.close();
@@ -45,7 +46,7 @@ void main() {
   });
 
   test('everything written survives a restart', () async {
-    final fixture = CollectionFixture.generate(seed: 3);
+    final fixture = GeneratedCollection.generate(seed: 3);
     var (db, media) = await open('memuki');
     var repos = Repositories(db);
     await fixture.writeTo(repos, media);

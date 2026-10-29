@@ -1,11 +1,9 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
-import 'package:drift_flutter/drift_flutter.dart';
-import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
+import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
-import 'package:path_provider/path_provider.dart';
 
 import '../domain/ids.dart';
 import '../domain/note.dart' show SourceKind;
@@ -55,18 +53,6 @@ class MemukiDatabase extends _$MemukiDatabase {
     DateTime Function()? now,
     @visibleForTesting this._node,
   }) : _now = now ?? DateTime.now;
-
-  /// Opens the app's database in the application support directory.
-  factory MemukiDatabase.open() => MemukiDatabase(
-    driftDatabase(
-      name: 'memuki',
-      native: const DriftNativeOptions(
-        databaseDirectory: getApplicationSupportDirectory,
-      ),
-    ),
-    // Web storage is set up in Phase 12.
-    backupDirectory: kIsWeb ? null : getApplicationSupportDirectory,
-  );
 
   /// Where to write a copy of the database before upgrading it, or null to
   /// skip the copy.

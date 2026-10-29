@@ -3,6 +3,7 @@ import 'dart:io';
 
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:memuki/dev/collection_generator.dart';
 import 'package:memuki/domain/collection.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/note.dart';
@@ -22,7 +23,7 @@ typedef _World = ({
   MemukiDatabase db,
   Repositories repos,
   MediaRepository media,
-  CollectionFixture fixture,
+  GeneratedCollection fixture,
 });
 
 /// A repository write, with optional setup that runs before the database is
@@ -263,7 +264,7 @@ void main() {
     addTearDown(() => root.delete(recursive: true));
     final media = MediaRepository(db, await IoMediaStore.open(root));
     final repos = Repositories(db);
-    final fixture = CollectionFixture.generate(seed: 11);
+    final fixture = GeneratedCollection.generate(seed: 11);
     await fixture.writeTo(repos, media);
     world = (db: db, repos: repos, media: media, fixture: fixture);
   });

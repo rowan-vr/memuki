@@ -1,6 +1,6 @@
 import 'dart:math';
 
-import 'package:flutter/foundation.dart';
+import 'package:meta/meta.dart';
 
 /// A hybrid logical clock timestamp: wall-clock milliseconds, a counter for
 /// changes within the same millisecond, and the ID of the device that made
