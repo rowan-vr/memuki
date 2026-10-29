@@ -8,10 +8,20 @@ import 'study_day.dart';
 /// collection.
 final class SchedulingSettings {
   const SchedulingSettings({
+    this.schedulerId = 'memuki.steps-sm2',
+    this.configVersion = 0,
     this.schedulerConfig = const {},
     this.burnThreshold,
+    this.leechThreshold = 8,
     this.dayStart = StudyDay.defaultStart,
   });
+
+  /// The scheduler that new reviews use, in its latest version.
+  final String schedulerId;
+
+  /// The version of the preset these settings come from, recorded on each
+  /// review event.
+  final int configVersion;
 
   /// The scheduler's own settings, decoded by [Scheduler.decodeConfig].
   final Map<String, Object?> schedulerConfig;
@@ -19,6 +29,10 @@ final class SchedulingSettings {
   /// Graduated cards whose next interval reaches this are burned. Null
   /// disables burning.
   final Duration? burnThreshold;
+
+  /// The number of lapses at which a card becomes a leech, and again every
+  /// half of it after. Null disables leech detection.
+  final int? leechThreshold;
 
   /// The local time of day at which the collection's study day starts.
   final Duration dayStart;
@@ -28,8 +42,8 @@ final class SchedulingSettings {
 ///
 /// Each review event is applied with the scheduler and version recorded on
 /// it, in the UTC offset recorded on it, so every device computes the same
-/// state from the same history. Burning is handled here rather than by the
-/// schedulers.
+/// state from the same history. Burning and leech detection are handled here
+/// rather than by the schedulers.
 class SchedulingEngine {
   SchedulingEngine(this._schedulers);
 
@@ -38,6 +52,21 @@ class SchedulingEngine {
   /// The state of a card that has never been reviewed.
   SchedulingState initial(StudyCardId studyCardId) =>
       SchedulingState(studyCardId: studyCardId, state: StudyCardState.newCard);
+
+  /// Whether the change from [before] to [after] is a lapse that makes the
+  /// card a leech: at the leech threshold, and again every half of it after,
+  /// so a card stays flagged while it keeps failing.
+  bool becameLeech(
+    SchedulingState before,
+    SchedulingState after,
+    SchedulingSettings settings,
+  ) {
+    final threshold = settings.leechThreshold;
+    if (threshold == null || after.lapses <= before.lapses) return false;
+    final repeat = threshold < 2 ? 1 : (threshold + 1) ~/ 2;
+    return after.lapses >= threshold &&
+        (after.lapses - threshold) % repeat == 0;
+  }
 
   /// The state of the card after [event].
   SchedulingState apply(

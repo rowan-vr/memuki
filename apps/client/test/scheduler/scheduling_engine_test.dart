@@ -147,4 +147,44 @@ void main() {
       expect(state.due, at.add(const Duration(minutes: 10)));
     });
   });
+
+  group('leeches', () {
+    SchedulingState lapses(int count) =>
+        engine.initial(cardId).copyWith(lapses: count);
+
+    List<int> leechLapses(SchedulingSettings settings) => [
+      for (var n = 1; n <= 20; n++)
+        if (engine.becameLeech(lapses(n - 1), lapses(n), settings)) n,
+    ];
+
+    test('a card becomes a leech at the threshold and every half after', () {
+      expect(leechLapses(settings), [8, 12, 16, 20]);
+      expect(leechLapses(const SchedulingSettings(leechThreshold: 3)), [
+        3,
+        5,
+        7,
+        9,
+        11,
+        13,
+        15,
+        17,
+        19,
+      ]);
+      expect(
+        leechLapses(const SchedulingSettings(leechThreshold: 1)),
+        List.generate(20, (i) => i + 1),
+      );
+    });
+
+    test('only a new lapse makes a leech', () {
+      expect(engine.becameLeech(lapses(8), lapses(8), settings), isFalse);
+    });
+
+    test('leech detection can be disabled', () {
+      expect(
+        leechLapses(const SchedulingSettings(leechThreshold: null)),
+        isEmpty,
+      );
+    });
+  });
 }
