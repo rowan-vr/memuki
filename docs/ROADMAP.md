@@ -196,6 +196,9 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Step grade semantics | Again: first step; Hard: repeat current step; Good: next step, graduating after the last; Easy: graduate immediately with the easy interval | Decided |
 | Grades | Again, Hard, Good, and Easy are all stored and shown | Decided |
 | Ease recovery | In review, Good raises ease slightly, up to the starting ease; the amount is set per preset | Decided |
+| Review intervals | Hard: interval × 1.2; Good: (interval + half the days late) × ease; Easy: (interval + days late) × ease × 1.3; each at least one day more than the grade below. Ease starts at 250% with a minimum of 130%; Again −20, Hard −15, Good +5 up to the starting ease, Easy +15 percentage points | Decided |
+| Interval after a lapse | A configurable share of the previous interval (default 0%), at least the minimum interval | Decided |
+| Fuzz | Review intervals of 3d or more are spread within a range that narrows to about ±5% for long intervals, seeded by the card and its review count so replay reproduces it | Decided |
 | Burned state | Cards whose next interval reaches a configurable threshold are burned and leave normal scheduling | Decided |
 | Burn threshold | Per preset, can be disabled; default 1 year | Decided |
 | Grading a burned card | Pass: stays burned; Again: returns to relearning | Decided |
