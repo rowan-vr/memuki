@@ -6341,6 +6341,15 @@ class $ReviewEventsTable extends ReviewEvents
         requiredDuringInsert: true,
       ).withConverter<DateTime>($ReviewEventsTable.$converterat);
   @override
+  late final GeneratedColumnWithTypeConverter<Duration, int> utcOffset =
+      GeneratedColumn<int>(
+        'utc_offset',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<Duration>($ReviewEventsTable.$converterutcOffset);
+  @override
   late final GeneratedColumnWithTypeConverter<Grade?, String> grade =
       GeneratedColumn<String>(
         'grade',
@@ -6436,6 +6445,7 @@ class $ReviewEventsTable extends ReviewEvents
     studyCardId,
     kind,
     at,
+    utcOffset,
     grade,
     responseTime,
     dueBefore,
@@ -6524,6 +6534,12 @@ class $ReviewEventsTable extends ReviewEvents
           data['${effectivePrefix}at'],
         )!,
       ),
+      utcOffset: $ReviewEventsTable.$converterutcOffset.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}utc_offset'],
+        )!,
+      ),
       grade: $ReviewEventsTable.$convertergraden.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -6587,6 +6603,8 @@ class $ReviewEventsTable extends ReviewEvents
   static JsonTypeConverter2<ReviewEventKind, String, String> $converterkind =
       const EnumNameConverter<ReviewEventKind>(ReviewEventKind.values);
   static TypeConverter<DateTime, int> $converterat = const UtcMillisConverter();
+  static TypeConverter<Duration, int> $converterutcOffset =
+      const DurationMinutesConverter();
   static JsonTypeConverter2<Grade, String, String> $convertergrade =
       const EnumNameConverter<Grade>(Grade.values);
   static JsonTypeConverter2<Grade?, String?, String?> $convertergraden =
@@ -6615,6 +6633,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
   final StudyCardId studyCardId;
   final ReviewEventKind kind;
   final DateTime at;
+  final Duration utcOffset;
   final Grade? grade;
   final Duration? responseTime;
   final DateTime? dueBefore;
@@ -6629,6 +6648,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     required this.studyCardId,
     required this.kind,
     required this.at,
+    required this.utcOffset,
     this.grade,
     this.responseTime,
     this.dueBefore,
@@ -6659,6 +6679,11 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     }
     {
       map['at'] = Variable<int>($ReviewEventsTable.$converterat.toSql(at));
+    }
+    {
+      map['utc_offset'] = Variable<int>(
+        $ReviewEventsTable.$converterutcOffset.toSql(utcOffset),
+      );
     }
     if (!nullToAbsent || grade != null) {
       map['grade'] = Variable<String>(
@@ -6702,6 +6727,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
       studyCardId: Value(studyCardId),
       kind: Value(kind),
       at: Value(at),
+      utcOffset: Value(utcOffset),
       grade: grade == null && nullToAbsent
           ? const Value.absent()
           : Value(grade),
@@ -6736,6 +6762,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
         serializer.fromJson<String>(json['kind']),
       ),
       at: serializer.fromJson<DateTime>(json['at']),
+      utcOffset: serializer.fromJson<Duration>(json['utcOffset']),
       grade: $ReviewEventsTable.$convertergraden.fromJson(
         serializer.fromJson<String?>(json['grade']),
       ),
@@ -6759,6 +6786,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
         $ReviewEventsTable.$converterkind.toJson(kind),
       ),
       'at': serializer.toJson<DateTime>(at),
+      'utcOffset': serializer.toJson<Duration>(utcOffset),
       'grade': serializer.toJson<String?>(
         $ReviewEventsTable.$convertergraden.toJson(grade),
       ),
@@ -6778,6 +6806,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     StudyCardId? studyCardId,
     ReviewEventKind? kind,
     DateTime? at,
+    Duration? utcOffset,
     Value<Grade?> grade = const Value.absent(),
     Value<Duration?> responseTime = const Value.absent(),
     Value<DateTime?> dueBefore = const Value.absent(),
@@ -6792,6 +6821,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     studyCardId: studyCardId ?? this.studyCardId,
     kind: kind ?? this.kind,
     at: at ?? this.at,
+    utcOffset: utcOffset ?? this.utcOffset,
     grade: grade.present ? grade.value : this.grade,
     responseTime: responseTime.present ? responseTime.value : this.responseTime,
     dueBefore: dueBefore.present ? dueBefore.value : this.dueBefore,
@@ -6812,6 +6842,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
           : this.studyCardId,
       kind: data.kind.present ? data.kind.value : this.kind,
       at: data.at.present ? data.at.value : this.at,
+      utcOffset: data.utcOffset.present ? data.utcOffset.value : this.utcOffset,
       grade: data.grade.present ? data.grade.value : this.grade,
       responseTime: data.responseTime.present
           ? data.responseTime.value
@@ -6841,6 +6872,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
           ..write('studyCardId: $studyCardId, ')
           ..write('kind: $kind, ')
           ..write('at: $at, ')
+          ..write('utcOffset: $utcOffset, ')
           ..write('grade: $grade, ')
           ..write('responseTime: $responseTime, ')
           ..write('dueBefore: $dueBefore, ')
@@ -6860,6 +6892,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     studyCardId,
     kind,
     at,
+    utcOffset,
     grade,
     responseTime,
     dueBefore,
@@ -6878,6 +6911,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
           other.studyCardId == this.studyCardId &&
           other.kind == this.kind &&
           other.at == this.at &&
+          other.utcOffset == this.utcOffset &&
           other.grade == this.grade &&
           other.responseTime == this.responseTime &&
           other.dueBefore == this.dueBefore &&
@@ -6894,6 +6928,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
   final Value<StudyCardId> studyCardId;
   final Value<ReviewEventKind> kind;
   final Value<DateTime> at;
+  final Value<Duration> utcOffset;
   final Value<Grade?> grade;
   final Value<Duration?> responseTime;
   final Value<DateTime?> dueBefore;
@@ -6909,6 +6944,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     this.studyCardId = const Value.absent(),
     this.kind = const Value.absent(),
     this.at = const Value.absent(),
+    this.utcOffset = const Value.absent(),
     this.grade = const Value.absent(),
     this.responseTime = const Value.absent(),
     this.dueBefore = const Value.absent(),
@@ -6925,6 +6961,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     required StudyCardId studyCardId,
     required ReviewEventKind kind,
     required DateTime at,
+    required Duration utcOffset,
     this.grade = const Value.absent(),
     this.responseTime = const Value.absent(),
     this.dueBefore = const Value.absent(),
@@ -6939,6 +6976,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
        studyCardId = Value(studyCardId),
        kind = Value(kind),
        at = Value(at),
+       utcOffset = Value(utcOffset),
        schedulerId = Value(schedulerId),
        schedulerVersion = Value(schedulerVersion),
        configVersion = Value(configVersion),
@@ -6948,6 +6986,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     Expression<Uint8List>? studyCardId,
     Expression<String>? kind,
     Expression<int>? at,
+    Expression<int>? utcOffset,
     Expression<String>? grade,
     Expression<int>? responseTime,
     Expression<int>? dueBefore,
@@ -6964,6 +7003,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
       if (studyCardId != null) 'study_card_id': studyCardId,
       if (kind != null) 'kind': kind,
       if (at != null) 'at': at,
+      if (utcOffset != null) 'utc_offset': utcOffset,
       if (grade != null) 'grade': grade,
       if (responseTime != null) 'response_time': responseTime,
       if (dueBefore != null) 'due_before': dueBefore,
@@ -6982,6 +7022,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     Value<StudyCardId>? studyCardId,
     Value<ReviewEventKind>? kind,
     Value<DateTime>? at,
+    Value<Duration>? utcOffset,
     Value<Grade?>? grade,
     Value<Duration?>? responseTime,
     Value<DateTime?>? dueBefore,
@@ -6998,6 +7039,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
       studyCardId: studyCardId ?? this.studyCardId,
       kind: kind ?? this.kind,
       at: at ?? this.at,
+      utcOffset: utcOffset ?? this.utcOffset,
       grade: grade ?? this.grade,
       responseTime: responseTime ?? this.responseTime,
       dueBefore: dueBefore ?? this.dueBefore,
@@ -7032,6 +7074,11 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     if (at.present) {
       map['at'] = Variable<int>(
         $ReviewEventsTable.$converterat.toSql(at.value),
+      );
+    }
+    if (utcOffset.present) {
+      map['utc_offset'] = Variable<int>(
+        $ReviewEventsTable.$converterutcOffset.toSql(utcOffset.value),
       );
     }
     if (grade.present) {
@@ -7086,6 +7133,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
           ..write('studyCardId: $studyCardId, ')
           ..write('kind: $kind, ')
           ..write('at: $at, ')
+          ..write('utcOffset: $utcOffset, ')
           ..write('grade: $grade, ')
           ..write('responseTime: $responseTime, ')
           ..write('dueBefore: $dueBefore, ')
@@ -13608,6 +13656,7 @@ typedef $$ReviewEventsTableCreateCompanionBuilder =
       required StudyCardId studyCardId,
       required ReviewEventKind kind,
       required DateTime at,
+      required Duration utcOffset,
       Value<Grade?> grade,
       Value<Duration?> responseTime,
       Value<DateTime?> dueBefore,
@@ -13625,6 +13674,7 @@ typedef $$ReviewEventsTableUpdateCompanionBuilder =
       Value<StudyCardId> studyCardId,
       Value<ReviewEventKind> kind,
       Value<DateTime> at,
+      Value<Duration> utcOffset,
       Value<Grade?> grade,
       Value<Duration?> responseTime,
       Value<DateTime?> dueBefore,
@@ -13724,6 +13774,12 @@ class $$ReviewEventsTableFilterComposer
   ColumnWithTypeConverterFilters<DateTime, DateTime, int> get at =>
       $composableBuilder(
         column: $table.at,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<Duration, Duration, int> get utcOffset =>
+      $composableBuilder(
+        column: $table.utcOffset,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
@@ -13868,6 +13924,11 @@ class $$ReviewEventsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<int> get utcOffset => $composableBuilder(
+    column: $table.utcOffset,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get grade => $composableBuilder(
     column: $table.grade,
     builder: (column) => ColumnOrderings(column),
@@ -13972,6 +14033,9 @@ class $$ReviewEventsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<DateTime, int> get at =>
       $composableBuilder(column: $table.at, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Duration, int> get utcOffset =>
+      $composableBuilder(column: $table.utcOffset, builder: (column) => column);
 
   GeneratedColumnWithTypeConverter<Grade?, String> get grade =>
       $composableBuilder(column: $table.grade, builder: (column) => column);
@@ -14114,6 +14178,7 @@ class $$ReviewEventsTableTableManager
                 Value<StudyCardId> studyCardId = const Value.absent(),
                 Value<ReviewEventKind> kind = const Value.absent(),
                 Value<DateTime> at = const Value.absent(),
+                Value<Duration> utcOffset = const Value.absent(),
                 Value<Grade?> grade = const Value.absent(),
                 Value<Duration?> responseTime = const Value.absent(),
                 Value<DateTime?> dueBefore = const Value.absent(),
@@ -14129,6 +14194,7 @@ class $$ReviewEventsTableTableManager
                 studyCardId: studyCardId,
                 kind: kind,
                 at: at,
+                utcOffset: utcOffset,
                 grade: grade,
                 responseTime: responseTime,
                 dueBefore: dueBefore,
@@ -14146,6 +14212,7 @@ class $$ReviewEventsTableTableManager
                 required StudyCardId studyCardId,
                 required ReviewEventKind kind,
                 required DateTime at,
+                required Duration utcOffset,
                 Value<Grade?> grade = const Value.absent(),
                 Value<Duration?> responseTime = const Value.absent(),
                 Value<DateTime?> dueBefore = const Value.absent(),
@@ -14161,6 +14228,7 @@ class $$ReviewEventsTableTableManager
                 studyCardId: studyCardId,
                 kind: kind,
                 at: at,
+                utcOffset: utcOffset,
                 grade: grade,
                 responseTime: responseTime,
                 dueBefore: dueBefore,

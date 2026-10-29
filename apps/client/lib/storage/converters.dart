@@ -48,6 +48,17 @@ class UtcMillisConverter extends TypeConverter<DateTime, int> {
   int toSql(DateTime value) => value.millisecondsSinceEpoch;
 }
 
+/// Stores a [Duration] as whole minutes.
+class DurationMinutesConverter extends TypeConverter<Duration, int> {
+  const DurationMinutesConverter();
+
+  @override
+  Duration fromSql(int fromDb) => Duration(minutes: fromDb);
+
+  @override
+  int toSql(Duration value) => value.inMinutes;
+}
+
 /// Stores a [Duration] as whole milliseconds.
 class DurationMillisConverter extends TypeConverter<Duration, int> {
   const DurationMillisConverter();

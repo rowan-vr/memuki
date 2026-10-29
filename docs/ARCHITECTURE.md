@@ -77,7 +77,7 @@ Decided in Phase 1. See [ROADMAP.md](ROADMAP.md#phase-1--domain-models-and-persi
 - Scheduling state is a materialized cache that can be rebuilt by replaying a card's review events through the scheduler.
 - Undo appends a compensating event; it does not delete the original event.
 - Deleting a card tombstones the card and keeps its events, so recreating the card (same derived ID) restores its history. Whether events are removed when tombstones are purged is open (Phase 8).
-- Each event records the scheduler ID, scheduler version, and configuration version used, so replay is deterministic.
+- Each event records the scheduler ID, scheduler version, and configuration version used, and the reviewing device's UTC offset. Replay applies each event with the scheduler version recorded on it, so every released scheduler version stays available, and computes study days in the recorded offset rather than the replaying device's time zone. Every device therefore rebuilds the same state from the same events.
 - Replay uses the configuration recorded on each event. Applying new configuration to existing cards is an explicit reschedule operation, never a side effect of replay.
 
 With this model, merging concurrent reviews from different devices reduces to merging event logs and replaying.
@@ -85,6 +85,7 @@ With this model, merging concurrent reviews from different devices reduces to me
 ## Scheduling
 
 - Schedulers implement a versioned interface in the `scheduler` module. More than one scheduler can exist; configuration presets select which one a deck uses.
+- A scheduler is a pure function from a card's state, a grade, the review time, study days, and its configuration to the card's next state. It does not read the clock, the database, or the device's time zone. The scheduling engine handles everything independent of the algorithm: burning, manual burn and unburn, undo, replay, and choosing the scheduler version for each event.
 - **Default:** deterministic learning steps for new cards and relearning steps after lapses, with an SM-2-style ease multiplier for review intervals of graduated cards. Good slowly raises ease back towards the starting ease, so repeated Hard and Again grades do not keep intervals short permanently. Default steps: learning 1m → 4h → 12h → 1d → 2d; relearning 10m → 1h → 12h → 2d.
 - **Burning:** independent of the review algorithm. When a grade produces a next interval at or above the preset's burn threshold, the card enters the Burned state with no due date and is excluded from normal queues. Burned cards have a separate review session; failing one returns it to relearning. Manual burn and unburn are recorded as events so replay and sync reproduce the state.
 - **Configuration:** decks select a shared preset; a deck without its own preset inherits its parent's. Presets set the scheduler, steps, limits, and burn threshold (default 1 year, can be disabled).
@@ -226,6 +227,7 @@ memuki/
 | D36 | Scheduler presets assigned per deck and inherited by subdecks without their own | Decided | 2 |
 | D37 | Study day starts at a per-collection hour (default 03:00); steps of 1d or more fall due at its start | Decided | 2 |
 | D38 | Studying a deck includes its subdecks; the studied deck's daily limit caps the subdecks' combined total | Decided | 2 |
+| D39 | Review events record the device's UTC offset; replay uses it and the recorded scheduler version, keeping old versions available | Decided | 2 |
 
 ## Open questions
 

@@ -178,11 +178,13 @@ void main() {
       DateTime? time,
       ReviewEventId? undoneEventId,
       Duration? responseTime,
+      Duration utcOffset = Duration.zero,
     }) => ReviewEvent(
       id: ReviewEventId.generate(),
       studyCardId: studyCardId,
       kind: kind,
       at: time ?? at,
+      utcOffset: utcOffset,
       grade: grade,
       responseTime: responseTime,
       undoneEventId: undoneEventId,
@@ -193,6 +195,25 @@ void main() {
 
     test('accepts a graded review', () {
       expect(event().grade, Grade.good);
+    });
+
+    test('requires a UTC offset of whole minutes within 18 hours', () {
+      expect(
+        event(utcOffset: const Duration(hours: 5, minutes: 30)).utcOffset,
+        const Duration(hours: 5, minutes: 30),
+      );
+      expect(
+        event(utcOffset: const Duration(hours: -18)).utcOffset.inHours,
+        -18,
+      );
+      expect(
+        () => event(utcOffset: const Duration(hours: 19)),
+        throwsArgumentError,
+      );
+      expect(
+        () => event(utcOffset: const Duration(seconds: 30)),
+        throwsArgumentError,
+      );
     });
 
     test('requires a grade for reviews only', () {

@@ -245,11 +245,13 @@ List<Command<void>> editCommands() => [
       if (grade == null) {
         throw UsageException('Unknown grade "$gradeName".', c.usage);
       }
+      final now = DateTime.now();
       final event = ReviewEvent(
         id: ReviewEventId.generate(),
         studyCardId: card,
         kind: ReviewEventKind.review,
-        at: DateTime.now().toUtc(),
+        at: now.toUtc(),
+        utcOffset: now.timeZoneOffset,
         grade: grade,
         schedulerId: 'manual',
         schedulerVersion: 0,

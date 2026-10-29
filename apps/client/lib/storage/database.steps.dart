@@ -1999,9 +1999,673 @@ i1.GeneratedColumn<String> _column_58(String aliasedName) =>
       true,
       type: i1.DriftSqlType.string,
     );
+
+final class Schema4 extends i0.VersionedSchema {
+  Schema4({required super.database}) : super(version: 4);
+  @override
+  late final List<i1.DatabaseSchemaEntity> entities = [
+    collections,
+    visibleCollections,
+    decks,
+    visibleDecks,
+    tags,
+    visibleTags,
+    noteTypes,
+    visibleNoteTypes,
+    fieldDefinitions,
+    visibleFieldDefinitions,
+    studyCardTemplates,
+    visibleStudyCardTemplates,
+    notes,
+    studyCards,
+    visibleStudyCards,
+    visibleNotes,
+    noteFields,
+    visibleNoteFields,
+    noteTags,
+    visibleNoteTags,
+    mediaAssets,
+    visibleMediaAssets,
+    device,
+    outbox,
+    outboxHlc,
+    studyCardsDeck,
+    studyCardsTemplate,
+    studyCardsHlc,
+    reviewEvents,
+    schedulingStates,
+    reviewEventsCard,
+    reviewEventsAt,
+    reviewEventsHlc,
+    schedulingStatesDue,
+    noteTypesCollection,
+    noteTypesHlc,
+    fieldDefinitionsNoteType,
+    fieldDefinitionsHlc,
+    studyCardTemplatesNoteType,
+    studyCardTemplatesHlc,
+    notesNoteType,
+    notesHlc,
+    noteFieldsField,
+    noteFieldsHlc,
+    tagsParent,
+    tagsHlc,
+    noteTagsTag,
+    noteTagsHlc,
+    mediaAssetsHlc,
+    collectionsHlc,
+    decksParent,
+    decksHlc,
+    decksCollectionImmutable,
+    tagsCollectionImmutable,
+    noteTypesCollectionImmutable,
+    notesCollectionImmutable,
+    noteTagsCollectionImmutable,
+    studyCardsCollectionImmutable,
+    mediaAssetsCollectionImmutable,
+    collectionsHlcChanges,
+    decksHlcChanges,
+    tagsHlcChanges,
+    noteTypesHlcChanges,
+    fieldDefinitionsHlcChanges,
+    studyCardTemplatesHlcChanges,
+    notesHlcChanges,
+    noteFieldsHlcChanges,
+    noteTagsHlcChanges,
+    studyCardsHlcChanges,
+    mediaAssetsHlcChanges,
+    reviewEventsAppendOnly,
+  ];
+  late final Shape0 collections = Shape0(
+    source: i0.VersionedTable(
+      entityName: 'collections',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [_column_0, _column_1, _column_2, _column_3],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 visibleCollections = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_collections',
+      createViewStmt: 'CREATE VIEW visible_collections AS SELECT id FROM collections WHERE deleted = 0;',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape2 decks = Shape2(
+    source: i0.VersionedTable(
+      entityName: 'decks',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'PRIMARY KEY(id)',
+        'UNIQUE(collection_id, id)',
+        'FOREIGN KEY(collection_id, parent_id)REFERENCES decks(collection_id, id)DEFERRABLE INITIALLY DEFERRED',
+      ],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_5,
+        _column_6,
+        _column_3,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 visibleDecks = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_decks',
+      createViewStmt: 'CREATE VIEW visible_decks AS WITH RECURSIVE visible (id) AS (SELECT id FROM decks WHERE parent_id IS NULL AND deleted = 0 AND collection_id IN (SELECT id FROM visible_collections) UNION SELECT d.id FROM decks AS d JOIN visible AS v ON d.parent_id = v.id WHERE d.deleted = 0) SELECT id FROM visible;',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape2 tags = Shape2(
+    source: i0.VersionedTable(
+      entityName: 'tags',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'PRIMARY KEY(id)',
+        'UNIQUE(collection_id, id)',
+        'FOREIGN KEY(collection_id, parent_id)REFERENCES tags(collection_id, id)DEFERRABLE INITIALLY DEFERRED',
+      ],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_5,
+        _column_6,
+        _column_3,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 visibleTags = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_tags',
+      createViewStmt: 'CREATE VIEW visible_tags AS WITH RECURSIVE visible (id) AS (SELECT id FROM tags WHERE parent_id IS NULL AND deleted = 0 AND collection_id IN (SELECT id FROM visible_collections) UNION SELECT t.id FROM tags AS t JOIN visible AS v ON t.parent_id = v.id WHERE t.deleted = 0) SELECT id FROM visible;',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape3 noteTypes = Shape3(
+    source: i0.VersionedTable(
+      entityName: 'note_types',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)', 'UNIQUE(collection_id, id)'],
+      columns: [_column_0, _column_1, _column_2, _column_5, _column_3],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 visibleNoteTypes = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_note_types',
+      createViewStmt: 'CREATE VIEW visible_note_types AS SELECT t.id FROM note_types AS t WHERE t.deleted = 0 AND EXISTS (SELECT 1 FROM visible_collections AS c WHERE c.id = t.collection_id);',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape4 fieldDefinitions = Shape4(
+    source: i0.VersionedTable(
+      entityName: 'field_definitions',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_7,
+        _column_8,
+        _column_3,
+        _column_9,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 visibleFieldDefinitions = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_field_definitions',
+      createViewStmt: 'CREATE VIEW visible_field_definitions AS SELECT f.id FROM field_definitions AS f WHERE f.deleted = 0 AND EXISTS (SELECT 1 FROM visible_note_types AS t WHERE t.id = f.note_type_id);',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape5 studyCardTemplates = Shape5(
+    source: i0.VersionedTable(
+      entityName: 'study_card_templates',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_7,
+        _column_8,
+        _column_3,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 visibleStudyCardTemplates = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_study_card_templates',
+      createViewStmt: 'CREATE VIEW visible_study_card_templates AS SELECT s.id FROM study_card_templates AS s WHERE s.deleted = 0 AND EXISTS (SELECT 1 FROM visible_note_types AS t WHERE t.id = s.note_type_id);',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape6 notes = Shape6(
+    source: i0.VersionedTable(
+      entityName: 'notes',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'PRIMARY KEY(id)',
+        'UNIQUE(collection_id, id)',
+        'FOREIGN KEY(collection_id, note_type_id)REFERENCES note_types(collection_id, id)',
+        'CHECK(source_reference IS NULL OR source_kind IS NOT NULL)',
+      ],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_5,
+        _column_10,
+        _column_11,
+        _column_12,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape7 studyCards = Shape7(
+    source: i0.VersionedTable(
+      entityName: 'study_cards',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'PRIMARY KEY(id)',
+        'UNIQUE(note_id, template_id)',
+        'FOREIGN KEY(collection_id, note_id)REFERENCES notes(collection_id, id)',
+        'FOREIGN KEY(collection_id, deck_id)REFERENCES decks(collection_id, id)',
+      ],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_5,
+        _column_13,
+        _column_14,
+        _column_15,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape8 visibleStudyCards = Shape8(
+    source: i0.VersionedView(
+      entityName: 'visible_study_cards',
+      createViewStmt: 'CREATE VIEW visible_study_cards AS SELECT c.id, c.note_id FROM study_cards AS c WHERE c.deleted = 0 AND EXISTS (SELECT 1 FROM notes AS n WHERE n.id = c.note_id AND n.deleted = 0) AND EXISTS (SELECT 1 FROM visible_study_card_templates AS s WHERE s.id = c.template_id) AND EXISTS (SELECT 1 FROM visible_decks AS d WHERE d.id = c.deck_id);',
+      columns: [_column_4, _column_16],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 visibleNotes = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_notes',
+      createViewStmt: 'CREATE VIEW visible_notes AS SELECT n.id FROM notes AS n WHERE n.deleted = 0 AND EXISTS (SELECT 1 FROM visible_note_types AS t WHERE t.id = n.note_type_id) AND(EXISTS (SELECT 1 FROM visible_study_cards AS c WHERE c.note_id = n.id) OR NOT EXISTS (SELECT 1 FROM study_cards AS c WHERE c.note_id = n.id));',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape9 noteFields = Shape9(
+    source: i0.VersionedTable(
+      entityName: 'note_fields',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(note_id, field_id)'],
+      columns: [_column_0, _column_1, _column_17, _column_18, _column_19],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape10 visibleNoteFields = Shape10(
+    source: i0.VersionedView(
+      entityName: 'visible_note_fields',
+      createViewStmt: 'CREATE VIEW visible_note_fields AS SELECT v.note_id, v.field_id, v.value FROM note_fields AS v WHERE v.deleted = 0 AND EXISTS (SELECT 1 FROM visible_notes AS n WHERE n.id = v.note_id) AND EXISTS (SELECT 1 FROM visible_field_definitions AS f WHERE f.id = v.field_id);',
+      columns: [_column_16, _column_20, _column_21],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape11 noteTags = Shape11(
+    source: i0.VersionedTable(
+      entityName: 'note_tags',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: [
+        'PRIMARY KEY(note_id, tag_id)',
+        'FOREIGN KEY(collection_id, note_id)REFERENCES notes(collection_id, id)ON DELETE CASCADE',
+        'FOREIGN KEY(collection_id, tag_id)REFERENCES tags(collection_id, id)ON DELETE CASCADE',
+      ],
+      columns: [_column_0, _column_1, _column_5, _column_13, _column_22],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape12 visibleNoteTags = Shape12(
+    source: i0.VersionedView(
+      entityName: 'visible_note_tags',
+      createViewStmt: 'CREATE VIEW visible_note_tags AS SELECT l.note_id, l.tag_id FROM note_tags AS l WHERE l.deleted = 0 AND EXISTS (SELECT 1 FROM visible_notes AS n WHERE n.id = l.note_id) AND EXISTS (SELECT 1 FROM visible_tags AS t WHERE t.id = l.tag_id);',
+      columns: [_column_16, _column_23],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape17 mediaAssets = Shape17(
+    source: i0.VersionedTable(
+      entityName: 'media_assets',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(collection_id, hash)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_5,
+        _column_50,
+        _column_51,
+        _column_52,
+        _column_53,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape18 visibleMediaAssets = Shape18(
+    source: i0.VersionedView(
+      entityName: 'visible_media_assets',
+      createViewStmt: 'CREATE VIEW visible_media_assets AS SELECT m.collection_id, m.hash, m.mime_type, m.size_bytes, m.original_name FROM media_assets AS m WHERE m.deleted = 0 AND EXISTS (SELECT 1 FROM visible_collections AS c WHERE c.id = m.collection_id);',
+      columns: [_column_54, _column_55, _column_56, _column_57, _column_58],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape13 device = Shape13(
+    source: i0.VersionedTable(
+      entityName: 'device',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [_column_24, _column_25, _column_26],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape14 outbox = Shape14(
+    source: i0.VersionedTable(
+      entityName: 'outbox',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(entity_table, entity_key)'],
+      columns: [_column_27, _column_28, _column_29, _column_0],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index outboxHlc = i1.Index(
+    'outbox_hlc',
+    'CREATE INDEX outbox_hlc ON outbox (hlc)',
+  );
+  final i1.Index studyCardsDeck = i1.Index(
+    'study_cards_deck',
+    'CREATE INDEX study_cards_deck ON study_cards (collection_id, deck_id)',
+  );
+  final i1.Index studyCardsTemplate = i1.Index(
+    'study_cards_template',
+    'CREATE INDEX study_cards_template ON study_cards (template_id)',
+  );
+  final i1.Index studyCardsHlc = i1.Index(
+    'study_cards_hlc',
+    'CREATE INDEX study_cards_hlc ON study_cards (hlc)',
+  );
+  late final Shape19 reviewEvents = Shape19(
+    source: i0.VersionedTable(
+      entityName: 'review_events',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_2,
+        _column_30,
+        _column_31,
+        _column_32,
+        _column_59,
+        _column_33,
+        _column_34,
+        _column_35,
+        _column_36,
+        _column_37,
+        _column_38,
+        _column_39,
+        _column_40,
+        _column_0,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape16 schedulingStates = Shape16(
+    source: i0.VersionedTable(
+      entityName: 'scheduling_states',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(study_card_id)'],
+      columns: [
+        _column_41,
+        _column_42,
+        _column_43,
+        _column_44,
+        _column_45,
+        _column_46,
+        _column_47,
+        _column_48,
+        _column_49,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  final i1.Index reviewEventsCard = i1.Index(
+    'review_events_card',
+    'CREATE INDEX review_events_card ON review_events (study_card_id, at)',
+  );
+  final i1.Index reviewEventsAt = i1.Index(
+    'review_events_at',
+    'CREATE INDEX review_events_at ON review_events (at)',
+  );
+  final i1.Index reviewEventsHlc = i1.Index(
+    'review_events_hlc',
+    'CREATE INDEX review_events_hlc ON review_events (hlc)',
+  );
+  final i1.Index schedulingStatesDue = i1.Index(
+    'scheduling_states_due',
+    'CREATE INDEX scheduling_states_due ON scheduling_states (state, due)',
+  );
+  final i1.Index noteTypesCollection = i1.Index(
+    'note_types_collection',
+    'CREATE INDEX note_types_collection ON note_types (collection_id)',
+  );
+  final i1.Index noteTypesHlc = i1.Index(
+    'note_types_hlc',
+    'CREATE INDEX note_types_hlc ON note_types (hlc)',
+  );
+  final i1.Index fieldDefinitionsNoteType = i1.Index(
+    'field_definitions_note_type',
+    'CREATE INDEX field_definitions_note_type ON field_definitions (note_type_id)',
+  );
+  final i1.Index fieldDefinitionsHlc = i1.Index(
+    'field_definitions_hlc',
+    'CREATE INDEX field_definitions_hlc ON field_definitions (hlc)',
+  );
+  final i1.Index studyCardTemplatesNoteType = i1.Index(
+    'study_card_templates_note_type',
+    'CREATE INDEX study_card_templates_note_type ON study_card_templates (note_type_id)',
+  );
+  final i1.Index studyCardTemplatesHlc = i1.Index(
+    'study_card_templates_hlc',
+    'CREATE INDEX study_card_templates_hlc ON study_card_templates (hlc)',
+  );
+  final i1.Index notesNoteType = i1.Index(
+    'notes_note_type',
+    'CREATE INDEX notes_note_type ON notes (collection_id, note_type_id)',
+  );
+  final i1.Index notesHlc = i1.Index(
+    'notes_hlc',
+    'CREATE INDEX notes_hlc ON notes (hlc)',
+  );
+  final i1.Index noteFieldsField = i1.Index(
+    'note_fields_field',
+    'CREATE INDEX note_fields_field ON note_fields (field_id)',
+  );
+  final i1.Index noteFieldsHlc = i1.Index(
+    'note_fields_hlc',
+    'CREATE INDEX note_fields_hlc ON note_fields (hlc)',
+  );
+  final i1.Index tagsParent = i1.Index(
+    'tags_parent',
+    'CREATE INDEX tags_parent ON tags (collection_id, parent_id)',
+  );
+  final i1.Index tagsHlc = i1.Index(
+    'tags_hlc',
+    'CREATE INDEX tags_hlc ON tags (hlc)',
+  );
+  final i1.Index noteTagsTag = i1.Index(
+    'note_tags_tag',
+    'CREATE INDEX note_tags_tag ON note_tags (collection_id, tag_id)',
+  );
+  final i1.Index noteTagsHlc = i1.Index(
+    'note_tags_hlc',
+    'CREATE INDEX note_tags_hlc ON note_tags (hlc)',
+  );
+  final i1.Index mediaAssetsHlc = i1.Index(
+    'media_assets_hlc',
+    'CREATE INDEX media_assets_hlc ON media_assets (hlc)',
+  );
+  final i1.Index collectionsHlc = i1.Index(
+    'collections_hlc',
+    'CREATE INDEX collections_hlc ON collections (hlc)',
+  );
+  final i1.Index decksParent = i1.Index(
+    'decks_parent',
+    'CREATE INDEX decks_parent ON decks (collection_id, parent_id)',
+  );
+  final i1.Index decksHlc = i1.Index(
+    'decks_hlc',
+    'CREATE INDEX decks_hlc ON decks (hlc)',
+  );
+  final i1.Trigger decksCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER decks_collection_immutable BEFORE UPDATE OF collection_id ON decks WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'decks_collection_immutable',
+  );
+  final i1.Trigger tagsCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER tags_collection_immutable BEFORE UPDATE OF collection_id ON tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'tags_collection_immutable',
+  );
+  final i1.Trigger noteTypesCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER note_types_collection_immutable BEFORE UPDATE OF collection_id ON note_types WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'note_types_collection_immutable',
+  );
+  final i1.Trigger notesCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER notes_collection_immutable BEFORE UPDATE OF collection_id ON notes WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'notes_collection_immutable',
+  );
+  final i1.Trigger noteTagsCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER note_tags_collection_immutable BEFORE UPDATE OF collection_id ON note_tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'note_tags_collection_immutable',
+  );
+  final i1.Trigger studyCardsCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER study_cards_collection_immutable BEFORE UPDATE OF collection_id ON study_cards WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'study_cards_collection_immutable',
+  );
+  final i1.Trigger mediaAssetsCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'media_assets_collection_immutable',
+  );
+  final i1.Trigger collectionsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER collections_hlc_changes BEFORE UPDATE ON collections WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'collections_hlc_changes',
+  );
+  final i1.Trigger decksHlcChanges = i1.Trigger(
+    'CREATE TRIGGER decks_hlc_changes BEFORE UPDATE ON decks WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'decks_hlc_changes',
+  );
+  final i1.Trigger tagsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER tags_hlc_changes BEFORE UPDATE ON tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'tags_hlc_changes',
+  );
+  final i1.Trigger noteTypesHlcChanges = i1.Trigger(
+    'CREATE TRIGGER note_types_hlc_changes BEFORE UPDATE ON note_types WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_types_hlc_changes',
+  );
+  final i1.Trigger fieldDefinitionsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER field_definitions_hlc_changes BEFORE UPDATE ON field_definitions WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'field_definitions_hlc_changes',
+  );
+  final i1.Trigger studyCardTemplatesHlcChanges = i1.Trigger(
+    'CREATE TRIGGER study_card_templates_hlc_changes BEFORE UPDATE ON study_card_templates WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'study_card_templates_hlc_changes',
+  );
+  final i1.Trigger notesHlcChanges = i1.Trigger(
+    'CREATE TRIGGER notes_hlc_changes BEFORE UPDATE ON notes WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'notes_hlc_changes',
+  );
+  final i1.Trigger noteFieldsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER note_fields_hlc_changes BEFORE UPDATE ON note_fields WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_fields_hlc_changes',
+  );
+  final i1.Trigger noteTagsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER note_tags_hlc_changes BEFORE UPDATE ON note_tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_tags_hlc_changes',
+  );
+  final i1.Trigger studyCardsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER study_cards_hlc_changes BEFORE UPDATE ON study_cards WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'study_cards_hlc_changes',
+  );
+  final i1.Trigger mediaAssetsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER media_assets_hlc_changes BEFORE UPDATE ON media_assets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'media_assets_hlc_changes',
+  );
+  final i1.Trigger reviewEventsAppendOnly = i1.Trigger(
+    'CREATE TRIGGER review_events_append_only BEFORE UPDATE ON review_events BEGIN SELECT RAISE (ABORT, \'review events are append-only\');END',
+    'review_events_append_only',
+  );
+}
+
+class Shape19 extends i0.VersionedTable {
+  Shape19({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<i2.Uint8List> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get studyCardId =>
+      columnsByName['study_card_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<String> get kind =>
+      columnsByName['kind']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get at =>
+      columnsByName['at']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get utcOffset =>
+      columnsByName['utc_offset']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get grade =>
+      columnsByName['grade']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get responseTime =>
+      columnsByName['response_time']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get dueBefore =>
+      columnsByName['due_before']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get dueAfter =>
+      columnsByName['due_after']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<i2.Uint8List> get undoneEventId =>
+      columnsByName['undone_event_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<String> get schedulerId =>
+      columnsByName['scheduler_id']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get schedulerVersion =>
+      columnsByName['scheduler_version']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<int> get configVersion =>
+      columnsByName['config_version']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get hlc =>
+      columnsByName['hlc']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<int> _column_59(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'utc_offset',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NOT NULL',
+    );
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
+  required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
 }) {
   return (currentVersion, database) async {
     switch (currentVersion) {
@@ -2015,6 +2679,11 @@ i0.MigrationStepWithVersion migrationSteps({
         final migrator = i1.Migrator(database, schema);
         await from2To3(migrator, schema);
         return 3;
+      case 3:
+        final schema = Schema4(database: database);
+        final migrator = i1.Migrator(database, schema);
+        await from3To4(migrator, schema);
+        return 4;
       default:
         throw ArgumentError.value('Unknown migration from $currentVersion');
     }
@@ -2024,6 +2693,11 @@ i0.MigrationStepWithVersion migrationSteps({
 i1.OnUpgrade stepByStep({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,
   required Future<void> Function(i1.Migrator m, Schema3 schema) from2To3,
+  required Future<void> Function(i1.Migrator m, Schema4 schema) from3To4,
 }) => i0.VersionedSchema.stepByStepHelper(
-  step: migrationSteps(from1To2: from1To2, from2To3: from2To3),
+  step: migrationSteps(
+    from1To2: from1To2,
+    from2To3: from2To3,
+    from3To4: from3To4,
+  ),
 );

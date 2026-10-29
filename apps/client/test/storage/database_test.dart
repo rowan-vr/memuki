@@ -168,6 +168,7 @@ void main() {
             studyCardId: cardId,
             kind: ReviewEventKind.review,
             at: at,
+            utcOffset: const Duration(hours: 9),
             grade: const Value(Grade.good),
             responseTime: const Value(Duration(milliseconds: 4250)),
             schedulerId: 'sm2',
@@ -181,14 +182,18 @@ void main() {
     expect(event.studyCardId, cardId);
     expect(event.at, at);
     expect(event.at.isUtc, isTrue);
+    expect(event.utcOffset, const Duration(hours: 9));
     expect(event.grade, Grade.good);
     expect(event.responseTime, const Duration(milliseconds: 4250));
 
     final raw = await db
-        .customSelect('SELECT id, typeof(at) AS at_type FROM review_events')
+        .customSelect(
+          'SELECT id, typeof(at) AS at_type, utc_offset FROM review_events',
+        )
         .getSingle();
     expect(raw.read<Uint8List>('id'), hasLength(16));
     expect(raw.read<String>('at_type'), 'integer');
+    expect(raw.read<int>('utc_offset'), 540);
 
     final hash = ContentHash.of([1, 2, 3]);
     await db

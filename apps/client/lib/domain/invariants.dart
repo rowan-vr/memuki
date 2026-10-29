@@ -11,3 +11,16 @@ void requireUtc(DateTime? value, String name) {
     throw ArgumentError.value(value, name, 'must be UTC');
   }
 }
+
+/// Throws an [ArgumentError] when [value] is not a UTC offset: whole minutes
+/// within 18 hours of UTC.
+void requireUtcOffset(Duration value, String name) {
+  if (value.inMicroseconds % Duration.microsecondsPerMinute != 0 ||
+      value.abs() > const Duration(hours: 18)) {
+    throw ArgumentError.value(
+      value,
+      name,
+      'must be whole minutes within 18 hours of UTC',
+    );
+  }
+}

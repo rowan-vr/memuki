@@ -202,6 +202,7 @@ final _writes = <String, _Case>{
         studyCardId: w.fixture.cards.first.id,
         kind: ReviewEventKind.review,
         at: fixtureEpoch,
+        utcOffset: Duration.zero,
         grade: Grade.good,
         schedulerId: 'sm2',
         schedulerVersion: 1,
