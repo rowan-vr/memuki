@@ -207,3 +207,4 @@ memuki/
 - **End-to-end encryption.** Enabled by D10; whether it is default, optional, or deferred is undecided.
 - **Plugin licensing.** Whether plugins built against the Milestone G SDK must be AGPL-3.0, or whether the SDK carries a licence exception or permissive licence.
 - **FSRS.** Roadmap placement, implementation (e.g. `dart-fsrs` or a custom port), and where parameter optimization runs, including on web.
+- **Known-word layer.** Tracking knowledge per word (dictionary entry or lexeme) on top of notes and cards, by linking notes to dictionary entries through their source attribution and deriving word status from card states. It would support duplicate detection and showing known words while mining (Phase 5b). Notes and cards remain the unit of content and scheduling.
