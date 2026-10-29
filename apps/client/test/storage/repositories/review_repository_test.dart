@@ -20,6 +20,7 @@ void main() {
         studyCardId: cardId,
         kind: undoes == null ? ReviewEventKind.review : ReviewEventKind.undo,
         at: at,
+        utcOffset: Duration.zero,
         grade: undoes == null ? Grade.good : null,
         responseTime: const Duration(milliseconds: 3200),
         undoneEventId: undoes,

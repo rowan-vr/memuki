@@ -88,6 +88,7 @@ void main() {
         studyCardId: card.id,
         kind: ReviewEventKind.review,
         at: DateTime.utc(2026, 10, 29),
+        utcOffset: Duration.zero,
         grade: Grade.good,
         schedulerId: 'sm2',
         schedulerVersion: 1,

@@ -144,6 +144,7 @@ class GeneratedCollection {
               at: generatorEpoch.add(
                 Duration(days: day += 1 + random.nextInt(4)),
               ),
+              utcOffset: Duration.zero,
               grade: Grade.values[random.nextInt(Grade.values.length)],
               responseTime: Duration(milliseconds: 500 + random.nextInt(9500)),
               schedulerId: 'sm2',

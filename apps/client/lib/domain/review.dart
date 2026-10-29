@@ -37,6 +37,7 @@ abstract class ReviewEvent with _$ReviewEvent {
     requireUtc(at, 'at');
     requireUtc(dueBefore, 'dueBefore');
     requireUtc(dueAfter, 'dueAfter');
+    requireUtcOffset(utcOffset, 'utcOffset');
     if ((kind == ReviewEventKind.review) != (grade != null)) {
       throw ArgumentError.value(grade, 'grade', 'is required for reviews only');
     }
@@ -61,6 +62,10 @@ abstract class ReviewEvent with _$ReviewEvent {
     required StudyCardId studyCardId,
     required ReviewEventKind kind,
     required DateTime at,
+
+    /// The reviewing device's offset from UTC at [at]. Study-day boundaries
+    /// are computed in this offset, so every device rebuilds the same state.
+    required Duration utcOffset,
     Grade? grade,
     Duration? responseTime,
     DateTime? dueBefore,

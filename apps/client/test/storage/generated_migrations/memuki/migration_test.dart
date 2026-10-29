@@ -4,6 +4,7 @@ import 'package:drift/drift.dart';
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/ids.dart';
+import 'package:memuki/domain/review.dart' show Grade;
 import 'package:memuki/storage/converters.dart';
 import 'package:memuki/storage/database.dart';
 import 'package:memuki/storage/sync/hlc.dart';
@@ -118,6 +119,79 @@ void main() {
 
     // The clock continues after the migration's timestamp.
     expect(db.clock.tick() > initial, isTrue);
+  });
+
+  test('v3 to v4 gives existing review events a zero UTC offset', () async {
+    final schema = await verifier.schemaAt(3);
+    final collection = CollectionId.generate();
+    final deck = DeckId.generate();
+    final noteType = NoteTypeId.generate();
+    final template = StudyCardTemplateId.generate();
+    final note = NoteId.generate();
+    final card = StudyCardId.derive(note, template);
+    final event = ReviewEventId.generate();
+    Uint8List bytes(Object id) => Uint8List.fromList(
+      const IdConverter<String>(_identity).toSql(id as String),
+    );
+    const hlc = '019a2f0c8a00-0000-0123456789abcdef';
+
+    final raw = schema.rawDatabase;
+    raw.execute('INSERT INTO collections (id, name, hlc) VALUES (?, ?, ?)', [
+      bytes(collection),
+      'Japanese',
+      hlc,
+    ]);
+    raw.execute(
+      'INSERT INTO decks (id, collection_id, name, hlc) VALUES (?, ?, ?, ?)',
+      [bytes(deck), bytes(collection), 'Vocab', hlc],
+    );
+    raw.execute(
+      'INSERT INTO note_types (id, collection_id, name, hlc) VALUES (?, ?, ?, ?)',
+      [bytes(noteType), bytes(collection), 'Basic', hlc],
+    );
+    raw.execute(
+      'INSERT INTO study_card_templates (id, note_type_id, position, name, hlc) '
+      'VALUES (?, ?, 0, ?, ?)',
+      [bytes(template), bytes(noteType), 'Card 1', hlc],
+    );
+    raw.execute(
+      'INSERT INTO notes (id, collection_id, note_type_id, hlc) '
+      'VALUES (?, ?, ?, ?)',
+      [bytes(note), bytes(collection), bytes(noteType), hlc],
+    );
+    raw.execute(
+      'INSERT INTO study_cards '
+      '(id, collection_id, note_id, template_id, deck_id, hlc) '
+      'VALUES (?, ?, ?, ?, ?, ?)',
+      [
+        bytes(card),
+        bytes(collection),
+        bytes(note),
+        bytes(template),
+        bytes(deck),
+        hlc,
+      ],
+    );
+    raw.execute(
+      'INSERT INTO review_events (id, study_card_id, kind, at, grade, '
+      'scheduler_id, scheduler_version, config_version, hlc) '
+      "VALUES (?, ?, 'review', 1000, 'good', 'sm2', 1, 1, ?)",
+      [bytes(event), bytes(card), hlc],
+    );
+
+    final db = MemukiDatabase(schema.newConnection());
+    addTearDown(db.close);
+    await verifier.migrateAndValidate(db, 4);
+
+    final row = await db.select(db.reviewEvents).getSingle();
+    expect(row.id, event);
+    expect(row.grade, Grade.good);
+    expect(row.utcOffset, Duration.zero);
+    // The rebuilt table keeps its append-only trigger.
+    await expectLater(
+      db.customStatement("UPDATE review_events SET grade = 'again'"),
+      throwsA(anything),
+    );
   });
 }
 
