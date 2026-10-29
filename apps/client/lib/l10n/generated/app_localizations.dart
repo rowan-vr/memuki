@@ -159,6 +159,36 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Dark'**
   String get settingsThemeModeDark;
+
+  /// Heading shown instead of the app when the database cannot be opened at startup.
+  ///
+  /// In en, this message translates to:
+  /// **'Memuki could not open your data'**
+  String get startupErrorTitle;
+
+  /// Startup error when the database was written by a newer app version.
+  ///
+  /// In en, this message translates to:
+  /// **'Your data was saved by a newer version of Memuki. Update Memuki to open it. Your data has not been changed.'**
+  String get startupErrorTooNew;
+
+  /// Startup error when upgrading the database to the current version failed.
+  ///
+  /// In en, this message translates to:
+  /// **'Memuki could not update your data for this version. Your data has been left as it was.'**
+  String get startupErrorMigration;
+
+  /// Startup error for any other failure to open the database.
+  ///
+  /// In en, this message translates to:
+  /// **'Something went wrong while opening your data.'**
+  String get startupErrorUnknown;
+
+  /// Label above the technical error details on the startup error screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Details'**
+  String get startupErrorDetails;
 }
 
 class _AppLocalizationsDelegate

@@ -65,6 +65,11 @@ class MemukiDatabase extends _$MemukiDatabase {
   @override
   int get schemaVersion => 1;
 
+  /// Opens the database now rather than on the first query, creating or
+  /// upgrading the schema. Throws [DatabaseTooNewException] or
+  /// [DatabaseMigrationException] if the database cannot be used.
+  Future<void> ensureOpen() => customSelect('SELECT 1').get();
+
   @override
   MigrationStrategy get migration => MigrationStrategy(
     onCreate: (m) => m.createAll(),

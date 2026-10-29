@@ -138,6 +138,8 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Deck nesting | Nested; each deck has an optional parent deck in the same collection | Decided |
 | Browser storage feasibility | Viable on OPFS; IndexedDB as fallback. See [spike results](spikes/browser-storage.md) | Verified |
 | Cross-collection integrity | Composite foreign keys on `(collection_id, id)`; `collection_id` is immutable, moving is a copy | Decided |
+| Deleting a deck | Deletes its subdecks and their cards; notes left without cards are deleted | Decided |
+| Deleting a tag | Deletes the tags below it and removes them from notes | Decided |
 
 ### Acceptance Criteria
 

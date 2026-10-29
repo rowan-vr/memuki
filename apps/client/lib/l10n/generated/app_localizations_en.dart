@@ -42,4 +42,22 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get settingsThemeModeDark => 'Dark';
+
+  @override
+  String get startupErrorTitle => 'Memuki could not open your data';
+
+  @override
+  String get startupErrorTooNew =>
+      'Your data was saved by a newer version of Memuki. Update Memuki to open it. Your data has not been changed.';
+
+  @override
+  String get startupErrorMigration =>
+      'Memuki could not update your data for this version. Your data has been left as it was.';
+
+  @override
+  String get startupErrorUnknown =>
+      'Something went wrong while opening your data.';
+
+  @override
+  String get startupErrorDetails => 'Details';
 }

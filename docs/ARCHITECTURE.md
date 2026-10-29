@@ -104,6 +104,7 @@ With this model, merging concurrent reviews from different devices reduces to me
 - **Persistence:** the web app requests persistent storage so the browser does not evict data under storage pressure.
 - **SQLite version:** native and WASM builds use the same SQLite version.
 - **Schema:** IDs are stored as 16-byte blobs, times as UTC milliseconds, and enums by name. Rows that belong to a collection carry its ID, and references between them are composite foreign keys on `(collection_id, id)`, so a reference into another collection is rejected on every write path (repositories, import, sync). Deck and tag parent references are deferred to commit. `collection_id` cannot change after creation; moving to another collection is a copy.
+- **Repositories:** one per aggregate (collections and decks, tags, note types, notes, cards, review history). They map rows to domain models and enforce invariants that span entities: parent changes cannot create cycles, tag names are unique among siblings ignoring case, and a note's fields and cards match its note type. Each write runs in a transaction; callers group several writes by wrapping them in one. Hierarchy walks use recursive queries with `UNION` and a depth limit of 64, so a cycle in corrupt data is logged instead of hanging the app.
 - **Migrations:** the schema is versioned, with a snapshot of each version and generated migration tests. An upgrade runs in one transaction and is rejected if it leaves foreign key violations; native builds copy the database before upgrading. A database from a newer schema version is not opened.
 - Measurements and limits are in the [browser storage spike](spikes/browser-storage.md).
 - **Media:** stored outside the main database, content-addressed by hash, so identical media is stored once and sync can verify integrity.
@@ -210,6 +211,7 @@ memuki/
 | D27 | Tags are collection-scoped entities with optional parents; note membership is a separate synced relation | Decided | 1 |
 | D28 | Cross-collection references rejected by composite foreign keys; `collection_id` is immutable | Decided | 1 |
 | D29 | Parent cycles from concurrent moves are broken at merge by detaching the node whose parent change has the highest HLC | Proposed | 8 |
+| D30 | Deleting a deck deletes its subdecks and cards, and notes left without cards; deleting a tag deletes its subtree and removes it from notes | Decided | 1 |
 
 ## Open questions
 
