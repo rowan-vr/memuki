@@ -50,24 +50,29 @@ const _syncedTables = <String, ({String key, String collection})>{
 class ChangeRecorder {
   ChangeRecorder(this._db);
 
+  /// Adds every synced row stamped with `?1` to the outbox, in one statement.
+  static final _recordSql =
+      'INSERT INTO outbox (collection_id, entity_table, entity_key, hlc) '
+      '${_stampedRows.join(' UNION ALL ')} '
+      'ON CONFLICT (entity_table, entity_key) DO UPDATE SET hlc = excluded.hlc';
+
+  static final _stampedRows = [
+    for (final MapEntry(key: table, value: sql) in _syncedTables.entries)
+      "SELECT ${sql.collection}, '$table', ${sql.key}, src.hlc "
+          'FROM $table src WHERE src.hlc = ?1',
+  ];
+
   final MemukiDatabase _db;
 
   Future<T> write<T>(Future<T> Function(Hlc hlc) change) =>
       _db.transaction(() async {
         final hlc = _db.clock.tick();
         final result = await change(hlc);
-        final stamp = Variable.withString(hlc.toString());
-        for (final MapEntry(key: table, value: sql) in _syncedTables.entries) {
-          await _db.customInsert(
-            'INSERT INTO outbox (collection_id, entity_table, entity_key, hlc) '
-            "SELECT ${sql.collection}, '$table', ${sql.key}, src.hlc "
-            'FROM $table src WHERE src.hlc = ?1 '
-            'ON CONFLICT (entity_table, entity_key) '
-            'DO UPDATE SET hlc = excluded.hlc',
-            variables: [stamp],
-            updates: {_db.outbox},
-          );
-        }
+        await _db.customInsert(
+          _recordSql,
+          variables: [Variable.withString(hlc.toString())],
+          updates: {_db.outbox},
+        );
         await _storeLast(hlc);
         return result;
       });
