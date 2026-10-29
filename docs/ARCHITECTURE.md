@@ -94,10 +94,14 @@ With this model, merging concurrent reviews from different devices reduces to me
 
 ## Storage
 
-- **Native:** SQLite, with Drift evaluated for typed queries and migrations.
-- **Web:** SQLite compiled to WASM on OPFS/IndexedDB is the expected path. Feasibility, including dictionary-sized indexes, is verified in Phase 1 before the schema is finalized.
+- **Library:** Drift on all platforms, for typed queries and migrations. The schema and queries are shared between native and web.
+- **Native:** SQLite.
+- **Web:** SQLite compiled to WASM, stored in the Origin Private File System (OPFS). Chromium-based browsers only provide OPFS to Drift when the page is cross-origin isolated, so the web app is served with COOP/COEP headers. Without OPFS, Drift falls back to IndexedDB, which keeps the whole database in memory; the app warns when it runs on the fallback.
+- **Persistence:** the web app requests persistent storage so the browser does not evict data under storage pressure.
+- **SQLite version:** native and WASM builds use the same SQLite version.
+- Measurements and limits are in the [browser storage spike](spikes/browser-storage.md).
 - **Media:** stored outside the main database, content-addressed by hash, so identical media is stored once and sync can verify integrity.
-- **Dictionaries:** each installed package is stored and indexed separately from the user's collections, and can be removed without touching study data.
+- **Dictionaries:** each installed package is stored and indexed separately from the user's collections, and can be removed without touching study data. **Proposed:** packages ship as prebuilt SQLite databases, so installing one is a file copy rather than a row-by-row import.
 
 ## Dictionaries and mining
 
@@ -179,7 +183,7 @@ memuki/
 | D6 | Client-generated UUIDv7 IDs, HLC timestamps, tombstones | Decided | 1 |
 | D7 | Append-only review log with rebuildable scheduling state | Decided | 1–2 |
 | D8 | Content-addressed media storage | Decided | 1 |
-| D9 | SQLite via Drift on native and web | Proposed | 1 |
+| D9 | SQLite via Drift on native and web | Decided | 1 |
 | D10 | Sync server relays change batches; clients perform all merging | Decided | 7 |
 | D11 | Collections are the unit of sync, sharing, and access control | Decided | 7 |
 | D12 | AGPL-3.0 for all code, with a contributor licence agreement | Decided | 0 |
@@ -195,6 +199,7 @@ memuki/
 | D22 | Generated code (routes, localizations) is committed; CI fails if it is stale | Decided | 0 |
 | D23 | Note types belong to one collection; reuse across collections by copying | Decided | 1 |
 | D24 | Nested decks via an optional parent deck in the same collection | Decided | 1 |
+| D25 | Web app served with COOP/COEP headers so browser storage uses OPFS | Decided | 12 |
 
 ## Open questions
 
