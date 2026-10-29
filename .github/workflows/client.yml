@@ -13,9 +13,7 @@ concurrency:
   group: ${{ github.workflow }}-${{ github.ref }}
   cancel-in-progress: true
 
-permissions:
-  contents: read
-  pull-requests: read
+permissions: {}
 
 defaults:
   run:
@@ -25,6 +23,10 @@ jobs:
   changes:
     name: Detect changes
     runs-on: ubuntu-latest
+    # paths-filter lists the PR's changed files through the API.
+    permissions:
+      contents: read
+      pull-requests: read
     outputs:
       client: ${{ github.event_name == 'workflow_dispatch' || steps.filter.outputs.client == 'true' }}
     steps:
@@ -44,6 +46,8 @@ jobs:
     needs: changes
     if: needs.changes.outputs.client == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
 
@@ -81,6 +85,8 @@ jobs:
     needs: [changes, check]
     if: needs.changes.outputs.client == 'true'
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v5
 
@@ -112,6 +118,7 @@ jobs:
     needs: [changes, check, build-linux]
     if: always()
     runs-on: ubuntu-latest
+    permissions: {}
     steps:
       - name: Check job results
         working-directory: .
