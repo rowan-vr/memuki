@@ -90,3 +90,9 @@ SELECT l.note_id, l.tag_id FROM note_tags l
 WHERE l.deleted = 0
   AND EXISTS (SELECT 1 FROM visible_notes n WHERE n.id = l.note_id)
   AND EXISTS (SELECT 1 FROM visible_tags t WHERE t.id = l.tag_id);
+
+CREATE VIEW visible_media_assets AS
+SELECT m.collection_id, m.hash, m.mime_type, m.size_bytes, m.original_name
+FROM media_assets m
+WHERE m.deleted = 0
+  AND EXISTS (SELECT 1 FROM visible_collections c WHERE c.id = m.collection_id);
