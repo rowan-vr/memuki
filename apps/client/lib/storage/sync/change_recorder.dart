@@ -68,12 +68,23 @@ class ChangeRecorder {
             updates: {_db.outbox},
           );
         }
-        await _db.customUpdate(
-          'UPDATE device SET last_hlc = ?1 '
-          'WHERE last_hlc IS NULL OR last_hlc < ?1',
-          variables: [stamp],
-          updates: {_db.device},
-        );
+        await _storeLast(hlc);
         return result;
       });
+
+  /// Merges a timestamp received from another device into the clock and
+  /// stores the result, so it survives a restart.
+  ///
+  /// Throws a [ClockSkewException] if [remote] is too far in the future.
+  Future<void> receive(Hlc remote) async {
+    _db.clock.receive(remote);
+    await _storeLast(_db.clock.last);
+  }
+
+  Future<void> _storeLast(Hlc hlc) => _db.customUpdate(
+    'UPDATE device SET last_hlc = ?1 '
+    'WHERE last_hlc IS NULL OR last_hlc < ?1',
+    variables: [Variable.withString(hlc.toString())],
+    updates: {_db.device},
+  );
 }

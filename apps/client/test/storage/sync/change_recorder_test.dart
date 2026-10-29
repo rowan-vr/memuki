@@ -9,6 +9,7 @@ import 'package:memuki/domain/review.dart';
 import 'package:memuki/domain/study_card.dart';
 import 'package:memuki/storage/database.dart';
 import 'package:memuki/storage/repositories/repository_exceptions.dart';
+import 'package:memuki/storage/sync/change_recorder.dart';
 import 'package:memuki/storage/sync/hlc.dart';
 
 import '../../helpers/test_database.dart';
@@ -202,6 +203,15 @@ void main() {
         ),
       ),
     );
+  });
+
+  test('a received timestamp is stored for the next start', () async {
+    final remote = db.clock.last;
+    final ahead = Hlc(remote.millis + 30000, 0, 'fedcba9876543210');
+    await ChangeRecorder(db).receive(ahead);
+    final stored = (await db.select(db.device).getSingle()).lastHlc!;
+    expect(stored > ahead, isTrue);
+    expect(stored.node, db.clock.node);
   });
 
   test('the clock continues across restarts', () async {

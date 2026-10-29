@@ -77,6 +77,19 @@ class Hlc implements Comparable<Hlc> {
       '${counter.toRadixString(16).padLeft(4, '0')}-$node';
 }
 
+/// A timestamp from another device was too far ahead of the local wall clock.
+class ClockSkewException implements Exception {
+  ClockSkewException(this.remote, this.wall);
+
+  final Hlc remote;
+  final DateTime wall;
+
+  @override
+  String toString() =>
+      'ClockSkewException: $remote is more than ${HlcClock.maxSkew} ahead '
+      'of ${wall.toIso8601String()}';
+}
+
 /// Issues [Hlc] timestamps for one device. Timestamps only increase, even if
 /// the wall clock goes backwards.
 class HlcClock {
@@ -85,10 +98,18 @@ class HlcClock {
       _millis = last?.millis ?? 0,
       _counter = last?.counter ?? 0;
 
+  /// How far a received timestamp may be ahead of the wall clock. A device
+  /// with a clock far in the future would otherwise win every last-writer-wins
+  /// comparison, and drag every clock it syncs with along.
+  static const maxSkew = Duration(minutes: 1);
+
   final String node;
   final DateTime Function() _now;
   int _millis;
   int _counter;
+
+  /// The latest timestamp issued or received.
+  Hlc get last => Hlc(_millis, _counter, node);
 
   /// A timestamp for a local change, later than every timestamp issued or
   /// received before.
@@ -105,8 +126,15 @@ class HlcClock {
 
   /// Merges a timestamp received from another device, so later local
   /// timestamps order after it.
+  ///
+  /// Throws a [ClockSkewException], and leaves the clock unchanged, if
+  /// [remote] is more than [maxSkew] ahead of the wall clock.
   void receive(Hlc remote) {
-    final wall = _now().millisecondsSinceEpoch;
+    final now = _now();
+    final wall = now.millisecondsSinceEpoch;
+    if (remote.millis - wall > maxSkew.inMilliseconds) {
+      throw ClockSkewException(remote, now.toUtc());
+    }
     if (wall > _millis && wall > remote.millis) {
       _millis = wall;
       _counter = 0;

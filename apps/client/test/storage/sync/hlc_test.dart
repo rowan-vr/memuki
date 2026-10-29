@@ -111,5 +111,18 @@ void main() {
       expect(next.millis, now.millisecondsSinceEpoch);
       expect(next.counter, 1);
     });
+
+    test('rejects a timestamp too far ahead of the wall clock', () {
+      final before = clock.tick();
+      final limit = now.add(HlcClock.maxSkew).millisecondsSinceEpoch;
+      expect(
+        () => clock.receive(Hlc(limit + 1, 0, _other)),
+        throwsA(isA<ClockSkewException>()),
+      );
+      expect(clock.last, before);
+
+      clock.receive(Hlc(limit, 0, _other));
+      expect(clock.last.millis, limit);
+    });
   });
 }
