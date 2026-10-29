@@ -132,10 +132,23 @@ Some Dart code is generated from other files:
 |---|---|---|
 | Route classes in `lib/presentation/routing/router.dart` | `router.g.dart` | `fvm dart run build_runner build` |
 | Strings in `lib/l10n/app_en.arb` | `lib/l10n/generated/` | `fvm flutter pub get`, `fvm flutter run`, `fvm flutter build` |
+| Database tables in `lib/storage/` | `database.g.dart` | `fvm dart run build_runner build` |
+| Database schema versions | `drift_schemas/`, `test/storage/generated_migrations/` | `fvm dart run drift_dev make-migrations` |
 
 Generated files are committed, so a fresh checkout builds without running generators first. CI regenerates them and fails if the result differs from what is committed. When that check fails, run `fvm dart run build_runner build` and `fvm flutter pub get`, then commit the changes.
 
 Do not edit generated files by hand.
+
+### Changing the database schema
+
+Every schema version is kept as a snapshot in `drift_schemas/`, and a test fails when the tables no longer match the snapshot of the current version. To change the schema:
+
+1. Edit the tables in `lib/storage/` and increase `schemaVersion` in `lib/storage/database.dart`.
+2. Run `fvm dart run drift_dev make-migrations`. It writes a snapshot of the new version, a typed steps file, and a migration test in `test/storage/generated_migrations/`.
+3. Implement the step in `MemukiDatabase.upgradeSchema`.
+4. Fill in the test data in the generated migration test and run the tests.
+
+Upgrades run in a single transaction and are rejected if they leave foreign key violations. Native builds write a copy of the database (`memuki-v<old version>-<timestamp>.sqlite`) next to it before upgrading.
 
 ## Continuous integration
 

@@ -1,0 +1,52 @@
+import 'tables.dart';
+
+-- A row's collection never changes; moving to another collection is a copy.
+
+CREATE TRIGGER decks_collection_immutable
+BEFORE UPDATE OF collection_id ON decks
+WHEN NEW.collection_id IS NOT OLD.collection_id
+BEGIN
+  SELECT RAISE(ABORT, 'collection_id is immutable');
+END;
+
+CREATE TRIGGER tags_collection_immutable
+BEFORE UPDATE OF collection_id ON tags
+WHEN NEW.collection_id IS NOT OLD.collection_id
+BEGIN
+  SELECT RAISE(ABORT, 'collection_id is immutable');
+END;
+
+CREATE TRIGGER note_types_collection_immutable
+BEFORE UPDATE OF collection_id ON note_types
+WHEN NEW.collection_id IS NOT OLD.collection_id
+BEGIN
+  SELECT RAISE(ABORT, 'collection_id is immutable');
+END;
+
+CREATE TRIGGER notes_collection_immutable
+BEFORE UPDATE OF collection_id ON notes
+WHEN NEW.collection_id IS NOT OLD.collection_id
+BEGIN
+  SELECT RAISE(ABORT, 'collection_id is immutable');
+END;
+
+CREATE TRIGGER note_tags_collection_immutable
+BEFORE UPDATE OF collection_id ON note_tags
+WHEN NEW.collection_id IS NOT OLD.collection_id
+BEGIN
+  SELECT RAISE(ABORT, 'collection_id is immutable');
+END;
+
+CREATE TRIGGER study_cards_collection_immutable
+BEFORE UPDATE OF collection_id ON study_cards
+WHEN NEW.collection_id IS NOT OLD.collection_id
+BEGIN
+  SELECT RAISE(ABORT, 'collection_id is immutable');
+END;
+
+CREATE TRIGGER media_assets_collection_immutable
+BEFORE UPDATE OF collection_id ON media_assets
+WHEN NEW.collection_id IS NOT OLD.collection_id
+BEGIN
+  SELECT RAISE(ABORT, 'collection_id is immutable');
+END;

@@ -103,6 +103,8 @@ With this model, merging concurrent reviews from different devices reduces to me
 - **Web:** SQLite compiled to WASM, stored in the Origin Private File System (OPFS). Chromium-based browsers only provide OPFS to Drift when the page is cross-origin isolated, so the web app is served with COOP/COEP headers. Without OPFS, Drift falls back to IndexedDB, which keeps the whole database in memory; the app warns when it runs on the fallback.
 - **Persistence:** the web app requests persistent storage so the browser does not evict data under storage pressure.
 - **SQLite version:** native and WASM builds use the same SQLite version.
+- **Schema:** IDs are stored as 16-byte blobs, times as UTC milliseconds, and enums by name. Rows that belong to a collection carry its ID, and references between them are composite foreign keys on `(collection_id, id)`, so a reference into another collection is rejected on every write path (repositories, import, sync). Deck and tag parent references are deferred to commit. `collection_id` cannot change after creation; moving to another collection is a copy.
+- **Migrations:** the schema is versioned, with a snapshot of each version and generated migration tests. An upgrade runs in one transaction and is rejected if it leaves foreign key violations; native builds copy the database before upgrading. A database from a newer schema version is not opened.
 - Measurements and limits are in the [browser storage spike](spikes/browser-storage.md).
 - **Media:** stored outside the main database, content-addressed by hash, so identical media is stored once and sync can verify integrity.
 - **Dictionaries:** each installed package is stored and indexed separately from the user's collections, and can be removed without touching study data. **Proposed:** packages ship as prebuilt SQLite databases, so installing one is a file copy rather than a row-by-row import.
@@ -206,6 +208,8 @@ memuki/
 | D25 | Web app served with COOP/COEP headers so browser storage uses OPFS | Decided | 12 |
 | D26 | Immutable domain models generated with `freezed`; storage rows are separate and mapped | Decided | 1 |
 | D27 | Tags are collection-scoped entities with optional parents; note membership is a separate synced relation | Decided | 1 |
+| D28 | Cross-collection references rejected by composite foreign keys; `collection_id` is immutable | Decided | 1 |
+| D29 | Parent cycles from concurrent moves are broken at merge by detaching the node whose parent change has the highest HLC | Proposed | 8 |
 
 ## Open questions
 
