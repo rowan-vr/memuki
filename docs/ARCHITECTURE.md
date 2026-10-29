@@ -29,7 +29,8 @@ Code starts inside `apps/client/lib/` and is extracted into `packages/` only whe
 - **Theme:** light and dark themes generated from one seed color. Spacing follows a 4 px scale.
 - **Typography:** Noto Sans JP is bundled and used for all text. It covers Latin, kana, and kanji with Japanese glyph forms, so rendering does not depend on installed system fonts. It is a variable font; text theme weights set its `wght` axis.
 - **Logging:** the `logging` package with named loggers (`memuki.<area>`). Records go to `dart:developer` and the console. Uncaught framework and asynchronous errors are logged at the top level.
-- **Generated code:** route and localization code is generated and committed. CI regenerates it and fails if the result differs.
+- **Domain models:** immutable classes generated with `freezed`, in `lib/domain/`, with no dependency on storage or Flutter. Card types are prefixed `StudyCard` (`StudyCard`, `StudyCardTemplate`, `StudyCardId`, `StudyCardState`), so they do not clash with Flutter's `Card` widget. Entities validate their invariants on construction and in `copyWith`; invariants that span entities are enforced by repositories. Each entity has its own ID type (an extension type over the UUID string). Database rows are mapped to and from domain models in the storage module.
+- **Generated code:** route, localization, and model code is generated and committed. CI regenerates it and fails if the result differs.
 
 ## Data model
 
@@ -37,13 +38,15 @@ Code starts inside `apps/client/lib/` and is extracted into `packages/` only whe
 Collection
 ├── Deck
 │   ├── Deck (nested)
-│   └── Card ──► SchedulingState (materialized)
+│   └── StudyCard ──► SchedulingState (materialized)
 │        └──► ReviewEvent (append-only)
 ├── NoteType
-│   └── CardTemplate
+│   └── StudyCardTemplate
 ├── Note ──► NoteType
-│   └── generates Cards via CardTemplates
+│   ├── generates StudyCards via StudyCardTemplates
+│   └── NoteTag ──► Tag
 ├── Tag
+│   └── Tag (nested)
 └── MediaAsset
 ```
 
@@ -51,7 +54,8 @@ Collection
 - Decks can be nested. Each deck has an optional parent deck in the same collection.
 - Note types belong to one collection. Using a note type in another collection copies it.
 - A note belongs to one collection; its cards belong to decks in that collection.
-- A card is identified by `(note ID, card template ID)`. Template IDs are stable, so reordering or renaming templates does not change card identity.
+- A card is identified by `(note ID, card template ID)`. Template IDs are stable, so reordering or renaming templates does not change card identity. The card's ID is derived from that pair (a UUIDv8 from SHA-256 of both IDs), so devices that create the same card independently produce the same ID.
+- Tags are entities in a collection with stable IDs and an optional parent tag. Names are unique among tags with the same parent, ignoring case, and may contain spaces. A note's tags are separate note–tag rows, so renaming a tag is a single change and tags added on different devices merge. Anki tags such as `a::b::c` import as a chain of nested tags.
 - Fields carry metadata (role, type, validation) so specialized field types can be added without schema redesign.
 - Source attribution (dictionary entry, import origin) is stored on notes.
 
@@ -200,6 +204,8 @@ memuki/
 | D23 | Note types belong to one collection; reuse across collections by copying | Decided | 1 |
 | D24 | Nested decks via an optional parent deck in the same collection | Decided | 1 |
 | D25 | Web app served with COOP/COEP headers so browser storage uses OPFS | Decided | 12 |
+| D26 | Immutable domain models generated with `freezed`; storage rows are separate and mapped | Decided | 1 |
+| D27 | Tags are collection-scoped entities with optional parents; note membership is a separate synced relation | Decided | 1 |
 
 ## Open questions
 

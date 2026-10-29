@@ -92,9 +92,10 @@ Core entities:
 - NoteType
 - FieldDefinition
 - Note
-- CardTemplate
-- Card
+- StudyCardTemplate
+- StudyCard
 - Tag
+- NoteTag
 - MediaAsset
 - ReviewEvent
 - SchedulingState
