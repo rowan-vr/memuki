@@ -9,8 +9,20 @@ class Collections extends Table with SyncedColumns {
   BlobColumn get id => blob().map(collectionIdConverter)();
   TextColumn get name => text()();
 
+  /// The preset of root decks without their own.
+  BlobColumn get defaultPresetId => blob().map(presetIdConverter)();
+
+  /// The local time of day at which a study day starts, in minutes.
+  IntColumn get dayStart => integer().map(const DurationMinutesConverter())();
+
   @override
   Set<Column> get primaryKey => {id};
+
+  @override
+  List<String> get customConstraints => [
+    'FOREIGN KEY (id, default_preset_id) '
+        'REFERENCES presets (collection_id, id) DEFERRABLE INITIALLY DEFERRED',
+  ];
 }
 
 @TableIndex(name: 'decks_parent', columns: {#collectionId, #parentId})
@@ -22,6 +34,9 @@ class Decks extends Table with SyncedColumns {
       blob().map(collectionIdConverter).references(Collections, #id)();
   BlobColumn get parentId => blob().map(deckIdConverter).nullable()();
   TextColumn get name => text()();
+
+  /// Null to use the parent's preset.
+  BlobColumn get presetId => blob().map(presetIdConverter).nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -35,5 +50,7 @@ class Decks extends Table with SyncedColumns {
   List<String> get customConstraints => [
     'FOREIGN KEY (collection_id, parent_id) '
         'REFERENCES decks (collection_id, id) DEFERRABLE INITIALLY DEFERRED',
+    'FOREIGN KEY (collection_id, preset_id) '
+        'REFERENCES presets (collection_id, id) DEFERRABLE INITIALLY DEFERRED',
   ];
 }

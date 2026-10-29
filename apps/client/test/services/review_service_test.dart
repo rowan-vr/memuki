@@ -1,10 +1,10 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/note.dart';
+import 'package:memuki/domain/preset.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/domain/study_card.dart';
 import 'package:memuki/scheduler/scheduler_registry.dart';
-import 'package:memuki/scheduler/scheduling_engine.dart';
 import 'package:memuki/scheduler/steps_sm2/steps_sm2_scheduler.dart';
 import 'package:memuki/services/review_service.dart';
 import 'package:memuki/storage/repositories/repository_exceptions.dart';
@@ -18,17 +18,22 @@ void main() {
   // 21:00 on 29 October in UTC+9.
   var now = DateTime.utc(2026, 10, 29, 12);
   const offset = Duration(hours: 9);
-  const settings = SchedulingSettings(
-    configVersion: 3,
-    schedulerConfig: {'fuzz': false},
-  );
 
   setUp(() async {
     repos = Repositories(openTestDatabase());
     japanese = await repos.seedCollection();
     now = DateTime.utc(2026, 10, 29, 12);
+    await repos.presets.updateSettings(
+      japanese.preset.id,
+      PresetVersion(
+        id: PresetVersionId.generate(),
+        schedulerConfig: {'fuzz': false},
+      ),
+    );
     service = ReviewService(
       db: repos.db,
+      collections: repos.collections,
+      presets: repos.presets,
       cards: repos.cards,
       notes: repos.notes,
       tags: repos.tags,
@@ -43,7 +48,6 @@ void main() {
     final state = await service.review(
       card.id,
       Grade.good,
-      settings: settings,
       responseTime: const Duration(seconds: 4),
     );
 
@@ -62,18 +66,17 @@ void main() {
     expect(event.dueAfter, state.due);
     expect(event.schedulerId, 'memuki.steps-sm2');
     expect(event.schedulerVersion, 1);
-    expect(event.configVersion, 3);
+    expect(
+      event.presetVersionId,
+      (await repos.presets.preset(japanese.preset.id))!.version.id,
+    );
   });
 
   test('later reviews continue from the saved state', () async {
     final (_, card) = await japanese.addNote('猫');
-    final first = await service.review(card.id, Grade.good, settings: settings);
+    final first = await service.review(card.id, Grade.good);
     now = first.due!;
-    final second = await service.review(
-      card.id,
-      Grade.good,
-      settings: settings,
-    );
+    final second = await service.review(card.id, Grade.good);
 
     expect(second.step, 2);
     expect(second.reviewCount, 2);
@@ -84,9 +87,40 @@ void main() {
 
   test('study days follow the device offset', () async {
     final (_, card) = await japanese.addNote('猫');
-    final state = await service.review(card.id, Grade.easy, settings: settings);
+    final state = await service.review(card.id, Grade.easy);
     // 14 days later at 03:00 in UTC+9.
     expect(state.due, DateTime.utc(2026, 11, 11, 18));
+  });
+
+  test('uses the preset of the card\'s deck and the collection\'s day '
+      'start', () async {
+    final preset = Preset(
+      id: PresetId.generate(),
+      collectionId: japanese.id,
+      name: 'Short',
+      version: PresetVersion(
+        id: PresetVersionId.generate(),
+        schedulerConfig: {
+          'learningSteps': [1440],
+          'graduatingInterval': 2,
+        },
+      ),
+    );
+    await repos.presets.createPreset(preset);
+    await repos.collections.updateDeck(
+      japanese.deck.copyWith(presetId: preset.id),
+    );
+    await repos.collections.updateCollection(
+      japanese.collection.copyWith(dayStart: const Duration(hours: 5)),
+    );
+    final n5 = await japanese.addDeck('N5', parentId: japanese.deck.id);
+    final (_, card) = await japanese.addNote('猫', deckId: n5.id);
+
+    final state = await service.review(card.id, Grade.again);
+    // One study day later at 05:00 in UTC+9.
+    expect(state.due, DateTime.utc(2026, 10, 29, 20));
+    final event = (await repos.reviews.history(card.id)).single;
+    expect(event.presetVersionId, preset.version.id);
   });
 
   test('rejects unknown cards and schedulers without writing', () async {
@@ -97,15 +131,15 @@ void main() {
       StudyCardTemplateId.generate(),
     );
     await expectLater(
-      service.review(missing, Grade.good, settings: settings),
+      service.review(missing, Grade.good),
       throwsA(isA<EntityNotFoundException>()),
     );
+    await repos.presets.updateSettings(
+      japanese.preset.id,
+      PresetVersion(id: PresetVersionId.generate(), schedulerId: 'other'),
+    );
     await expectLater(
-      service.review(
-        card.id,
-        Grade.good,
-        settings: const SchedulingSettings(schedulerId: 'other'),
-      ),
+      service.review(card.id, Grade.good),
       throwsA(isA<UnknownSchedulerException>()),
     );
     expect(await repos.reviews.history(card.id), isEmpty);
@@ -140,11 +174,7 @@ void main() {
 
     test('the lapse that reaches the threshold tags the note', () async {
       final (note, card) = await lapsedCard('猫', 7);
-      final state = await service.review(
-        card.id,
-        Grade.again,
-        settings: settings,
-      );
+      final state = await service.review(card.id, Grade.again);
       expect(state.lapses, 8);
       expect(await tagNames(note), ['leech']);
       final tag = (await repos.tags.tags(japanese.id)).single;
@@ -154,15 +184,15 @@ void main() {
     test('other lapses and passes do not tag the note', () async {
       final (lapsing, lapsingCard) = await lapsedCard('猫', 8);
       final (passing, passingCard) = await lapsedCard('犬', 7);
-      await service.review(lapsingCard.id, Grade.again, settings: settings);
-      await service.review(passingCard.id, Grade.good, settings: settings);
+      await service.review(lapsingCard.id, Grade.again);
+      await service.review(passingCard.id, Grade.good);
       expect(await tagNames(lapsing), isEmpty);
       expect(await tagNames(passing), isEmpty);
     });
 
     test('a card is tagged again every half threshold', () async {
       final (note, card) = await lapsedCard('猫', 11);
-      await service.review(card.id, Grade.again, settings: settings);
+      await service.review(card.id, Grade.again);
       expect(await tagNames(note), ['leech']);
     });
 
@@ -170,8 +200,8 @@ void main() {
       final existing = await japanese.addTag('Leech');
       final (first, firstCard) = await lapsedCard('猫', 7);
       final (second, secondCard) = await lapsedCard('犬', 7);
-      await service.review(firstCard.id, Grade.again, settings: settings);
-      await service.review(secondCard.id, Grade.again, settings: settings);
+      await service.review(firstCard.id, Grade.again);
+      await service.review(secondCard.id, Grade.again);
       expect(await repos.notes.tagIds(first.id), {existing.id});
       expect(await repos.notes.tagIds(second.id), {existing.id});
       expect(await repos.tags.tags(japanese.id), [existing]);
@@ -181,7 +211,7 @@ void main() {
       final parent = await japanese.addTag('JLPT');
       await japanese.addTag('leech', parentId: parent.id);
       final (note, card) = await lapsedCard('猫', 7);
-      await service.review(card.id, Grade.again, settings: settings);
+      await service.review(card.id, Grade.again);
       final tag = (await repos.tags.tags(japanese.id))
           .singleWhere((t) => t.parentId == null && t.name == 'leech');
       expect(await repos.notes.tagIds(note.id), {tag.id});
@@ -189,11 +219,11 @@ void main() {
 
     test('nothing is tagged when leech detection is off', () async {
       final (note, card) = await lapsedCard('猫', 7);
-      await service.review(
-        card.id,
-        Grade.again,
-        settings: const SchedulingSettings(leechThreshold: null),
+      await repos.presets.updateSettings(
+        japanese.preset.id,
+        PresetVersion(id: PresetVersionId.generate(), leechThreshold: null),
       );
+      await service.review(card.id, Grade.again);
       expect(await tagNames(note), isEmpty);
     });
   });

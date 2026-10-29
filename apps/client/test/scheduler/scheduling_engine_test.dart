@@ -33,7 +33,7 @@ void main() {
     grade: kind == ReviewEventKind.review ? grade : null,
     schedulerId: 'test.fake',
     schedulerVersion: version,
-    configVersion: 1,
+    presetVersionId: PresetVersionId.generate(),
   );
 
   SchedulingState review({Duration? burnThreshold}) => engine.apply(

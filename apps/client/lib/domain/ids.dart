@@ -56,6 +56,16 @@ extension type const TagId._(String value) implements Object {
   TagId.parse(String value) : this._(_parse(value));
 }
 
+extension type const PresetId._(String value) implements Object {
+  PresetId.generate() : this._(_generate());
+  PresetId.parse(String value) : this._(_parse(value));
+}
+
+extension type const PresetVersionId._(String value) implements Object {
+  PresetVersionId.generate() : this._(_generate());
+  PresetVersionId.parse(String value) : this._(_parse(value));
+}
+
 extension type const ReviewEventId._(String value) implements Object {
   ReviewEventId.generate() : this._(_generate());
   ReviewEventId.parse(String value) : this._(_parse(value));

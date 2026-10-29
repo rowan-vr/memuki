@@ -15,7 +15,8 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$Collection {
 
- CollectionId get id; String get name;
+ CollectionId get id; String get name;/// The local time of day at which a study day starts.
+ Duration get dayStart;
 /// Create a copy of Collection
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +28,20 @@ $CollectionCopyWith<Collection> get copyWith => _$CollectionCopyWithImpl<Collect
 @override
 bool operator ==(Object other) {
   final _this = this as Collection;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Collection&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Collection&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.dayStart, _this.dayStart) || other.dayStart == _this.dayStart));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Collection;
-  return Object.hash(runtimeType,_this.id,_this.name);
+  return Object.hash(runtimeType,_this.id,_this.name,_this.dayStart);
 }
 
 @override
 String toString() {
   final _this = this as Collection;
-  return 'Collection(id: ${_this.id}, name: ${_this.name})';
+  return 'Collection(id: ${_this.id}, name: ${_this.name}, dayStart: ${_this.dayStart})';
 }
 
 
@@ -51,7 +52,7 @@ abstract mixin class $CollectionCopyWith<$Res>  {
   factory $CollectionCopyWith(Collection value, $Res Function(Collection) _then) = _$CollectionCopyWithImpl;
 @useResult
 $Res call({
- CollectionId id, String name
+ CollectionId id, String name, Duration dayStart
 });
 
 
@@ -68,11 +69,12 @@ class _$CollectionCopyWithImpl<$Res>
 
 /// Create a copy of Collection
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? dayStart = null,}) {
   return _then(Collection(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as CollectionId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,
+as String,dayStart: null == dayStart ? _self.dayStart : dayStart // ignore: cast_nullable_to_non_nullable
+as Duration,
   ));
 }
 
@@ -157,10 +159,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CollectionId id,  String name)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CollectionId id,  String name,  Duration dayStart)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Collection() when $default != null:
-return $default(_that.id,_that.name);case _:
+return $default(_that.id,_that.name,_that.dayStart);case _:
   return orElse();
 
 }
@@ -178,10 +180,10 @@ return $default(_that.id,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CollectionId id,  String name)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CollectionId id,  String name,  Duration dayStart)  $default,) {final _that = this;
 switch (_that) {
 case _Collection():
-return $default(_that.id,_that.name);case _:
+return $default(_that.id,_that.name,_that.dayStart);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -198,10 +200,10 @@ return $default(_that.id,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CollectionId id,  String name)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CollectionId id,  String name,  Duration dayStart)?  $default,) {final _that = this;
 switch (_that) {
 case _Collection() when $default != null:
-return $default(_that.id,_that.name);case _:
+return $default(_that.id,_that.name,_that.dayStart);case _:
   return null;
 
 }
@@ -213,11 +215,13 @@ return $default(_that.id,_that.name);case _:
 
 
 class _Collection extends Collection {
-   _Collection({required this.id, required this.name}): super._();
+   _Collection({required this.id, required this.name, this.dayStart = const Duration(hours: 3)}): super._();
   
 
 @override final  CollectionId id;
 @override final  String name;
+/// The local time of day at which a study day starts.
+@override@JsonKey() final  Duration dayStart;
 
 /// Create a copy of Collection
 /// with the given fields replaced by the non-null parameter values.
@@ -229,18 +233,18 @@ _$CollectionCopyWith<_Collection> get copyWith => __$CollectionCopyWithImpl<_Col
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Collection&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Collection&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.dayStart, dayStart) || other.dayStart == dayStart));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name);
+    return Object.hash(runtimeType,id,name,dayStart);
 }
 
 @override
 String toString() {
-    return 'Collection(id: $id, name: $name)';
+    return 'Collection(id: $id, name: $name, dayStart: $dayStart)';
 }
 
 
@@ -251,7 +255,7 @@ abstract mixin class _$CollectionCopyWith<$Res> implements $CollectionCopyWith<$
   factory _$CollectionCopyWith(_Collection value, $Res Function(_Collection) _then) = __$CollectionCopyWithImpl;
 @override @useResult
 $Res call({
- CollectionId id, String name
+ CollectionId id, String name, Duration dayStart
 });
 
 
@@ -268,11 +272,12 @@ class __$CollectionCopyWithImpl<$Res>
 
 /// Create a copy of Collection
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? dayStart = null,}) {
   return _then(_Collection(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as CollectionId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,
+as String,dayStart: null == dayStart ? _self.dayStart : dayStart // ignore: cast_nullable_to_non_nullable
+as Duration,
   ));
 }
 
@@ -282,7 +287,9 @@ as String,
 /// @nodoc
 mixin _$Deck {
 
- DeckId get id; CollectionId get collectionId; DeckId? get parentId; String get name;
+ DeckId get id; CollectionId get collectionId; DeckId? get parentId; String get name;/// The deck's own preset, or null to use its parent's (for a root deck,
+/// the collection's default preset).
+ PresetId? get presetId;
 /// Create a copy of Deck
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -294,20 +301,20 @@ $DeckCopyWith<Deck> get copyWith => _$DeckCopyWithImpl<Deck>(this as Deck, _$ide
 @override
 bool operator ==(Object other) {
   final _this = this as Deck;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is Deck&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.collectionId, _this.collectionId) || other.collectionId == _this.collectionId)&&(identical(other.parentId, _this.parentId) || other.parentId == _this.parentId)&&(identical(other.name, _this.name) || other.name == _this.name));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is Deck&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.collectionId, _this.collectionId) || other.collectionId == _this.collectionId)&&(identical(other.parentId, _this.parentId) || other.parentId == _this.parentId)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.presetId, _this.presetId) || other.presetId == _this.presetId));
 }
 
 
 @override
 int get hashCode {
   final _this = this as Deck;
-  return Object.hash(runtimeType,_this.id,_this.collectionId,_this.parentId,_this.name);
+  return Object.hash(runtimeType,_this.id,_this.collectionId,_this.parentId,_this.name,_this.presetId);
 }
 
 @override
 String toString() {
   final _this = this as Deck;
-  return 'Deck(id: ${_this.id}, collectionId: ${_this.collectionId}, parentId: ${_this.parentId}, name: ${_this.name})';
+  return 'Deck(id: ${_this.id}, collectionId: ${_this.collectionId}, parentId: ${_this.parentId}, name: ${_this.name}, presetId: ${_this.presetId})';
 }
 
 
@@ -318,7 +325,7 @@ abstract mixin class $DeckCopyWith<$Res>  {
   factory $DeckCopyWith(Deck value, $Res Function(Deck) _then) = _$DeckCopyWithImpl;
 @useResult
 $Res call({
- DeckId id, CollectionId collectionId, DeckId? parentId, String name
+ DeckId id, CollectionId collectionId, DeckId? parentId, String name, PresetId? presetId
 });
 
 
@@ -335,13 +342,14 @@ class _$DeckCopyWithImpl<$Res>
 
 /// Create a copy of Deck
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? collectionId = null,Object? parentId = freezed,Object? name = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? collectionId = null,Object? parentId = freezed,Object? name = null,Object? presetId = freezed,}) {
   return _then(Deck(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as DeckId,collectionId: null == collectionId ? _self.collectionId : collectionId // ignore: cast_nullable_to_non_nullable
 as CollectionId,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
 as DeckId?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,
+as String,presetId: freezed == presetId ? _self.presetId : presetId // ignore: cast_nullable_to_non_nullable
+as PresetId?,
   ));
 }
 
@@ -426,10 +434,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DeckId id,  CollectionId collectionId,  DeckId? parentId,  String name)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( DeckId id,  CollectionId collectionId,  DeckId? parentId,  String name,  PresetId? presetId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _Deck() when $default != null:
-return $default(_that.id,_that.collectionId,_that.parentId,_that.name);case _:
+return $default(_that.id,_that.collectionId,_that.parentId,_that.name,_that.presetId);case _:
   return orElse();
 
 }
@@ -447,10 +455,10 @@ return $default(_that.id,_that.collectionId,_that.parentId,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DeckId id,  CollectionId collectionId,  DeckId? parentId,  String name)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( DeckId id,  CollectionId collectionId,  DeckId? parentId,  String name,  PresetId? presetId)  $default,) {final _that = this;
 switch (_that) {
 case _Deck():
-return $default(_that.id,_that.collectionId,_that.parentId,_that.name);case _:
+return $default(_that.id,_that.collectionId,_that.parentId,_that.name,_that.presetId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -467,10 +475,10 @@ return $default(_that.id,_that.collectionId,_that.parentId,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DeckId id,  CollectionId collectionId,  DeckId? parentId,  String name)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( DeckId id,  CollectionId collectionId,  DeckId? parentId,  String name,  PresetId? presetId)?  $default,) {final _that = this;
 switch (_that) {
 case _Deck() when $default != null:
-return $default(_that.id,_that.collectionId,_that.parentId,_that.name);case _:
+return $default(_that.id,_that.collectionId,_that.parentId,_that.name,_that.presetId);case _:
   return null;
 
 }
@@ -482,13 +490,16 @@ return $default(_that.id,_that.collectionId,_that.parentId,_that.name);case _:
 
 
 class _Deck extends Deck {
-   _Deck({required this.id, required this.collectionId, this.parentId, required this.name}): super._();
+   _Deck({required this.id, required this.collectionId, this.parentId, required this.name, this.presetId}): super._();
   
 
 @override final  DeckId id;
 @override final  CollectionId collectionId;
 @override final  DeckId? parentId;
 @override final  String name;
+/// The deck's own preset, or null to use its parent's (for a root deck,
+/// the collection's default preset).
+@override final  PresetId? presetId;
 
 /// Create a copy of Deck
 /// with the given fields replaced by the non-null parameter values.
@@ -500,18 +511,18 @@ _$DeckCopyWith<_Deck> get copyWith => __$DeckCopyWithImpl<_Deck>(this, _$identit
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Deck&&(identical(other.id, id) || other.id == id)&&(identical(other.collectionId, collectionId) || other.collectionId == collectionId)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.name, name) || other.name == name));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _Deck&&(identical(other.id, id) || other.id == id)&&(identical(other.collectionId, collectionId) || other.collectionId == collectionId)&&(identical(other.parentId, parentId) || other.parentId == parentId)&&(identical(other.name, name) || other.name == name)&&(identical(other.presetId, presetId) || other.presetId == presetId));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,collectionId,parentId,name);
+    return Object.hash(runtimeType,id,collectionId,parentId,name,presetId);
 }
 
 @override
 String toString() {
-    return 'Deck(id: $id, collectionId: $collectionId, parentId: $parentId, name: $name)';
+    return 'Deck(id: $id, collectionId: $collectionId, parentId: $parentId, name: $name, presetId: $presetId)';
 }
 
 
@@ -522,7 +533,7 @@ abstract mixin class _$DeckCopyWith<$Res> implements $DeckCopyWith<$Res> {
   factory _$DeckCopyWith(_Deck value, $Res Function(_Deck) _then) = __$DeckCopyWithImpl;
 @override @useResult
 $Res call({
- DeckId id, CollectionId collectionId, DeckId? parentId, String name
+ DeckId id, CollectionId collectionId, DeckId? parentId, String name, PresetId? presetId
 });
 
 
@@ -539,13 +550,14 @@ class __$DeckCopyWithImpl<$Res>
 
 /// Create a copy of Deck
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? collectionId = null,Object? parentId = freezed,Object? name = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? collectionId = null,Object? parentId = freezed,Object? name = null,Object? presetId = freezed,}) {
   return _then(_Deck(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as DeckId,collectionId: null == collectionId ? _self.collectionId : collectionId // ignore: cast_nullable_to_non_nullable
 as CollectionId,parentId: freezed == parentId ? _self.parentId : parentId // ignore: cast_nullable_to_non_nullable
 as DeckId?,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
-as String,
+as String,presetId: freezed == presetId ? _self.presetId : presetId // ignore: cast_nullable_to_non_nullable
+as PresetId?,
   ));
 }
 

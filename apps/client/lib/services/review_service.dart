@@ -1,10 +1,13 @@
 import '../domain/ids.dart';
 import '../domain/note.dart' show Tag;
+import '../domain/preset.dart';
 import '../domain/review.dart';
 import '../scheduler/scheduler_registry.dart';
 import '../scheduler/scheduling_engine.dart';
 import '../storage/database.dart';
+import '../storage/repositories/collection_repository.dart';
 import '../storage/repositories/note_repository.dart';
+import '../storage/repositories/preset_repository.dart';
 import '../storage/repositories/repository_exceptions.dart';
 import '../storage/repositories/review_repository.dart';
 import '../storage/repositories/study_card_repository.dart';
@@ -18,12 +21,27 @@ typedef DeviceNow = ({DateTime at, Duration utcOffset}) Function();
   return (at: now.toUtc(), utcOffset: now.timeZoneOffset);
 }
 
+/// The engine settings of a preset version in a collection whose study day
+/// starts at [dayStart].
+SchedulingSettings schedulingSettings(
+  PresetVersion version,
+  Duration dayStart,
+) => SchedulingSettings(
+  schedulerId: version.schedulerId,
+  schedulerConfig: version.schedulerConfig,
+  burnThreshold: version.burnThreshold,
+  leechThreshold: version.leechThreshold,
+  dayStart: dayStart,
+);
+
 /// Records reviews. A review appends a complete event to the card's history,
 /// updates its scheduling state, and tags its note when the card becomes a
 /// leech, all in one transaction.
 class ReviewService {
   ReviewService({
     required this._db,
+    required this._collections,
+    required this._presets,
     required this._cards,
     required this._notes,
     required this._tags,
@@ -36,6 +54,8 @@ class ReviewService {
   static const leechTag = 'leech';
 
   final MemukiDatabase _db;
+  final CollectionRepository _collections;
+  final PresetRepository _presets;
   final StudyCardRepository _cards;
   final NoteRepository _notes;
   final TagRepository _tags;
@@ -44,17 +64,20 @@ class ReviewService {
   final SchedulingEngine _engine;
   final DeviceNow _now;
 
-  /// Grades a card now and returns its new scheduling state.
+  /// Grades a card now with the settings of its deck's preset and returns
+  /// its new scheduling state.
   Future<SchedulingState> review(
     StudyCardId cardId,
     Grade grade, {
-    required SchedulingSettings settings,
     Duration? responseTime,
   }) => _db.transaction(() async {
     final card = await _cards.card(cardId);
     if (card == null) {
       throw EntityNotFoundException('Card $cardId does not exist');
     }
+    final preset = await _presets.effectivePreset(card.deckId);
+    final collection = (await _collections.collection(preset.collectionId))!;
+    final settings = schedulingSettings(preset.version, collection.dayStart);
     final before =
         await _cards.schedulingState(cardId) ?? _engine.initial(cardId);
     final scheduler = _schedulers.latest(settings.schedulerId);
@@ -70,7 +93,7 @@ class ReviewService {
       dueBefore: before.due,
       schedulerId: scheduler.id,
       schedulerVersion: scheduler.version,
-      configVersion: settings.configVersion,
+      presetVersionId: preset.version.id,
     );
     final after = _engine.apply(before, event, settings);
     await _reviews.append(event.copyWith(dueAfter: after.due));

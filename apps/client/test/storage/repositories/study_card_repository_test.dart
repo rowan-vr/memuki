@@ -84,7 +84,7 @@ void main() {
       grade: Grade.good,
       schedulerId: 'sm2',
       schedulerVersion: 1,
-      configVersion: 1,
+      presetVersionId: japanese.preset.version.id,
     );
     await repos.reviews.append(event);
     final state = SchedulingState(

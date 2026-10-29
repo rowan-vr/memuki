@@ -1,3 +1,5 @@
+import 'dart:convert';
+
 import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
@@ -48,6 +50,18 @@ class UtcMillisConverter extends TypeConverter<DateTime, int> {
   int toSql(DateTime value) => value.millisecondsSinceEpoch;
 }
 
+/// Stores a JSON object as text.
+class JsonMapConverter extends TypeConverter<Map<String, Object?>, String> {
+  const JsonMapConverter();
+
+  @override
+  Map<String, Object?> fromSql(String fromDb) =>
+      jsonDecode(fromDb) as Map<String, Object?>;
+
+  @override
+  String toSql(Map<String, Object?> value) => jsonEncode(value);
+}
+
 /// Stores a [Duration] as whole minutes.
 class DurationMinutesConverter extends TypeConverter<Duration, int> {
   const DurationMinutesConverter();
@@ -82,6 +96,10 @@ const studyCardTemplateIdConverter = IdConverter<StudyCardTemplateId>(
 const noteIdConverter = IdConverter<NoteId>(NoteId.parse);
 const tagIdConverter = IdConverter<TagId>(TagId.parse);
 const studyCardIdConverter = IdConverter<StudyCardId>(StudyCardId.parse);
+const presetIdConverter = IdConverter<PresetId>(PresetId.parse);
+const presetVersionIdConverter = IdConverter<PresetVersionId>(
+  PresetVersionId.parse,
+);
 const reviewEventIdConverter = IdConverter<ReviewEventId>(ReviewEventId.parse);
 
 /// Stores an [Hlc] as its fixed-width text form, which sorts in HLC order.

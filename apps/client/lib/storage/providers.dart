@@ -6,6 +6,7 @@ import 'repositories/collection_repository.dart';
 import 'repositories/media_repository.dart';
 import 'repositories/note_repository.dart';
 import 'repositories/note_type_repository.dart';
+import 'repositories/preset_repository.dart';
 import 'repositories/review_repository.dart';
 import 'repositories/study_card_repository.dart';
 import 'repositories/tag_repository.dart';
@@ -36,6 +37,10 @@ final noteTypeRepositoryProvider = Provider(
 
 final noteRepositoryProvider = Provider(
   (ref) => NoteRepository(ref.watch(databaseProvider)),
+);
+
+final presetRepositoryProvider = Provider(
+  (ref) => PresetRepository(ref.watch(databaseProvider)),
 );
 
 final studyCardRepositoryProvider = Provider(

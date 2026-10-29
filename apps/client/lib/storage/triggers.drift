@@ -51,6 +51,13 @@ BEGIN
   SELECT RAISE(ABORT, 'collection_id is immutable');
 END;
 
+CREATE TRIGGER presets_collection_immutable
+BEFORE UPDATE OF collection_id ON presets
+WHEN NEW.collection_id IS NOT OLD.collection_id
+BEGIN
+  SELECT RAISE(ABORT, 'collection_id is immutable');
+END;
+
 -- Every update of a synced row must stamp a new timestamp. Changes are found
 -- for the outbox by their timestamp, so an update that keeps the old one
 -- would never be synced.
@@ -132,10 +139,25 @@ BEGIN
   SELECT RAISE(ABORT, 'hlc must change on every update');
 END;
 
+CREATE TRIGGER presets_hlc_changes
+BEFORE UPDATE ON presets
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
 -- Review events are never changed; an undo is a new event.
 
 CREATE TRIGGER review_events_append_only
 BEFORE UPDATE ON review_events
 BEGIN
   SELECT RAISE(ABORT, 'review events are append-only');
+END;
+
+-- Preset versions are never changed; editing a preset adds a version.
+
+CREATE TRIGGER preset_versions_append_only
+BEFORE UPDATE ON preset_versions
+BEGIN
+  SELECT RAISE(ABORT, 'preset versions are append-only');
 END;

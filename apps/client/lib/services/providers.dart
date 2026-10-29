@@ -13,6 +13,8 @@ final schedulerRegistryProvider = Provider(
 final reviewServiceProvider = Provider(
   (ref) => ReviewService(
     db: ref.watch(databaseProvider),
+    collections: ref.watch(collectionRepositoryProvider),
+    presets: ref.watch(presetRepositoryProvider),
     cards: ref.watch(studyCardRepositoryProvider),
     notes: ref.watch(noteRepositoryProvider),
     tags: ref.watch(tagRepositoryProvider),

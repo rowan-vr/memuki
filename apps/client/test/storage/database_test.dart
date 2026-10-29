@@ -28,9 +28,13 @@ class _Seed {
       noteTypeId = NoteTypeId.generate(),
       fieldId = FieldDefinitionId.generate(),
       templateId = StudyCardTemplateId.generate(),
-      noteId = NoteId.generate();
+      noteId = NoteId.generate(),
+      presetId = PresetId.generate(),
+      presetVersionId = PresetVersionId.generate();
 
   final CollectionId collectionId;
+  final PresetId presetId;
+  final PresetVersionId presetVersionId;
   final DeckId deckId;
   final NoteTypeId noteTypeId;
   final FieldDefinitionId fieldId;
@@ -44,6 +48,30 @@ class _Seed {
         hlc: _hlc,
         id: collectionId,
         name: 'Japanese',
+        defaultPresetId: presetId,
+        dayStart: const Duration(hours: 3),
+      ),
+    );
+    b.insert(
+      db.presets,
+      PresetsCompanion.insert(
+        hlc: _hlc,
+        id: presetId,
+        collectionId: collectionId,
+        name: 'Default',
+        currentVersionId: presetVersionId,
+      ),
+    );
+    b.insert(
+      db.presetVersions,
+      PresetVersionsCompanion.insert(
+        hlc: _hlc,
+        id: presetVersionId,
+        presetId: presetId,
+        schedulerId: 'memuki.steps-sm2',
+        schedulerConfig: const {},
+        newCardsPerDay: 50,
+        reviewsPerDay: 500,
       ),
     );
     b.insert(
@@ -173,7 +201,7 @@ void main() {
             responseTime: const Value(Duration(milliseconds: 4250)),
             schedulerId: 'sm2',
             schedulerVersion: 1,
-            configVersion: 1,
+            presetVersionId: seed.presetVersionId,
           ),
         );
 

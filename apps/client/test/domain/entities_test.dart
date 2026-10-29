@@ -4,6 +4,7 @@ import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/media_asset.dart';
 import 'package:memuki/domain/note.dart';
 import 'package:memuki/domain/note_type.dart';
+import 'package:memuki/domain/preset.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/domain/study_card.dart';
 
@@ -190,7 +191,7 @@ void main() {
       undoneEventId: undoneEventId,
       schedulerId: 'memuki.default',
       schedulerVersion: 1,
-      configVersion: 1,
+      presetVersionId: PresetVersionId.generate(),
     );
 
     test('accepts a graded review', () {
@@ -280,6 +281,67 @@ void main() {
         ),
         throwsArgumentError,
       );
+    });
+  });
+
+  group('Collection', () {
+    test('requires a study day start of whole minutes within a day', () {
+      Collection collection(Duration dayStart) => Collection(
+        id: CollectionId.generate(),
+        name: 'Japanese',
+        dayStart: dayStart,
+      );
+      expect(
+        collection(const Duration(hours: 4, minutes: 30)).dayStart,
+        const Duration(hours: 4, minutes: 30),
+      );
+      expect(() => collection(const Duration(days: 1)), throwsArgumentError);
+      expect(
+        () => collection(const Duration(minutes: -1)),
+        throwsArgumentError,
+      );
+      expect(() => collection(const Duration(seconds: 1)), throwsArgumentError);
+    });
+  });
+
+  group('Preset', () {
+    PresetVersion version({
+      Duration? burnThreshold = const Duration(days: 365),
+      int? leechThreshold = 8,
+      int newCardsPerDay = 50,
+    }) => PresetVersion(
+      id: PresetVersionId.generate(),
+      burnThreshold: burnThreshold,
+      leechThreshold: leechThreshold,
+      newCardsPerDay: newCardsPerDay,
+    );
+
+    test('requires a name', () {
+      expect(
+        () => Preset(
+          id: PresetId.generate(),
+          collectionId: CollectionId.generate(),
+          name: '',
+          version: version(),
+        ),
+        throwsArgumentError,
+      );
+    });
+
+    test('allows burning and leeches to be disabled', () {
+      final disabled = version(burnThreshold: null, leechThreshold: null);
+      expect(disabled.burnThreshold, isNull);
+      expect(disabled.leechThreshold, isNull);
+    });
+
+    test('rejects invalid thresholds and limits', () {
+      expect(() => version(burnThreshold: Duration.zero), throwsArgumentError);
+      expect(
+        () => version(burnThreshold: const Duration(hours: 36)),
+        throwsArgumentError,
+      );
+      expect(() => version(leechThreshold: 0), throwsArgumentError);
+      expect(() => version(newCardsPerDay: -1), throwsArgumentError);
     });
   });
 }
