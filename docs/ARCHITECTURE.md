@@ -76,6 +76,7 @@ Decided in Phase 1. See [ROADMAP.md](ROADMAP.md#phase-1--domain-models-and-persi
 - Review events are immutable and append-only.
 - Scheduling state is a materialized cache that can be rebuilt by replaying a card's review events through the scheduler.
 - Undo appends a compensating event; it does not delete the original event.
+- Deleting a card tombstones the card and keeps its events, so recreating the card (same derived ID) restores its history. Whether events are removed when tombstones are purged is open (Phase 8).
 - Each event records the scheduler ID, scheduler version, and configuration version used, so replay is deterministic.
 - Replay uses the configuration recorded on each event. Applying new configuration to existing cards is an explicit reschedule operation, never a side effect of replay.
 

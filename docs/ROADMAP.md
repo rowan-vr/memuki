@@ -311,6 +311,7 @@ Statistics:
 - Basic retention statistics.
 - Daily activity and streaks.
 - Review-history inspection.
+- Statistics count only reviews of cards that are not deleted; deleted cards keep their review events.
 
 Visual polish:
 
@@ -609,6 +610,7 @@ Third-party dictionary databases are not synced. Each device installs packages i
 | Conflict policy per entity type | Builds on Phase 1 merge granularity | Open |
 | Conditions for manual conflict resolution | — | Open |
 | Parent cycles from concurrent moves | Two devices can each move a deck or tag under the other. After a merge, a cycle is broken deterministically: the node in the cycle whose parent change has the highest HLC becomes a root | Proposed |
+| Tombstone purging and review history of deleted cards | Deleting a card keeps its review events, so a recreated card keeps its history. When and how tombstones are removed for good, and whether a card's events are removed with its tombstone | Open |
 
 ### Test scenarios
 
