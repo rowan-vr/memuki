@@ -4,17 +4,24 @@ import '../../domain/ids.dart';
 import '../../domain/note.dart';
 import '../converters.dart';
 import '../database.dart';
+import '../sync/change_recorder.dart';
+import '../sync/hlc.dart';
 import 'cascades.dart';
 import 'repository_exceptions.dart';
 import 'tree_queries.dart';
 import 'watch_tables.dart';
 
 /// Notes with their field values, and the tags attached to them.
+///
+/// Field values are synced and merged one by one, so an update only stamps
+/// the fields whose value changed.
 class NoteRepository {
   NoteRepository(this._db)
-    : _tagTree = TreeQueries(_db, _db.tags, tagIdConverter);
+    : _changes = ChangeRecorder(_db),
+      _tagTree = TreeQueries(_db, _db.tags, tagIdConverter);
 
   final MemukiDatabase _db;
+  final ChangeRecorder _changes;
   final TreeQueries<TagId> _tagTree;
 
   Future<Note?> note(NoteId id) async =>
@@ -32,13 +39,16 @@ class NoteRepository {
     final tagIds = (await _tagTree.subtree(tagId)).toList();
     final tagged = _db.selectOnly(_db.noteTags)
       ..addColumns([_db.noteTags.noteId])
-      ..where(_db.noteTags.tagId.isInValues(tagIds));
+      ..where(
+        _db.noteTags.tagId.isInValues(tagIds) &
+            _db.noteTags.deleted.equals(false),
+      );
     return _query((n) => n.id.isInQuery(tagged));
   }
 
   /// Creates a note. Its fields must belong to its note type, which must be
   /// in the same collection.
-  Future<void> createNote(Note note) => _db.transaction(() async {
+  Future<void> createNote(Note note) => _changes.write((hlc) async {
     await _requireNoteType(note);
     await _db
         .into(_db.notes)
@@ -49,14 +59,15 @@ class NoteRepository {
             noteTypeId: note.noteTypeId,
             sourceKind: Value(note.source?.kind),
             sourceReference: Value(note.source?.reference),
+            hlc: hlc,
           ),
         );
-    await _writeFields(note);
+    await _writeFields(note.id, note.fields, hlc);
   });
 
   /// Saves a note's field values and source. Fields missing from
   /// [Note.fields] lose their value. The note type cannot change.
-  Future<void> updateNote(Note note) => _db.transaction(() async {
+  Future<void> updateNote(Note note) => _changes.write((hlc) async {
     final current = await _noteRow(note.id);
     if (current == null) throw _notFound(note.id);
     if (current.collectionId != note.collectionId) {
@@ -70,79 +81,112 @@ class NoteRepository {
       );
     }
     await _requireNoteType(note);
-    await (_db.update(
-      _db.notes,
-    )..where((n) => n.id.equalsValue(note.id))).write(
-      NotesCompanion(
-        sourceKind: Value(note.source?.kind),
-        sourceReference: Value(note.source?.reference),
-      ),
-    );
-    await (_db.delete(_db.noteFields)..where(
+    final source = (kind: note.source?.kind, reference: note.source?.reference);
+    if (source !=
+        (kind: current.sourceKind, reference: current.sourceReference)) {
+      await (_db.update(
+        _db.notes,
+      )..where((n) => n.id.equalsValue(note.id))).write(
+        NotesCompanion(
+          sourceKind: Value(source.kind),
+          sourceReference: Value(source.reference),
+          hlc: Value(hlc),
+        ),
+      );
+    }
+    final currentFields = await _liveFields(note.id);
+    await (_db.update(_db.noteFields)..where(
           (f) =>
               f.noteId.equalsValue(note.id) &
+              f.deleted.equals(false) &
               f.fieldId.isInValues(note.fields.keys).not(),
         ))
-        .go();
-    await _writeFields(note);
+        .write(
+          NoteFieldsCompanion(deleted: const Value(true), hlc: Value(hlc)),
+        );
+    await _writeFields(note.id, {
+      for (final MapEntry(:key, :value) in note.fields.entries)
+        if (currentFields[key] != value) key: value,
+    }, hlc);
   });
 
-  /// Deletes a note with its cards, their review history, and its tags.
-  Future<void> deleteNote(NoteId id) => _db.transaction(() async {
+  /// Deletes a note with its cards. Review history is kept.
+  Future<void> deleteNote(NoteId id) => _changes.write((hlc) async {
     if (await _noteRow(id) == null) throw _notFound(id);
-    await deleteCardsWhere(_db, (c) => c.noteId.equalsValue(id));
-    await (_db.delete(_db.notes)..where((n) => n.id.equalsValue(id))).go();
+    await tombstoneCardsWhere(_db, hlc, (c) => c.noteId.equalsValue(id));
+    await (_db.update(_db.notes)..where((n) => n.id.equalsValue(id))).write(
+      NotesCompanion(deleted: const Value(true), hlc: Value(hlc)),
+    );
   });
 
   // Tags
 
   Future<Set<TagId>> tagIds(NoteId noteId) async {
-    final rows = await (_db.select(
-      _db.noteTags,
-    )..where((t) => t.noteId.equalsValue(noteId))).get();
+    final rows =
+        await (_db.select(_db.noteTags)..where(
+              (t) => t.noteId.equalsValue(noteId) & t.deleted.equals(false),
+            ))
+            .get();
     return {for (final r in rows) r.tagId};
   }
 
   /// Attaches a tag of the note's collection. Does nothing if it is
   /// attached already.
-  Future<void> addTag(NoteId noteId, TagId tagId) => _db.transaction(() async {
+  Future<void> addTag(NoteId noteId, TagId tagId) => _changes.write((
+    hlc,
+  ) async {
     final note = await _noteRow(noteId);
     if (note == null) throw _notFound(noteId);
-    final tag = await (_db.select(
-      _db.tags,
-    )..where((t) => t.id.equalsValue(tagId))).getSingleOrNull();
+    final tag =
+        await (_db.select(_db.tags)
+              ..where((t) => t.id.equalsValue(tagId) & t.deleted.equals(false)))
+            .getSingleOrNull();
     if (tag == null) throw EntityNotFoundException('Tag $tagId does not exist');
     if (tag.collectionId != note.collectionId) {
       throw CrossCollectionException(
         'Tag $tagId is in another collection than note $noteId',
       );
     }
+    if ((await tagIds(noteId)).contains(tagId)) return;
+    // Re-adding a removed tag revives its tombstone.
     await _db
         .into(_db.noteTags)
-        .insert(
+        .insertOnConflictUpdate(
           NoteTagsCompanion.insert(
             collectionId: note.collectionId,
             noteId: noteId,
             tagId: tagId,
+            hlc: hlc,
+            deleted: const Value(false),
           ),
-          mode: InsertMode.insertOrIgnore,
         );
   });
 
-  Future<void> removeTag(NoteId noteId, TagId tagId) =>
-      (_db.delete(_db.noteTags)..where(
-            (t) => t.noteId.equalsValue(noteId) & t.tagId.equalsValue(tagId),
-          ))
-          .go();
+  Future<void> removeTag(NoteId noteId, TagId tagId) => _changes.write(
+    (hlc) =>
+        (_db.update(_db.noteTags)..where(
+              (t) =>
+                  t.noteId.equalsValue(noteId) &
+                  t.tagId.equalsValue(tagId) &
+                  t.deleted.equals(false),
+            ))
+            .write(
+              NoteTagsCompanion(deleted: const Value(true), hlc: Value(hlc)),
+            ),
+  );
 
-  Future<NoteRow?> _noteRow(NoteId id) => (_db.select(
-    _db.notes,
-  )..where((n) => n.id.equalsValue(id))).getSingleOrNull();
+  Future<NoteRow?> _noteRow(NoteId id) =>
+      (_db.select(_db.notes)
+            ..where((n) => n.id.equalsValue(id) & n.deleted.equals(false)))
+          .getSingleOrNull();
 
   Future<void> _requireNoteType(Note note) async {
-    final noteType = await (_db.select(
-      _db.noteTypes,
-    )..where((t) => t.id.equalsValue(note.noteTypeId))).getSingleOrNull();
+    final noteType =
+        await (_db.select(_db.noteTypes)..where(
+              (t) =>
+                  t.id.equalsValue(note.noteTypeId) & t.deleted.equals(false),
+            ))
+            .getSingleOrNull();
     if (noteType == null) {
       throw EntityNotFoundException(
         'Note type ${note.noteTypeId} does not exist',
@@ -153,9 +197,13 @@ class NoteRepository {
         'Note type ${note.noteTypeId} is in another collection',
       );
     }
-    final fields = await (_db.select(
-      _db.fieldDefinitions,
-    )..where((f) => f.noteTypeId.equalsValue(note.noteTypeId))).get();
+    final fields =
+        await (_db.select(_db.fieldDefinitions)..where(
+              (f) =>
+                  f.noteTypeId.equalsValue(note.noteTypeId) &
+                  f.deleted.equals(false),
+            ))
+            .get();
     final known = {for (final f in fields) f.id};
     final unknown = note.fields.keys.where((id) => !known.contains(id));
     if (unknown.isNotEmpty) {
@@ -166,10 +214,30 @@ class NoteRepository {
     }
   }
 
-  Future<void> _writeFields(Note note) => _db.batch((b) {
+  Future<Map<FieldDefinitionId, String>> _liveFields(NoteId noteId) async {
+    final rows =
+        await (_db.select(_db.noteFields)..where(
+              (f) => f.noteId.equalsValue(noteId) & f.deleted.equals(false),
+            ))
+            .get();
+    return {for (final f in rows) f.fieldId: f.value};
+  }
+
+  /// Inserts or updates [fields], reviving tombstoned values.
+  Future<void> _writeFields(
+    NoteId noteId,
+    Map<FieldDefinitionId, String> fields,
+    Hlc hlc,
+  ) => _db.batch((b) {
     b.insertAllOnConflictUpdate(_db.noteFields, [
-      for (final MapEntry(:key, :value) in note.fields.entries)
-        NoteFieldsCompanion.insert(noteId: note.id, fieldId: key, value: value),
+      for (final MapEntry(:key, :value) in fields.entries)
+        NoteFieldsCompanion.insert(
+          noteId: noteId,
+          fieldId: key,
+          value: value,
+          hlc: hlc,
+          deleted: const Value(false),
+        ),
     ]);
   });
 
@@ -179,13 +247,23 @@ class NoteRepository {
   ) async {
     final rows =
         await (_db.select(_db.notes)
-              ..where(filter)
+              ..where((n) => filter(n) & n.deleted.equals(false))
               ..orderBy([(n) => OrderingTerm(expression: n.id)]))
             .get();
     if (rows.isEmpty) return const [];
-    final fieldRows = await (_db.select(_db.noteFields).join([
-      innerJoin(_db.notes, _db.notes.id.equalsExp(_db.noteFields.noteId)),
-    ])..where(filter(_db.notes))).map((r) => r.readTable(_db.noteFields)).get();
+    final fieldRows =
+        await (_db.select(_db.noteFields).join([
+              innerJoin(
+                _db.notes,
+                _db.notes.id.equalsExp(_db.noteFields.noteId),
+              ),
+            ])..where(
+              filter(_db.notes) &
+                  _db.notes.deleted.equals(false) &
+                  _db.noteFields.deleted.equals(false),
+            ))
+            .map((r) => r.readTable(_db.noteFields))
+            .get();
 
     final fields = <NoteId, Map<FieldDefinitionId, String>>{};
     for (final f in fieldRows) {

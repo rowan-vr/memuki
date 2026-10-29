@@ -84,6 +84,6 @@ void main() {
     expect(await repos.cards.schedulingState(card.id), state);
 
     await repos.cards.deleteCard(card.id);
-    expect(await repos.cards.schedulingState(card.id), isNull);
+    expect(await repos.cards.card(card.id), isNull);
   });
 }

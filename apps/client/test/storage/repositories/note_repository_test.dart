@@ -80,7 +80,7 @@ void main() {
     );
   });
 
-  test('deleting one removes its cards and their history', () async {
+  test('deleting one removes its cards and keeps their history', () async {
     final (note, card) = await japanese.addNote('猫');
     await repos.reviews.append(
       ReviewEvent(
@@ -96,7 +96,8 @@ void main() {
     );
     await repos.notes.deleteNote(note.id);
     expect(await repos.cards.card(card.id), isNull);
-    expect(await repos.reviews.history(card.id), isEmpty);
+    expect(await repos.notes.note(note.id), isNull);
+    expect(await repos.reviews.history(card.id), hasLength(1));
   });
 
   group('tags', () {

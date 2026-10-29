@@ -11,7 +11,7 @@ final _log = Logger('memuki.storage');
 const maxTreeDepth = 64;
 
 /// Recursive queries over a table with `id` and `parent_id` columns (decks and
-/// tags).
+/// tags). Tombstoned rows are skipped.
 ///
 /// Walks use `UNION` and stop at [maxTreeDepth], so a cycle that got into the
 /// data (through a bug or a corrupt import) ends the walk and is logged
@@ -35,11 +35,11 @@ class TreeQueries<I extends Object> {
     final rows = await _db
         .customSelect(
           'WITH RECURSIVE walk(id, parent_id, depth) AS ('
-          ' SELECT id, parent_id, 0 FROM $table WHERE id = ?1'
+          ' SELECT id, parent_id, 0 FROM $table WHERE id = ?1 AND deleted = 0'
           ' UNION'
           ' SELECT t.id, t.parent_id, w.depth + 1'
           ' FROM $table t JOIN walk w ON $join'
-          ' WHERE w.depth < $maxTreeDepth'
+          ' WHERE t.deleted = 0 AND w.depth < $maxTreeDepth'
           ') SELECT id, max(depth) AS depth FROM walk GROUP BY id',
           variables: [Variable.withBlob(_ids.toSql(id))],
           readsFrom: {_table},

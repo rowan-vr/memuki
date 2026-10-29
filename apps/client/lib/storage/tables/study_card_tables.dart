@@ -7,13 +7,15 @@ import 'collection_tables.dart';
 // ignore: unused_import
 import 'note_tables.dart';
 import 'note_type_tables.dart';
+import 'sync_tables.dart';
 
 /// A card. Its note and deck must be in [collectionId]; its ID is derived
 /// from `(note_id, template_id)`.
 @TableIndex(name: 'study_cards_deck', columns: {#collectionId, #deckId})
 @TableIndex(name: 'study_cards_template', columns: {#templateId})
+@TableIndex(name: 'study_cards_hlc', columns: {#hlc})
 @DataClassName('StudyCardRow')
-class StudyCards extends Table {
+class StudyCards extends Table with SyncedColumns {
   BlobColumn get id => blob().map(studyCardIdConverter)();
   BlobColumn get collectionId =>
       blob().map(collectionIdConverter).references(Collections, #id)();

@@ -10,6 +10,30 @@ class $CollectionsTable extends Collections
   final String? _alias;
   $CollectionsTable(this.attachedDatabase, [this._alias]);
   @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($CollectionsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
   late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List> id =
       GeneratedColumn<Uint8List>(
         'id',
@@ -28,7 +52,7 @@ class $CollectionsTable extends Collections
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, name];
+  List<GeneratedColumn> get $columns => [hlc, deleted, id, name];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -41,6 +65,12 @@ class $CollectionsTable extends Collections
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -58,6 +88,16 @@ class $CollectionsTable extends Collections
   CollectionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return CollectionRow(
+      hlc: $CollectionsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       id: $CollectionsTable.$converterid.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -76,17 +116,29 @@ class $CollectionsTable extends Collections
     return $CollectionsTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<CollectionId, Uint8List> $converterid =
       collectionIdConverter;
 }
 
 class CollectionRow extends DataClass implements Insertable<CollectionRow> {
+  final Hlc hlc;
+  final bool deleted;
   final CollectionId id;
   final String name;
-  const CollectionRow({required this.id, required this.name});
+  const CollectionRow({
+    required this.hlc,
+    required this.deleted,
+    required this.id,
+    required this.name,
+  });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($CollectionsTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['id'] = Variable<Uint8List>($CollectionsTable.$converterid.toSql(id));
     }
@@ -95,7 +147,12 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
   }
 
   CollectionsCompanion toCompanion(bool nullToAbsent) {
-    return CollectionsCompanion(id: Value(id), name: Value(name));
+    return CollectionsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      id: Value(id),
+      name: Value(name),
+    );
   }
 
   factory CollectionRow.fromJson(
@@ -104,6 +161,8 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return CollectionRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       id: serializer.fromJson<CollectionId>(json['id']),
       name: serializer.fromJson<String>(json['name']),
     );
@@ -112,15 +171,28 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'id': serializer.toJson<CollectionId>(id),
       'name': serializer.toJson<String>(name),
     };
   }
 
-  CollectionRow copyWith({CollectionId? id, String? name}) =>
-      CollectionRow(id: id ?? this.id, name: name ?? this.name);
+  CollectionRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
+    CollectionId? id,
+    String? name,
+  }) => CollectionRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    id: id ?? this.id,
+    name: name ?? this.name,
+  );
   CollectionRow copyWithCompanion(CollectionsCompanion data) {
     return CollectionRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
     );
@@ -129,6 +201,8 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
   @override
   String toString() {
     return (StringBuffer('CollectionRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('name: $name')
           ..write(')'))
@@ -136,36 +210,49 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
   }
 
   @override
-  int get hashCode => Object.hash(id, name);
+  int get hashCode => Object.hash(hlc, deleted, id, name);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is CollectionRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.id == this.id &&
           other.name == this.name);
 }
 
 class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<CollectionId> id;
   final Value<String> name;
   final Value<int> rowid;
   const CollectionsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.id = const Value.absent(),
     this.name = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CollectionsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required CollectionId id,
     required String name,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : hlc = Value(hlc),
+       id = Value(id),
        name = Value(name);
   static Insertable<CollectionRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? id,
     Expression<String>? name,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (id != null) 'id': id,
       if (name != null) 'name': name,
       if (rowid != null) 'rowid': rowid,
@@ -173,11 +260,15 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
   }
 
   CollectionsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<CollectionId>? id,
     Value<String>? name,
     Value<int>? rowid,
   }) {
     return CollectionsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       id: id ?? this.id,
       name: name ?? this.name,
       rowid: rowid ?? this.rowid,
@@ -187,6 +278,14 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $CollectionsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (id.present) {
       map['id'] = Variable<Uint8List>(
         $CollectionsTable.$converterid.toSql(id.value),
@@ -204,6 +303,8 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
   @override
   String toString() {
     return (StringBuffer('CollectionsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('name: $name, ')
           ..write('rowid: $rowid')
@@ -217,6 +318,30 @@ class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $DecksTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($DecksTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<DeckId, Uint8List> id =
       GeneratedColumn<Uint8List>(
@@ -257,7 +382,14 @@ class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, collectionId, parentId, name];
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    collectionId,
+    parentId,
+    name,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -270,6 +402,12 @@ class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -291,6 +429,16 @@ class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
   DeckRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return DeckRow(
+      hlc: $DecksTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       id: $DecksTable.$converterid.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -321,6 +469,7 @@ class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
     return $DecksTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<DeckId, Uint8List> $converterid = deckIdConverter;
   static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
       collectionIdConverter;
@@ -330,11 +479,15 @@ class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
 }
 
 class DeckRow extends DataClass implements Insertable<DeckRow> {
+  final Hlc hlc;
+  final bool deleted;
   final DeckId id;
   final CollectionId collectionId;
   final DeckId? parentId;
   final String name;
   const DeckRow({
+    required this.hlc,
+    required this.deleted,
     required this.id,
     required this.collectionId,
     this.parentId,
@@ -343,6 +496,10 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($DecksTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['id'] = Variable<Uint8List>($DecksTable.$converterid.toSql(id));
     }
@@ -362,6 +519,8 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
 
   DecksCompanion toCompanion(bool nullToAbsent) {
     return DecksCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
       id: Value(id),
       collectionId: Value(collectionId),
       parentId: parentId == null && nullToAbsent
@@ -377,6 +536,8 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return DeckRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       id: serializer.fromJson<DeckId>(json['id']),
       collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
       parentId: serializer.fromJson<DeckId?>(json['parentId']),
@@ -387,6 +548,8 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'id': serializer.toJson<DeckId>(id),
       'collectionId': serializer.toJson<CollectionId>(collectionId),
       'parentId': serializer.toJson<DeckId?>(parentId),
@@ -395,11 +558,15 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
   }
 
   DeckRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
     DeckId? id,
     CollectionId? collectionId,
     Value<DeckId?> parentId = const Value.absent(),
     String? name,
   }) => DeckRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
     id: id ?? this.id,
     collectionId: collectionId ?? this.collectionId,
     parentId: parentId.present ? parentId.value : this.parentId,
@@ -407,6 +574,8 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
   );
   DeckRow copyWithCompanion(DecksCompanion data) {
     return DeckRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       id: data.id.present ? data.id.value : this.id,
       collectionId: data.collectionId.present
           ? data.collectionId.value
@@ -419,6 +588,8 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
   @override
   String toString() {
     return (StringBuffer('DeckRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('parentId: $parentId, ')
@@ -428,11 +599,14 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
   }
 
   @override
-  int get hashCode => Object.hash(id, collectionId, parentId, name);
+  int get hashCode =>
+      Object.hash(hlc, deleted, id, collectionId, parentId, name);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is DeckRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.id == this.id &&
           other.collectionId == this.collectionId &&
           other.parentId == this.parentId &&
@@ -440,12 +614,16 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
 }
 
 class DecksCompanion extends UpdateCompanion<DeckRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<DeckId> id;
   final Value<CollectionId> collectionId;
   final Value<DeckId?> parentId;
   final Value<String> name;
   final Value<int> rowid;
   const DecksCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.id = const Value.absent(),
     this.collectionId = const Value.absent(),
     this.parentId = const Value.absent(),
@@ -453,15 +631,20 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
     this.rowid = const Value.absent(),
   });
   DecksCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required DeckId id,
     required CollectionId collectionId,
     this.parentId = const Value.absent(),
     required String name,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : hlc = Value(hlc),
+       id = Value(id),
        collectionId = Value(collectionId),
        name = Value(name);
   static Insertable<DeckRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? id,
     Expression<Uint8List>? collectionId,
     Expression<Uint8List>? parentId,
@@ -469,6 +652,8 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (id != null) 'id': id,
       if (collectionId != null) 'collection_id': collectionId,
       if (parentId != null) 'parent_id': parentId,
@@ -478,6 +663,8 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
   }
 
   DecksCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<DeckId>? id,
     Value<CollectionId>? collectionId,
     Value<DeckId?>? parentId,
@@ -485,6 +672,8 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
     Value<int>? rowid,
   }) {
     return DecksCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       id: id ?? this.id,
       collectionId: collectionId ?? this.collectionId,
       parentId: parentId ?? this.parentId,
@@ -496,6 +685,12 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>($DecksTable.$converterhlc.toSql(hlc.value));
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (id.present) {
       map['id'] = Variable<Uint8List>($DecksTable.$converterid.toSql(id.value));
     }
@@ -521,6 +716,8 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
   @override
   String toString() {
     return (StringBuffer('DecksCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('parentId: $parentId, ')
@@ -536,6 +733,30 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, TagRow> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $TagsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($TagsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<TagId, Uint8List> id =
       GeneratedColumn<Uint8List>(
@@ -576,7 +797,14 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, TagRow> {
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, collectionId, parentId, name];
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    collectionId,
+    parentId,
+    name,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -589,6 +817,12 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, TagRow> {
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -610,6 +844,16 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, TagRow> {
   TagRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return TagRow(
+      hlc: $TagsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       id: $TagsTable.$converterid.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -640,6 +884,7 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, TagRow> {
     return $TagsTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<TagId, Uint8List> $converterid = tagIdConverter;
   static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
       collectionIdConverter;
@@ -649,11 +894,15 @@ class $TagsTable extends Tags with TableInfo<$TagsTable, TagRow> {
 }
 
 class TagRow extends DataClass implements Insertable<TagRow> {
+  final Hlc hlc;
+  final bool deleted;
   final TagId id;
   final CollectionId collectionId;
   final TagId? parentId;
   final String name;
   const TagRow({
+    required this.hlc,
+    required this.deleted,
     required this.id,
     required this.collectionId,
     this.parentId,
@@ -662,6 +911,10 @@ class TagRow extends DataClass implements Insertable<TagRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($TagsTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['id'] = Variable<Uint8List>($TagsTable.$converterid.toSql(id));
     }
@@ -681,6 +934,8 @@ class TagRow extends DataClass implements Insertable<TagRow> {
 
   TagsCompanion toCompanion(bool nullToAbsent) {
     return TagsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
       id: Value(id),
       collectionId: Value(collectionId),
       parentId: parentId == null && nullToAbsent
@@ -696,6 +951,8 @@ class TagRow extends DataClass implements Insertable<TagRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return TagRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       id: serializer.fromJson<TagId>(json['id']),
       collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
       parentId: serializer.fromJson<TagId?>(json['parentId']),
@@ -706,6 +963,8 @@ class TagRow extends DataClass implements Insertable<TagRow> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'id': serializer.toJson<TagId>(id),
       'collectionId': serializer.toJson<CollectionId>(collectionId),
       'parentId': serializer.toJson<TagId?>(parentId),
@@ -714,11 +973,15 @@ class TagRow extends DataClass implements Insertable<TagRow> {
   }
 
   TagRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
     TagId? id,
     CollectionId? collectionId,
     Value<TagId?> parentId = const Value.absent(),
     String? name,
   }) => TagRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
     id: id ?? this.id,
     collectionId: collectionId ?? this.collectionId,
     parentId: parentId.present ? parentId.value : this.parentId,
@@ -726,6 +989,8 @@ class TagRow extends DataClass implements Insertable<TagRow> {
   );
   TagRow copyWithCompanion(TagsCompanion data) {
     return TagRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       id: data.id.present ? data.id.value : this.id,
       collectionId: data.collectionId.present
           ? data.collectionId.value
@@ -738,6 +1003,8 @@ class TagRow extends DataClass implements Insertable<TagRow> {
   @override
   String toString() {
     return (StringBuffer('TagRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('parentId: $parentId, ')
@@ -747,11 +1014,14 @@ class TagRow extends DataClass implements Insertable<TagRow> {
   }
 
   @override
-  int get hashCode => Object.hash(id, collectionId, parentId, name);
+  int get hashCode =>
+      Object.hash(hlc, deleted, id, collectionId, parentId, name);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is TagRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.id == this.id &&
           other.collectionId == this.collectionId &&
           other.parentId == this.parentId &&
@@ -759,12 +1029,16 @@ class TagRow extends DataClass implements Insertable<TagRow> {
 }
 
 class TagsCompanion extends UpdateCompanion<TagRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<TagId> id;
   final Value<CollectionId> collectionId;
   final Value<TagId?> parentId;
   final Value<String> name;
   final Value<int> rowid;
   const TagsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.id = const Value.absent(),
     this.collectionId = const Value.absent(),
     this.parentId = const Value.absent(),
@@ -772,15 +1046,20 @@ class TagsCompanion extends UpdateCompanion<TagRow> {
     this.rowid = const Value.absent(),
   });
   TagsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required TagId id,
     required CollectionId collectionId,
     this.parentId = const Value.absent(),
     required String name,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : hlc = Value(hlc),
+       id = Value(id),
        collectionId = Value(collectionId),
        name = Value(name);
   static Insertable<TagRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? id,
     Expression<Uint8List>? collectionId,
     Expression<Uint8List>? parentId,
@@ -788,6 +1067,8 @@ class TagsCompanion extends UpdateCompanion<TagRow> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (id != null) 'id': id,
       if (collectionId != null) 'collection_id': collectionId,
       if (parentId != null) 'parent_id': parentId,
@@ -797,6 +1078,8 @@ class TagsCompanion extends UpdateCompanion<TagRow> {
   }
 
   TagsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<TagId>? id,
     Value<CollectionId>? collectionId,
     Value<TagId?>? parentId,
@@ -804,6 +1087,8 @@ class TagsCompanion extends UpdateCompanion<TagRow> {
     Value<int>? rowid,
   }) {
     return TagsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       id: id ?? this.id,
       collectionId: collectionId ?? this.collectionId,
       parentId: parentId ?? this.parentId,
@@ -815,6 +1100,12 @@ class TagsCompanion extends UpdateCompanion<TagRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>($TagsTable.$converterhlc.toSql(hlc.value));
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (id.present) {
       map['id'] = Variable<Uint8List>($TagsTable.$converterid.toSql(id.value));
     }
@@ -840,6 +1131,8 @@ class TagsCompanion extends UpdateCompanion<TagRow> {
   @override
   String toString() {
     return (StringBuffer('TagsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('parentId: $parentId, ')
@@ -856,6 +1149,30 @@ class $NoteTypesTable extends NoteTypes
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $NoteTypesTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($NoteTypesTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<NoteTypeId, Uint8List> id =
       GeneratedColumn<Uint8List>(
@@ -887,7 +1204,7 @@ class $NoteTypesTable extends NoteTypes
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, collectionId, name];
+  List<GeneratedColumn> get $columns => [hlc, deleted, id, collectionId, name];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -900,6 +1217,12 @@ class $NoteTypesTable extends NoteTypes
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
     if (data.containsKey('name')) {
       context.handle(
         _nameMeta,
@@ -921,6 +1244,16 @@ class $NoteTypesTable extends NoteTypes
   NoteTypeRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return NoteTypeRow(
+      hlc: $NoteTypesTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       id: $NoteTypesTable.$converterid.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -945,6 +1278,7 @@ class $NoteTypesTable extends NoteTypes
     return $NoteTypesTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<NoteTypeId, Uint8List> $converterid =
       noteTypeIdConverter;
   static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
@@ -952,10 +1286,14 @@ class $NoteTypesTable extends NoteTypes
 }
 
 class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
+  final Hlc hlc;
+  final bool deleted;
   final NoteTypeId id;
   final CollectionId collectionId;
   final String name;
   const NoteTypeRow({
+    required this.hlc,
+    required this.deleted,
     required this.id,
     required this.collectionId,
     required this.name,
@@ -963,6 +1301,10 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($NoteTypesTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['id'] = Variable<Uint8List>($NoteTypesTable.$converterid.toSql(id));
     }
@@ -977,6 +1319,8 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
 
   NoteTypesCompanion toCompanion(bool nullToAbsent) {
     return NoteTypesCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
       id: Value(id),
       collectionId: Value(collectionId),
       name: Value(name),
@@ -989,6 +1333,8 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return NoteTypeRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       id: serializer.fromJson<NoteTypeId>(json['id']),
       collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
       name: serializer.fromJson<String>(json['name']),
@@ -998,6 +1344,8 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'id': serializer.toJson<NoteTypeId>(id),
       'collectionId': serializer.toJson<CollectionId>(collectionId),
       'name': serializer.toJson<String>(name),
@@ -1005,16 +1353,22 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
   }
 
   NoteTypeRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
     NoteTypeId? id,
     CollectionId? collectionId,
     String? name,
   }) => NoteTypeRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
     id: id ?? this.id,
     collectionId: collectionId ?? this.collectionId,
     name: name ?? this.name,
   );
   NoteTypeRow copyWithCompanion(NoteTypesCompanion data) {
     return NoteTypeRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       id: data.id.present ? data.id.value : this.id,
       collectionId: data.collectionId.present
           ? data.collectionId.value
@@ -1026,6 +1380,8 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
   @override
   String toString() {
     return (StringBuffer('NoteTypeRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('name: $name')
@@ -1034,42 +1390,55 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
   }
 
   @override
-  int get hashCode => Object.hash(id, collectionId, name);
+  int get hashCode => Object.hash(hlc, deleted, id, collectionId, name);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is NoteTypeRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.id == this.id &&
           other.collectionId == this.collectionId &&
           other.name == this.name);
 }
 
 class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<NoteTypeId> id;
   final Value<CollectionId> collectionId;
   final Value<String> name;
   final Value<int> rowid;
   const NoteTypesCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.id = const Value.absent(),
     this.collectionId = const Value.absent(),
     this.name = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   NoteTypesCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required NoteTypeId id,
     required CollectionId collectionId,
     required String name,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : hlc = Value(hlc),
+       id = Value(id),
        collectionId = Value(collectionId),
        name = Value(name);
   static Insertable<NoteTypeRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? id,
     Expression<Uint8List>? collectionId,
     Expression<String>? name,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (id != null) 'id': id,
       if (collectionId != null) 'collection_id': collectionId,
       if (name != null) 'name': name,
@@ -1078,12 +1447,16 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
   }
 
   NoteTypesCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<NoteTypeId>? id,
     Value<CollectionId>? collectionId,
     Value<String>? name,
     Value<int>? rowid,
   }) {
     return NoteTypesCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       id: id ?? this.id,
       collectionId: collectionId ?? this.collectionId,
       name: name ?? this.name,
@@ -1094,6 +1467,14 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $NoteTypesTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (id.present) {
       map['id'] = Variable<Uint8List>(
         $NoteTypesTable.$converterid.toSql(id.value),
@@ -1116,6 +1497,8 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
   @override
   String toString() {
     return (StringBuffer('NoteTypesCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('name: $name, ')
@@ -1130,6 +1513,30 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $NotesTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($NotesTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<NoteId, Uint8List> id =
       GeneratedColumn<Uint8List>(
@@ -1182,6 +1589,8 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
   );
   @override
   List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
     id,
     collectionId,
     noteTypeId,
@@ -1200,6 +1609,12 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
     if (data.containsKey('source_reference')) {
       context.handle(
         _sourceReferenceMeta,
@@ -1222,6 +1637,16 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
   NoteRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return NoteRow(
+      hlc: $NotesTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       id: $NotesTable.$converterid.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -1258,6 +1683,7 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
     return $NotesTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<NoteId, Uint8List> $converterid = noteIdConverter;
   static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
       collectionIdConverter;
@@ -1270,12 +1696,16 @@ class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
 }
 
 class NoteRow extends DataClass implements Insertable<NoteRow> {
+  final Hlc hlc;
+  final bool deleted;
   final NoteId id;
   final CollectionId collectionId;
   final NoteTypeId noteTypeId;
   final SourceKind? sourceKind;
   final String? sourceReference;
   const NoteRow({
+    required this.hlc,
+    required this.deleted,
     required this.id,
     required this.collectionId,
     required this.noteTypeId,
@@ -1285,6 +1715,10 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($NotesTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['id'] = Variable<Uint8List>($NotesTable.$converterid.toSql(id));
     }
@@ -1311,6 +1745,8 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
 
   NotesCompanion toCompanion(bool nullToAbsent) {
     return NotesCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
       id: Value(id),
       collectionId: Value(collectionId),
       noteTypeId: Value(noteTypeId),
@@ -1329,6 +1765,8 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return NoteRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       id: serializer.fromJson<NoteId>(json['id']),
       collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
       noteTypeId: serializer.fromJson<NoteTypeId>(json['noteTypeId']),
@@ -1342,6 +1780,8 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'id': serializer.toJson<NoteId>(id),
       'collectionId': serializer.toJson<CollectionId>(collectionId),
       'noteTypeId': serializer.toJson<NoteTypeId>(noteTypeId),
@@ -1353,12 +1793,16 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
   }
 
   NoteRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
     NoteId? id,
     CollectionId? collectionId,
     NoteTypeId? noteTypeId,
     Value<SourceKind?> sourceKind = const Value.absent(),
     Value<String?> sourceReference = const Value.absent(),
   }) => NoteRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
     id: id ?? this.id,
     collectionId: collectionId ?? this.collectionId,
     noteTypeId: noteTypeId ?? this.noteTypeId,
@@ -1369,6 +1813,8 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
   );
   NoteRow copyWithCompanion(NotesCompanion data) {
     return NoteRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       id: data.id.present ? data.id.value : this.id,
       collectionId: data.collectionId.present
           ? data.collectionId.value
@@ -1388,6 +1834,8 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
   @override
   String toString() {
     return (StringBuffer('NoteRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('noteTypeId: $noteTypeId, ')
@@ -1398,12 +1846,21 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(id, collectionId, noteTypeId, sourceKind, sourceReference);
+  int get hashCode => Object.hash(
+    hlc,
+    deleted,
+    id,
+    collectionId,
+    noteTypeId,
+    sourceKind,
+    sourceReference,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is NoteRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.id == this.id &&
           other.collectionId == this.collectionId &&
           other.noteTypeId == this.noteTypeId &&
@@ -1412,6 +1869,8 @@ class NoteRow extends DataClass implements Insertable<NoteRow> {
 }
 
 class NotesCompanion extends UpdateCompanion<NoteRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<NoteId> id;
   final Value<CollectionId> collectionId;
   final Value<NoteTypeId> noteTypeId;
@@ -1419,6 +1878,8 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
   final Value<String?> sourceReference;
   final Value<int> rowid;
   const NotesCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.id = const Value.absent(),
     this.collectionId = const Value.absent(),
     this.noteTypeId = const Value.absent(),
@@ -1427,16 +1888,21 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
     this.rowid = const Value.absent(),
   });
   NotesCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required NoteId id,
     required CollectionId collectionId,
     required NoteTypeId noteTypeId,
     this.sourceKind = const Value.absent(),
     this.sourceReference = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : hlc = Value(hlc),
+       id = Value(id),
        collectionId = Value(collectionId),
        noteTypeId = Value(noteTypeId);
   static Insertable<NoteRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? id,
     Expression<Uint8List>? collectionId,
     Expression<Uint8List>? noteTypeId,
@@ -1445,6 +1911,8 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (id != null) 'id': id,
       if (collectionId != null) 'collection_id': collectionId,
       if (noteTypeId != null) 'note_type_id': noteTypeId,
@@ -1455,6 +1923,8 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
   }
 
   NotesCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<NoteId>? id,
     Value<CollectionId>? collectionId,
     Value<NoteTypeId>? noteTypeId,
@@ -1463,6 +1933,8 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
     Value<int>? rowid,
   }) {
     return NotesCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       id: id ?? this.id,
       collectionId: collectionId ?? this.collectionId,
       noteTypeId: noteTypeId ?? this.noteTypeId,
@@ -1475,6 +1947,12 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>($NotesTable.$converterhlc.toSql(hlc.value));
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (id.present) {
       map['id'] = Variable<Uint8List>($NotesTable.$converterid.toSql(id.value));
     }
@@ -1505,6 +1983,8 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
   @override
   String toString() {
     return (StringBuffer('NotesCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('noteTypeId: $noteTypeId, ')
@@ -1522,6 +2002,30 @@ class $NoteTagsTable extends NoteTags
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $NoteTagsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($NoteTagsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
   collectionId = GeneratedColumn<Uint8List>(
@@ -1553,18 +2057,50 @@ class $NoteTagsTable extends NoteTags
         requiredDuringInsert: true,
       ).withConverter<TagId>($NoteTagsTable.$convertertagId);
   @override
-  List<GeneratedColumn> get $columns => [collectionId, noteId, tagId];
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    collectionId,
+    noteId,
+    tagId,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
   String get actualTableName => $name;
   static const String $name = 'note_tags';
   @override
+  VerificationContext validateIntegrity(
+    Insertable<NoteTagRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
   Set<GeneratedColumn> get $primaryKey => {noteId, tagId};
   @override
   NoteTagRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return NoteTagRow(
+      hlc: $NoteTagsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       collectionId: $NoteTagsTable.$convertercollectionId.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -1591,6 +2127,7 @@ class $NoteTagsTable extends NoteTags
     return $NoteTagsTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
       collectionIdConverter;
   static TypeConverter<NoteId, Uint8List> $converternoteId = noteIdConverter;
@@ -1598,10 +2135,14 @@ class $NoteTagsTable extends NoteTags
 }
 
 class NoteTagRow extends DataClass implements Insertable<NoteTagRow> {
+  final Hlc hlc;
+  final bool deleted;
   final CollectionId collectionId;
   final NoteId noteId;
   final TagId tagId;
   const NoteTagRow({
+    required this.hlc,
+    required this.deleted,
     required this.collectionId,
     required this.noteId,
     required this.tagId,
@@ -1609,6 +2150,10 @@ class NoteTagRow extends DataClass implements Insertable<NoteTagRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($NoteTagsTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['collection_id'] = Variable<Uint8List>(
         $NoteTagsTable.$convertercollectionId.toSql(collectionId),
@@ -1629,6 +2174,8 @@ class NoteTagRow extends DataClass implements Insertable<NoteTagRow> {
 
   NoteTagsCompanion toCompanion(bool nullToAbsent) {
     return NoteTagsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
       collectionId: Value(collectionId),
       noteId: Value(noteId),
       tagId: Value(tagId),
@@ -1641,6 +2188,8 @@ class NoteTagRow extends DataClass implements Insertable<NoteTagRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return NoteTagRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
       noteId: serializer.fromJson<NoteId>(json['noteId']),
       tagId: serializer.fromJson<TagId>(json['tagId']),
@@ -1650,6 +2199,8 @@ class NoteTagRow extends DataClass implements Insertable<NoteTagRow> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'collectionId': serializer.toJson<CollectionId>(collectionId),
       'noteId': serializer.toJson<NoteId>(noteId),
       'tagId': serializer.toJson<TagId>(tagId),
@@ -1657,16 +2208,22 @@ class NoteTagRow extends DataClass implements Insertable<NoteTagRow> {
   }
 
   NoteTagRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
     CollectionId? collectionId,
     NoteId? noteId,
     TagId? tagId,
   }) => NoteTagRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
     collectionId: collectionId ?? this.collectionId,
     noteId: noteId ?? this.noteId,
     tagId: tagId ?? this.tagId,
   );
   NoteTagRow copyWithCompanion(NoteTagsCompanion data) {
     return NoteTagRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       collectionId: data.collectionId.present
           ? data.collectionId.value
           : this.collectionId,
@@ -1678,6 +2235,8 @@ class NoteTagRow extends DataClass implements Insertable<NoteTagRow> {
   @override
   String toString() {
     return (StringBuffer('NoteTagRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('collectionId: $collectionId, ')
           ..write('noteId: $noteId, ')
           ..write('tagId: $tagId')
@@ -1686,42 +2245,55 @@ class NoteTagRow extends DataClass implements Insertable<NoteTagRow> {
   }
 
   @override
-  int get hashCode => Object.hash(collectionId, noteId, tagId);
+  int get hashCode => Object.hash(hlc, deleted, collectionId, noteId, tagId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is NoteTagRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.collectionId == this.collectionId &&
           other.noteId == this.noteId &&
           other.tagId == this.tagId);
 }
 
 class NoteTagsCompanion extends UpdateCompanion<NoteTagRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<CollectionId> collectionId;
   final Value<NoteId> noteId;
   final Value<TagId> tagId;
   final Value<int> rowid;
   const NoteTagsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.collectionId = const Value.absent(),
     this.noteId = const Value.absent(),
     this.tagId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   NoteTagsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required CollectionId collectionId,
     required NoteId noteId,
     required TagId tagId,
     this.rowid = const Value.absent(),
-  }) : collectionId = Value(collectionId),
+  }) : hlc = Value(hlc),
+       collectionId = Value(collectionId),
        noteId = Value(noteId),
        tagId = Value(tagId);
   static Insertable<NoteTagRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? collectionId,
     Expression<Uint8List>? noteId,
     Expression<Uint8List>? tagId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (collectionId != null) 'collection_id': collectionId,
       if (noteId != null) 'note_id': noteId,
       if (tagId != null) 'tag_id': tagId,
@@ -1730,12 +2302,16 @@ class NoteTagsCompanion extends UpdateCompanion<NoteTagRow> {
   }
 
   NoteTagsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<CollectionId>? collectionId,
     Value<NoteId>? noteId,
     Value<TagId>? tagId,
     Value<int>? rowid,
   }) {
     return NoteTagsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       collectionId: collectionId ?? this.collectionId,
       noteId: noteId ?? this.noteId,
       tagId: tagId ?? this.tagId,
@@ -1746,6 +2322,14 @@ class NoteTagsCompanion extends UpdateCompanion<NoteTagRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $NoteTagsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (collectionId.present) {
       map['collection_id'] = Variable<Uint8List>(
         $NoteTagsTable.$convertercollectionId.toSql(collectionId.value),
@@ -1770,6 +2354,8 @@ class NoteTagsCompanion extends UpdateCompanion<NoteTagRow> {
   @override
   String toString() {
     return (StringBuffer('NoteTagsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('collectionId: $collectionId, ')
           ..write('noteId: $noteId, ')
           ..write('tagId: $tagId, ')
@@ -1785,6 +2371,30 @@ class $StudyCardTemplatesTable extends StudyCardTemplates
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $StudyCardTemplatesTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($StudyCardTemplatesTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<StudyCardTemplateId, Uint8List>
   id = GeneratedColumn<Uint8List>(
@@ -1827,7 +2437,14 @@ class $StudyCardTemplatesTable extends StudyCardTemplates
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [id, noteTypeId, position, name];
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    noteTypeId,
+    position,
+    name,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1840,6 +2457,12 @@ class $StudyCardTemplatesTable extends StudyCardTemplates
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
     if (data.containsKey('position')) {
       context.handle(
         _positionMeta,
@@ -1865,6 +2488,16 @@ class $StudyCardTemplatesTable extends StudyCardTemplates
   StudyCardTemplateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return StudyCardTemplateRow(
+      hlc: $StudyCardTemplatesTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       id: $StudyCardTemplatesTable.$converterid.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -1893,6 +2526,7 @@ class $StudyCardTemplatesTable extends StudyCardTemplates
     return $StudyCardTemplatesTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<StudyCardTemplateId, Uint8List> $converterid =
       studyCardTemplateIdConverter;
   static TypeConverter<NoteTypeId, Uint8List> $converternoteTypeId =
@@ -1901,11 +2535,15 @@ class $StudyCardTemplatesTable extends StudyCardTemplates
 
 class StudyCardTemplateRow extends DataClass
     implements Insertable<StudyCardTemplateRow> {
+  final Hlc hlc;
+  final bool deleted;
   final StudyCardTemplateId id;
   final NoteTypeId noteTypeId;
   final int position;
   final String name;
   const StudyCardTemplateRow({
+    required this.hlc,
+    required this.deleted,
     required this.id,
     required this.noteTypeId,
     required this.position,
@@ -1914,6 +2552,12 @@ class StudyCardTemplateRow extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>(
+        $StudyCardTemplatesTable.$converterhlc.toSql(hlc),
+      );
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['id'] = Variable<Uint8List>(
         $StudyCardTemplatesTable.$converterid.toSql(id),
@@ -1931,6 +2575,8 @@ class StudyCardTemplateRow extends DataClass
 
   StudyCardTemplatesCompanion toCompanion(bool nullToAbsent) {
     return StudyCardTemplatesCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
       id: Value(id),
       noteTypeId: Value(noteTypeId),
       position: Value(position),
@@ -1944,6 +2590,8 @@ class StudyCardTemplateRow extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return StudyCardTemplateRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       id: serializer.fromJson<StudyCardTemplateId>(json['id']),
       noteTypeId: serializer.fromJson<NoteTypeId>(json['noteTypeId']),
       position: serializer.fromJson<int>(json['position']),
@@ -1954,6 +2602,8 @@ class StudyCardTemplateRow extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'id': serializer.toJson<StudyCardTemplateId>(id),
       'noteTypeId': serializer.toJson<NoteTypeId>(noteTypeId),
       'position': serializer.toJson<int>(position),
@@ -1962,11 +2612,15 @@ class StudyCardTemplateRow extends DataClass
   }
 
   StudyCardTemplateRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
     StudyCardTemplateId? id,
     NoteTypeId? noteTypeId,
     int? position,
     String? name,
   }) => StudyCardTemplateRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
     id: id ?? this.id,
     noteTypeId: noteTypeId ?? this.noteTypeId,
     position: position ?? this.position,
@@ -1974,6 +2628,8 @@ class StudyCardTemplateRow extends DataClass
   );
   StudyCardTemplateRow copyWithCompanion(StudyCardTemplatesCompanion data) {
     return StudyCardTemplateRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       id: data.id.present ? data.id.value : this.id,
       noteTypeId: data.noteTypeId.present
           ? data.noteTypeId.value
@@ -1986,6 +2642,8 @@ class StudyCardTemplateRow extends DataClass
   @override
   String toString() {
     return (StringBuffer('StudyCardTemplateRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('noteTypeId: $noteTypeId, ')
           ..write('position: $position, ')
@@ -1995,11 +2653,13 @@ class StudyCardTemplateRow extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, noteTypeId, position, name);
+  int get hashCode => Object.hash(hlc, deleted, id, noteTypeId, position, name);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is StudyCardTemplateRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.id == this.id &&
           other.noteTypeId == this.noteTypeId &&
           other.position == this.position &&
@@ -2008,12 +2668,16 @@ class StudyCardTemplateRow extends DataClass
 
 class StudyCardTemplatesCompanion
     extends UpdateCompanion<StudyCardTemplateRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<StudyCardTemplateId> id;
   final Value<NoteTypeId> noteTypeId;
   final Value<int> position;
   final Value<String> name;
   final Value<int> rowid;
   const StudyCardTemplatesCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.id = const Value.absent(),
     this.noteTypeId = const Value.absent(),
     this.position = const Value.absent(),
@@ -2021,16 +2685,21 @@ class StudyCardTemplatesCompanion
     this.rowid = const Value.absent(),
   });
   StudyCardTemplatesCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required StudyCardTemplateId id,
     required NoteTypeId noteTypeId,
     required int position,
     required String name,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : hlc = Value(hlc),
+       id = Value(id),
        noteTypeId = Value(noteTypeId),
        position = Value(position),
        name = Value(name);
   static Insertable<StudyCardTemplateRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? id,
     Expression<Uint8List>? noteTypeId,
     Expression<int>? position,
@@ -2038,6 +2707,8 @@ class StudyCardTemplatesCompanion
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (id != null) 'id': id,
       if (noteTypeId != null) 'note_type_id': noteTypeId,
       if (position != null) 'position': position,
@@ -2047,6 +2718,8 @@ class StudyCardTemplatesCompanion
   }
 
   StudyCardTemplatesCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<StudyCardTemplateId>? id,
     Value<NoteTypeId>? noteTypeId,
     Value<int>? position,
@@ -2054,6 +2727,8 @@ class StudyCardTemplatesCompanion
     Value<int>? rowid,
   }) {
     return StudyCardTemplatesCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       id: id ?? this.id,
       noteTypeId: noteTypeId ?? this.noteTypeId,
       position: position ?? this.position,
@@ -2065,6 +2740,14 @@ class StudyCardTemplatesCompanion
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $StudyCardTemplatesTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (id.present) {
       map['id'] = Variable<Uint8List>(
         $StudyCardTemplatesTable.$converterid.toSql(id.value),
@@ -2090,6 +2773,8 @@ class StudyCardTemplatesCompanion
   @override
   String toString() {
     return (StringBuffer('StudyCardTemplatesCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('noteTypeId: $noteTypeId, ')
           ..write('position: $position, ')
@@ -2106,6 +2791,30 @@ class $StudyCardsTable extends StudyCards
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $StudyCardsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($StudyCardsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<StudyCardId, Uint8List> id =
       GeneratedColumn<Uint8List>(
@@ -2159,6 +2868,8 @@ class $StudyCardsTable extends StudyCards
       ).withConverter<DeckId>($StudyCardsTable.$converterdeckId);
   @override
   List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
     id,
     collectionId,
     noteId,
@@ -2171,6 +2882,22 @@ class $StudyCardsTable extends StudyCards
   String get actualTableName => $name;
   static const String $name = 'study_cards';
   @override
+  VerificationContext validateIntegrity(
+    Insertable<StudyCardRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
   Set<GeneratedColumn> get $primaryKey => {id};
   @override
   List<Set<GeneratedColumn>> get uniqueKeys => [
@@ -2180,6 +2907,16 @@ class $StudyCardsTable extends StudyCards
   StudyCardRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return StudyCardRow(
+      hlc: $StudyCardsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       id: $StudyCardsTable.$converterid.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -2218,6 +2955,7 @@ class $StudyCardsTable extends StudyCards
     return $StudyCardsTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<StudyCardId, Uint8List> $converterid =
       studyCardIdConverter;
   static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
@@ -2229,12 +2967,16 @@ class $StudyCardsTable extends StudyCards
 }
 
 class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
+  final Hlc hlc;
+  final bool deleted;
   final StudyCardId id;
   final CollectionId collectionId;
   final NoteId noteId;
   final StudyCardTemplateId templateId;
   final DeckId deckId;
   const StudyCardRow({
+    required this.hlc,
+    required this.deleted,
     required this.id,
     required this.collectionId,
     required this.noteId,
@@ -2244,6 +2986,10 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($StudyCardsTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['id'] = Variable<Uint8List>($StudyCardsTable.$converterid.toSql(id));
     }
@@ -2272,6 +3018,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
 
   StudyCardsCompanion toCompanion(bool nullToAbsent) {
     return StudyCardsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
       id: Value(id),
       collectionId: Value(collectionId),
       noteId: Value(noteId),
@@ -2286,6 +3034,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return StudyCardRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       id: serializer.fromJson<StudyCardId>(json['id']),
       collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
       noteId: serializer.fromJson<NoteId>(json['noteId']),
@@ -2297,6 +3047,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'id': serializer.toJson<StudyCardId>(id),
       'collectionId': serializer.toJson<CollectionId>(collectionId),
       'noteId': serializer.toJson<NoteId>(noteId),
@@ -2306,12 +3058,16 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
   }
 
   StudyCardRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
     StudyCardId? id,
     CollectionId? collectionId,
     NoteId? noteId,
     StudyCardTemplateId? templateId,
     DeckId? deckId,
   }) => StudyCardRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
     id: id ?? this.id,
     collectionId: collectionId ?? this.collectionId,
     noteId: noteId ?? this.noteId,
@@ -2320,6 +3076,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
   );
   StudyCardRow copyWithCompanion(StudyCardsCompanion data) {
     return StudyCardRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       id: data.id.present ? data.id.value : this.id,
       collectionId: data.collectionId.present
           ? data.collectionId.value
@@ -2335,6 +3093,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
   @override
   String toString() {
     return (StringBuffer('StudyCardRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('noteId: $noteId, ')
@@ -2345,11 +3105,14 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
   }
 
   @override
-  int get hashCode => Object.hash(id, collectionId, noteId, templateId, deckId);
+  int get hashCode =>
+      Object.hash(hlc, deleted, id, collectionId, noteId, templateId, deckId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is StudyCardRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.id == this.id &&
           other.collectionId == this.collectionId &&
           other.noteId == this.noteId &&
@@ -2358,6 +3121,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
 }
 
 class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<StudyCardId> id;
   final Value<CollectionId> collectionId;
   final Value<NoteId> noteId;
@@ -2365,6 +3130,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
   final Value<DeckId> deckId;
   final Value<int> rowid;
   const StudyCardsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.id = const Value.absent(),
     this.collectionId = const Value.absent(),
     this.noteId = const Value.absent(),
@@ -2373,18 +3140,23 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
     this.rowid = const Value.absent(),
   });
   StudyCardsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required StudyCardId id,
     required CollectionId collectionId,
     required NoteId noteId,
     required StudyCardTemplateId templateId,
     required DeckId deckId,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : hlc = Value(hlc),
+       id = Value(id),
        collectionId = Value(collectionId),
        noteId = Value(noteId),
        templateId = Value(templateId),
        deckId = Value(deckId);
   static Insertable<StudyCardRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? id,
     Expression<Uint8List>? collectionId,
     Expression<Uint8List>? noteId,
@@ -2393,6 +3165,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (id != null) 'id': id,
       if (collectionId != null) 'collection_id': collectionId,
       if (noteId != null) 'note_id': noteId,
@@ -2403,6 +3177,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
   }
 
   StudyCardsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<StudyCardId>? id,
     Value<CollectionId>? collectionId,
     Value<NoteId>? noteId,
@@ -2411,6 +3187,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
     Value<int>? rowid,
   }) {
     return StudyCardsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       id: id ?? this.id,
       collectionId: collectionId ?? this.collectionId,
       noteId: noteId ?? this.noteId,
@@ -2423,6 +3201,14 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $StudyCardsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (id.present) {
       map['id'] = Variable<Uint8List>(
         $StudyCardsTable.$converterid.toSql(id.value),
@@ -2457,6 +3243,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
   @override
   String toString() {
     return (StringBuffer('StudyCardsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('noteId: $noteId, ')
@@ -2474,6 +3262,30 @@ class $MediaAssetsTable extends MediaAssets
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $MediaAssetsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($MediaAssetsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
   collectionId = GeneratedColumn<Uint8List>(
@@ -2530,6 +3342,8 @@ class $MediaAssetsTable extends MediaAssets
   );
   @override
   List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
     collectionId,
     hash,
     mimeType,
@@ -2548,6 +3362,12 @@ class $MediaAssetsTable extends MediaAssets
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
     if (data.containsKey('mime_type')) {
       context.handle(
         _mimeTypeMeta,
@@ -2582,6 +3402,16 @@ class $MediaAssetsTable extends MediaAssets
   MediaAssetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return MediaAssetRow(
+      hlc: $MediaAssetsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       collectionId: $MediaAssetsTable.$convertercollectionId.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -2614,6 +3444,7 @@ class $MediaAssetsTable extends MediaAssets
     return $MediaAssetsTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
       collectionIdConverter;
   static TypeConverter<ContentHash, Uint8List> $converterhash =
@@ -2621,12 +3452,16 @@ class $MediaAssetsTable extends MediaAssets
 }
 
 class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
+  final Hlc hlc;
+  final bool deleted;
   final CollectionId collectionId;
   final ContentHash hash;
   final String mimeType;
   final int sizeBytes;
   final String? originalName;
   const MediaAssetRow({
+    required this.hlc,
+    required this.deleted,
     required this.collectionId,
     required this.hash,
     required this.mimeType,
@@ -2636,6 +3471,10 @@ class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($MediaAssetsTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['collection_id'] = Variable<Uint8List>(
         $MediaAssetsTable.$convertercollectionId.toSql(collectionId),
@@ -2656,6 +3495,8 @@ class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
 
   MediaAssetsCompanion toCompanion(bool nullToAbsent) {
     return MediaAssetsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
       collectionId: Value(collectionId),
       hash: Value(hash),
       mimeType: Value(mimeType),
@@ -2672,6 +3513,8 @@ class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return MediaAssetRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
       hash: serializer.fromJson<ContentHash>(json['hash']),
       mimeType: serializer.fromJson<String>(json['mimeType']),
@@ -2683,6 +3526,8 @@ class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'collectionId': serializer.toJson<CollectionId>(collectionId),
       'hash': serializer.toJson<ContentHash>(hash),
       'mimeType': serializer.toJson<String>(mimeType),
@@ -2692,12 +3537,16 @@ class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
   }
 
   MediaAssetRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
     CollectionId? collectionId,
     ContentHash? hash,
     String? mimeType,
     int? sizeBytes,
     Value<String?> originalName = const Value.absent(),
   }) => MediaAssetRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
     collectionId: collectionId ?? this.collectionId,
     hash: hash ?? this.hash,
     mimeType: mimeType ?? this.mimeType,
@@ -2706,6 +3555,8 @@ class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
   );
   MediaAssetRow copyWithCompanion(MediaAssetsCompanion data) {
     return MediaAssetRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       collectionId: data.collectionId.present
           ? data.collectionId.value
           : this.collectionId,
@@ -2721,6 +3572,8 @@ class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
   @override
   String toString() {
     return (StringBuffer('MediaAssetRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('collectionId: $collectionId, ')
           ..write('hash: $hash, ')
           ..write('mimeType: $mimeType, ')
@@ -2731,12 +3584,21 @@ class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
   }
 
   @override
-  int get hashCode =>
-      Object.hash(collectionId, hash, mimeType, sizeBytes, originalName);
+  int get hashCode => Object.hash(
+    hlc,
+    deleted,
+    collectionId,
+    hash,
+    mimeType,
+    sizeBytes,
+    originalName,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is MediaAssetRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.collectionId == this.collectionId &&
           other.hash == this.hash &&
           other.mimeType == this.mimeType &&
@@ -2745,6 +3607,8 @@ class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
 }
 
 class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<CollectionId> collectionId;
   final Value<ContentHash> hash;
   final Value<String> mimeType;
@@ -2752,6 +3616,8 @@ class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
   final Value<String?> originalName;
   final Value<int> rowid;
   const MediaAssetsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.collectionId = const Value.absent(),
     this.hash = const Value.absent(),
     this.mimeType = const Value.absent(),
@@ -2760,17 +3626,22 @@ class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
     this.rowid = const Value.absent(),
   });
   MediaAssetsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required CollectionId collectionId,
     required ContentHash hash,
     required String mimeType,
     required int sizeBytes,
     this.originalName = const Value.absent(),
     this.rowid = const Value.absent(),
-  }) : collectionId = Value(collectionId),
+  }) : hlc = Value(hlc),
+       collectionId = Value(collectionId),
        hash = Value(hash),
        mimeType = Value(mimeType),
        sizeBytes = Value(sizeBytes);
   static Insertable<MediaAssetRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? collectionId,
     Expression<Uint8List>? hash,
     Expression<String>? mimeType,
@@ -2779,6 +3650,8 @@ class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (collectionId != null) 'collection_id': collectionId,
       if (hash != null) 'hash': hash,
       if (mimeType != null) 'mime_type': mimeType,
@@ -2789,6 +3662,8 @@ class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
   }
 
   MediaAssetsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<CollectionId>? collectionId,
     Value<ContentHash>? hash,
     Value<String>? mimeType,
@@ -2797,6 +3672,8 @@ class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
     Value<int>? rowid,
   }) {
     return MediaAssetsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       collectionId: collectionId ?? this.collectionId,
       hash: hash ?? this.hash,
       mimeType: mimeType ?? this.mimeType,
@@ -2809,6 +3686,14 @@ class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $MediaAssetsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (collectionId.present) {
       map['collection_id'] = Variable<Uint8List>(
         $MediaAssetsTable.$convertercollectionId.toSql(collectionId.value),
@@ -2837,11 +3722,596 @@ class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
   @override
   String toString() {
     return (StringBuffer('MediaAssetsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('collectionId: $collectionId, ')
           ..write('hash: $hash, ')
           ..write('mimeType: $mimeType, ')
           ..write('sizeBytes: $sizeBytes, ')
           ..write('originalName: $originalName, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $DeviceTable extends Device with TableInfo<$DeviceTable, DeviceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DeviceTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nodeMeta = const VerificationMeta('node');
+  @override
+  late final GeneratedColumn<String> node = GeneratedColumn<String>(
+    'node',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc?, String> lastHlc =
+      GeneratedColumn<String>(
+        'last_hlc',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<Hlc?>($DeviceTable.$converterlastHlcn);
+  @override
+  List<GeneratedColumn> get $columns => [id, node, lastHlc];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'device';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DeviceRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('node')) {
+      context.handle(
+        _nodeMeta,
+        node.isAcceptableOrUnknown(data['node']!, _nodeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nodeMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DeviceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeviceRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      node: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node'],
+      )!,
+      lastHlc: $DeviceTable.$converterlastHlcn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}last_hlc'],
+        ),
+      ),
+    );
+  }
+
+  @override
+  $DeviceTable createAlias(String alias) {
+    return $DeviceTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Hlc, String> $converterlastHlc = const HlcConverter();
+  static TypeConverter<Hlc?, String?> $converterlastHlcn =
+      NullAwareTypeConverter.wrap($converterlastHlc);
+}
+
+class DeviceRow extends DataClass implements Insertable<DeviceRow> {
+  final int id;
+
+  /// The node ID in this device's HLC timestamps.
+  final String node;
+
+  /// The latest timestamp issued, so the clock never goes backwards across
+  /// restarts.
+  final Hlc? lastHlc;
+  const DeviceRow({required this.id, required this.node, this.lastHlc});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['node'] = Variable<String>(node);
+    if (!nullToAbsent || lastHlc != null) {
+      map['last_hlc'] = Variable<String>(
+        $DeviceTable.$converterlastHlcn.toSql(lastHlc),
+      );
+    }
+    return map;
+  }
+
+  DeviceCompanion toCompanion(bool nullToAbsent) {
+    return DeviceCompanion(
+      id: Value(id),
+      node: Value(node),
+      lastHlc: lastHlc == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastHlc),
+    );
+  }
+
+  factory DeviceRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeviceRow(
+      id: serializer.fromJson<int>(json['id']),
+      node: serializer.fromJson<String>(json['node']),
+      lastHlc: serializer.fromJson<Hlc?>(json['lastHlc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'node': serializer.toJson<String>(node),
+      'lastHlc': serializer.toJson<Hlc?>(lastHlc),
+    };
+  }
+
+  DeviceRow copyWith({
+    int? id,
+    String? node,
+    Value<Hlc?> lastHlc = const Value.absent(),
+  }) => DeviceRow(
+    id: id ?? this.id,
+    node: node ?? this.node,
+    lastHlc: lastHlc.present ? lastHlc.value : this.lastHlc,
+  );
+  DeviceRow copyWithCompanion(DeviceCompanion data) {
+    return DeviceRow(
+      id: data.id.present ? data.id.value : this.id,
+      node: data.node.present ? data.node.value : this.node,
+      lastHlc: data.lastHlc.present ? data.lastHlc.value : this.lastHlc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeviceRow(')
+          ..write('id: $id, ')
+          ..write('node: $node, ')
+          ..write('lastHlc: $lastHlc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, node, lastHlc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeviceRow &&
+          other.id == this.id &&
+          other.node == this.node &&
+          other.lastHlc == this.lastHlc);
+}
+
+class DeviceCompanion extends UpdateCompanion<DeviceRow> {
+  final Value<int> id;
+  final Value<String> node;
+  final Value<Hlc?> lastHlc;
+  const DeviceCompanion({
+    this.id = const Value.absent(),
+    this.node = const Value.absent(),
+    this.lastHlc = const Value.absent(),
+  });
+  DeviceCompanion.insert({
+    this.id = const Value.absent(),
+    required String node,
+    this.lastHlc = const Value.absent(),
+  }) : node = Value(node);
+  static Insertable<DeviceRow> custom({
+    Expression<int>? id,
+    Expression<String>? node,
+    Expression<String>? lastHlc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (node != null) 'node': node,
+      if (lastHlc != null) 'last_hlc': lastHlc,
+    });
+  }
+
+  DeviceCompanion copyWith({
+    Value<int>? id,
+    Value<String>? node,
+    Value<Hlc?>? lastHlc,
+  }) {
+    return DeviceCompanion(
+      id: id ?? this.id,
+      node: node ?? this.node,
+      lastHlc: lastHlc ?? this.lastHlc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (node.present) {
+      map['node'] = Variable<String>(node.value);
+    }
+    if (lastHlc.present) {
+      map['last_hlc'] = Variable<String>(
+        $DeviceTable.$converterlastHlcn.toSql(lastHlc.value),
+      );
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeviceCompanion(')
+          ..write('id: $id, ')
+          ..write('node: $node, ')
+          ..write('lastHlc: $lastHlc')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OutboxTable extends Outbox with TableInfo<$OutboxTable, OutboxRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OutboxTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
+  collectionId = GeneratedColumn<Uint8List>(
+    'collection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  ).withConverter<CollectionId>($OutboxTable.$convertercollectionId);
+  static const VerificationMeta _entityTableMeta = const VerificationMeta(
+    'entityTable',
+  );
+  @override
+  late final GeneratedColumn<String> entityTable = GeneratedColumn<String>(
+    'entity_table',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityKeyMeta = const VerificationMeta(
+    'entityKey',
+  );
+  @override
+  late final GeneratedColumn<Uint8List> entityKey = GeneratedColumn<Uint8List>(
+    'entity_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($OutboxTable.$converterhlc);
+  @override
+  List<GeneratedColumn> get $columns => [
+    collectionId,
+    entityTable,
+    entityKey,
+    hlc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'outbox';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OutboxRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('entity_table')) {
+      context.handle(
+        _entityTableMeta,
+        entityTable.isAcceptableOrUnknown(
+          data['entity_table']!,
+          _entityTableMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTableMeta);
+    }
+    if (data.containsKey('entity_key')) {
+      context.handle(
+        _entityKeyMeta,
+        entityKey.isAcceptableOrUnknown(data['entity_key']!, _entityKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityKeyMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {entityTable, entityKey};
+  @override
+  OutboxRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OutboxRow(
+      collectionId: $OutboxTable.$convertercollectionId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}collection_id'],
+        )!,
+      ),
+      entityTable: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_table'],
+      )!,
+      entityKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}entity_key'],
+      )!,
+      hlc: $OutboxTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $OutboxTable createAlias(String alias) {
+    return $OutboxTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
+      collectionIdConverter;
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
+}
+
+class OutboxRow extends DataClass implements Insertable<OutboxRow> {
+  final CollectionId collectionId;
+  final String entityTable;
+
+  /// The entity's primary key; composite keys are their parts' bytes
+  /// concatenated.
+  final Uint8List entityKey;
+  final Hlc hlc;
+  const OutboxRow({
+    required this.collectionId,
+    required this.entityTable,
+    required this.entityKey,
+    required this.hlc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['collection_id'] = Variable<Uint8List>(
+        $OutboxTable.$convertercollectionId.toSql(collectionId),
+      );
+    }
+    map['entity_table'] = Variable<String>(entityTable);
+    map['entity_key'] = Variable<Uint8List>(entityKey);
+    {
+      map['hlc'] = Variable<String>($OutboxTable.$converterhlc.toSql(hlc));
+    }
+    return map;
+  }
+
+  OutboxCompanion toCompanion(bool nullToAbsent) {
+    return OutboxCompanion(
+      collectionId: Value(collectionId),
+      entityTable: Value(entityTable),
+      entityKey: Value(entityKey),
+      hlc: Value(hlc),
+    );
+  }
+
+  factory OutboxRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OutboxRow(
+      collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
+      entityTable: serializer.fromJson<String>(json['entityTable']),
+      entityKey: serializer.fromJson<Uint8List>(json['entityKey']),
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'collectionId': serializer.toJson<CollectionId>(collectionId),
+      'entityTable': serializer.toJson<String>(entityTable),
+      'entityKey': serializer.toJson<Uint8List>(entityKey),
+      'hlc': serializer.toJson<Hlc>(hlc),
+    };
+  }
+
+  OutboxRow copyWith({
+    CollectionId? collectionId,
+    String? entityTable,
+    Uint8List? entityKey,
+    Hlc? hlc,
+  }) => OutboxRow(
+    collectionId: collectionId ?? this.collectionId,
+    entityTable: entityTable ?? this.entityTable,
+    entityKey: entityKey ?? this.entityKey,
+    hlc: hlc ?? this.hlc,
+  );
+  OutboxRow copyWithCompanion(OutboxCompanion data) {
+    return OutboxRow(
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      entityTable: data.entityTable.present
+          ? data.entityTable.value
+          : this.entityTable,
+      entityKey: data.entityKey.present ? data.entityKey.value : this.entityKey,
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxRow(')
+          ..write('collectionId: $collectionId, ')
+          ..write('entityTable: $entityTable, ')
+          ..write('entityKey: $entityKey, ')
+          ..write('hlc: $hlc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    collectionId,
+    entityTable,
+    $driftBlobEquality.hash(entityKey),
+    hlc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OutboxRow &&
+          other.collectionId == this.collectionId &&
+          other.entityTable == this.entityTable &&
+          $driftBlobEquality.equals(other.entityKey, this.entityKey) &&
+          other.hlc == this.hlc);
+}
+
+class OutboxCompanion extends UpdateCompanion<OutboxRow> {
+  final Value<CollectionId> collectionId;
+  final Value<String> entityTable;
+  final Value<Uint8List> entityKey;
+  final Value<Hlc> hlc;
+  final Value<int> rowid;
+  const OutboxCompanion({
+    this.collectionId = const Value.absent(),
+    this.entityTable = const Value.absent(),
+    this.entityKey = const Value.absent(),
+    this.hlc = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OutboxCompanion.insert({
+    required CollectionId collectionId,
+    required String entityTable,
+    required Uint8List entityKey,
+    required Hlc hlc,
+    this.rowid = const Value.absent(),
+  }) : collectionId = Value(collectionId),
+       entityTable = Value(entityTable),
+       entityKey = Value(entityKey),
+       hlc = Value(hlc);
+  static Insertable<OutboxRow> custom({
+    Expression<Uint8List>? collectionId,
+    Expression<String>? entityTable,
+    Expression<Uint8List>? entityKey,
+    Expression<String>? hlc,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (collectionId != null) 'collection_id': collectionId,
+      if (entityTable != null) 'entity_table': entityTable,
+      if (entityKey != null) 'entity_key': entityKey,
+      if (hlc != null) 'hlc': hlc,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OutboxCompanion copyWith({
+    Value<CollectionId>? collectionId,
+    Value<String>? entityTable,
+    Value<Uint8List>? entityKey,
+    Value<Hlc>? hlc,
+    Value<int>? rowid,
+  }) {
+    return OutboxCompanion(
+      collectionId: collectionId ?? this.collectionId,
+      entityTable: entityTable ?? this.entityTable,
+      entityKey: entityKey ?? this.entityKey,
+      hlc: hlc ?? this.hlc,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (collectionId.present) {
+      map['collection_id'] = Variable<Uint8List>(
+        $OutboxTable.$convertercollectionId.toSql(collectionId.value),
+      );
+    }
+    if (entityTable.present) {
+      map['entity_table'] = Variable<String>(entityTable.value);
+    }
+    if (entityKey.present) {
+      map['entity_key'] = Variable<Uint8List>(entityKey.value);
+    }
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $OutboxTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxCompanion(')
+          ..write('collectionId: $collectionId, ')
+          ..write('entityTable: $entityTable, ')
+          ..write('entityKey: $entityKey, ')
+          ..write('hlc: $hlc, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2975,6 +4445,15 @@ class $ReviewEventsTable extends ReviewEvents
     requiredDuringInsert: true,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($ReviewEventsTable.$converterhlc);
+  @override
   List<GeneratedColumn> get $columns => [
     id,
     studyCardId,
@@ -2988,6 +4467,7 @@ class $ReviewEventsTable extends ReviewEvents
     schedulerId,
     schedulerVersion,
     configVersion,
+    hlc,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3109,6 +4589,12 @@ class $ReviewEventsTable extends ReviewEvents
         DriftSqlType.int,
         data['${effectivePrefix}config_version'],
       )!,
+      hlc: $ReviewEventsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
     );
   }
 
@@ -3144,6 +4630,7 @@ class $ReviewEventsTable extends ReviewEvents
       reviewEventIdConverter;
   static TypeConverter<ReviewEventId?, Uint8List?> $converterundoneEventIdn =
       NullAwareTypeConverter.wrap($converterundoneEventId);
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
 }
 
 class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
@@ -3159,6 +4646,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
   final String schedulerId;
   final int schedulerVersion;
   final int configVersion;
+  final Hlc hlc;
   const ReviewEventRow({
     required this.id,
     required this.studyCardId,
@@ -3172,6 +4660,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     required this.schedulerId,
     required this.schedulerVersion,
     required this.configVersion,
+    required this.hlc,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3222,6 +4711,11 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     map['scheduler_id'] = Variable<String>(schedulerId);
     map['scheduler_version'] = Variable<int>(schedulerVersion);
     map['config_version'] = Variable<int>(configVersion);
+    {
+      map['hlc'] = Variable<String>(
+        $ReviewEventsTable.$converterhlc.toSql(hlc),
+      );
+    }
     return map;
   }
 
@@ -3249,6 +4743,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
       schedulerId: Value(schedulerId),
       schedulerVersion: Value(schedulerVersion),
       configVersion: Value(configVersion),
+      hlc: Value(hlc),
     );
   }
 
@@ -3274,6 +4769,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
       schedulerId: serializer.fromJson<String>(json['schedulerId']),
       schedulerVersion: serializer.fromJson<int>(json['schedulerVersion']),
       configVersion: serializer.fromJson<int>(json['configVersion']),
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
     );
   }
   @override
@@ -3296,6 +4792,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
       'schedulerId': serializer.toJson<String>(schedulerId),
       'schedulerVersion': serializer.toJson<int>(schedulerVersion),
       'configVersion': serializer.toJson<int>(configVersion),
+      'hlc': serializer.toJson<Hlc>(hlc),
     };
   }
 
@@ -3312,6 +4809,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     String? schedulerId,
     int? schedulerVersion,
     int? configVersion,
+    Hlc? hlc,
   }) => ReviewEventRow(
     id: id ?? this.id,
     studyCardId: studyCardId ?? this.studyCardId,
@@ -3327,6 +4825,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     schedulerId: schedulerId ?? this.schedulerId,
     schedulerVersion: schedulerVersion ?? this.schedulerVersion,
     configVersion: configVersion ?? this.configVersion,
+    hlc: hlc ?? this.hlc,
   );
   ReviewEventRow copyWithCompanion(ReviewEventsCompanion data) {
     return ReviewEventRow(
@@ -3354,6 +4853,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
       configVersion: data.configVersion.present
           ? data.configVersion.value
           : this.configVersion,
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
     );
   }
 
@@ -3371,7 +4871,8 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
           ..write('undoneEventId: $undoneEventId, ')
           ..write('schedulerId: $schedulerId, ')
           ..write('schedulerVersion: $schedulerVersion, ')
-          ..write('configVersion: $configVersion')
+          ..write('configVersion: $configVersion, ')
+          ..write('hlc: $hlc')
           ..write(')'))
         .toString();
   }
@@ -3390,6 +4891,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     schedulerId,
     schedulerVersion,
     configVersion,
+    hlc,
   );
   @override
   bool operator ==(Object other) =>
@@ -3406,7 +4908,8 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
           other.undoneEventId == this.undoneEventId &&
           other.schedulerId == this.schedulerId &&
           other.schedulerVersion == this.schedulerVersion &&
-          other.configVersion == this.configVersion);
+          other.configVersion == this.configVersion &&
+          other.hlc == this.hlc);
 }
 
 class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
@@ -3422,6 +4925,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
   final Value<String> schedulerId;
   final Value<int> schedulerVersion;
   final Value<int> configVersion;
+  final Value<Hlc> hlc;
   final Value<int> rowid;
   const ReviewEventsCompanion({
     this.id = const Value.absent(),
@@ -3436,6 +4940,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     this.schedulerId = const Value.absent(),
     this.schedulerVersion = const Value.absent(),
     this.configVersion = const Value.absent(),
+    this.hlc = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   ReviewEventsCompanion.insert({
@@ -3451,6 +4956,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     required String schedulerId,
     required int schedulerVersion,
     required int configVersion,
+    required Hlc hlc,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
        studyCardId = Value(studyCardId),
@@ -3458,7 +4964,8 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
        at = Value(at),
        schedulerId = Value(schedulerId),
        schedulerVersion = Value(schedulerVersion),
-       configVersion = Value(configVersion);
+       configVersion = Value(configVersion),
+       hlc = Value(hlc);
   static Insertable<ReviewEventRow> custom({
     Expression<Uint8List>? id,
     Expression<Uint8List>? studyCardId,
@@ -3472,6 +4979,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     Expression<String>? schedulerId,
     Expression<int>? schedulerVersion,
     Expression<int>? configVersion,
+    Expression<String>? hlc,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3487,6 +4995,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
       if (schedulerId != null) 'scheduler_id': schedulerId,
       if (schedulerVersion != null) 'scheduler_version': schedulerVersion,
       if (configVersion != null) 'config_version': configVersion,
+      if (hlc != null) 'hlc': hlc,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3504,6 +5013,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     Value<String>? schedulerId,
     Value<int>? schedulerVersion,
     Value<int>? configVersion,
+    Value<Hlc>? hlc,
     Value<int>? rowid,
   }) {
     return ReviewEventsCompanion(
@@ -3519,6 +5029,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
       schedulerId: schedulerId ?? this.schedulerId,
       schedulerVersion: schedulerVersion ?? this.schedulerVersion,
       configVersion: configVersion ?? this.configVersion,
+      hlc: hlc ?? this.hlc,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -3580,6 +5091,11 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     if (configVersion.present) {
       map['config_version'] = Variable<int>(configVersion.value);
     }
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $ReviewEventsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -3601,6 +5117,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
           ..write('schedulerId: $schedulerId, ')
           ..write('schedulerVersion: $schedulerVersion, ')
           ..write('configVersion: $configVersion, ')
+          ..write('hlc: $hlc, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4200,6 +5717,30 @@ class $FieldDefinitionsTable extends FieldDefinitions
   final String? _alias;
   $FieldDefinitionsTable(this.attachedDatabase, [this._alias]);
   @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($FieldDefinitionsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
   late final GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> id =
       GeneratedColumn<Uint8List>(
         'id',
@@ -4250,7 +5791,15 @@ class $FieldDefinitionsTable extends FieldDefinitions
         requiredDuringInsert: true,
       ).withConverter<FieldType>($FieldDefinitionsTable.$convertertype);
   @override
-  List<GeneratedColumn> get $columns => [id, noteTypeId, position, name, type];
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    noteTypeId,
+    position,
+    name,
+    type,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4263,6 +5812,12 @@ class $FieldDefinitionsTable extends FieldDefinitions
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
     if (data.containsKey('position')) {
       context.handle(
         _positionMeta,
@@ -4288,6 +5843,16 @@ class $FieldDefinitionsTable extends FieldDefinitions
   FieldDefinitionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return FieldDefinitionRow(
+      hlc: $FieldDefinitionsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       id: $FieldDefinitionsTable.$converterid.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -4322,6 +5887,7 @@ class $FieldDefinitionsTable extends FieldDefinitions
     return $FieldDefinitionsTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<FieldDefinitionId, Uint8List> $converterid =
       fieldDefinitionIdConverter;
   static TypeConverter<NoteTypeId, Uint8List> $converternoteTypeId =
@@ -4332,12 +5898,16 @@ class $FieldDefinitionsTable extends FieldDefinitions
 
 class FieldDefinitionRow extends DataClass
     implements Insertable<FieldDefinitionRow> {
+  final Hlc hlc;
+  final bool deleted;
   final FieldDefinitionId id;
   final NoteTypeId noteTypeId;
   final int position;
   final String name;
   final FieldType type;
   const FieldDefinitionRow({
+    required this.hlc,
+    required this.deleted,
     required this.id,
     required this.noteTypeId,
     required this.position,
@@ -4347,6 +5917,12 @@ class FieldDefinitionRow extends DataClass
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>(
+        $FieldDefinitionsTable.$converterhlc.toSql(hlc),
+      );
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['id'] = Variable<Uint8List>(
         $FieldDefinitionsTable.$converterid.toSql(id),
@@ -4369,6 +5945,8 @@ class FieldDefinitionRow extends DataClass
 
   FieldDefinitionsCompanion toCompanion(bool nullToAbsent) {
     return FieldDefinitionsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
       id: Value(id),
       noteTypeId: Value(noteTypeId),
       position: Value(position),
@@ -4383,6 +5961,8 @@ class FieldDefinitionRow extends DataClass
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return FieldDefinitionRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       id: serializer.fromJson<FieldDefinitionId>(json['id']),
       noteTypeId: serializer.fromJson<NoteTypeId>(json['noteTypeId']),
       position: serializer.fromJson<int>(json['position']),
@@ -4396,6 +5976,8 @@ class FieldDefinitionRow extends DataClass
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'id': serializer.toJson<FieldDefinitionId>(id),
       'noteTypeId': serializer.toJson<NoteTypeId>(noteTypeId),
       'position': serializer.toJson<int>(position),
@@ -4407,12 +5989,16 @@ class FieldDefinitionRow extends DataClass
   }
 
   FieldDefinitionRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
     FieldDefinitionId? id,
     NoteTypeId? noteTypeId,
     int? position,
     String? name,
     FieldType? type,
   }) => FieldDefinitionRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
     id: id ?? this.id,
     noteTypeId: noteTypeId ?? this.noteTypeId,
     position: position ?? this.position,
@@ -4421,6 +6007,8 @@ class FieldDefinitionRow extends DataClass
   );
   FieldDefinitionRow copyWithCompanion(FieldDefinitionsCompanion data) {
     return FieldDefinitionRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       id: data.id.present ? data.id.value : this.id,
       noteTypeId: data.noteTypeId.present
           ? data.noteTypeId.value
@@ -4434,6 +6022,8 @@ class FieldDefinitionRow extends DataClass
   @override
   String toString() {
     return (StringBuffer('FieldDefinitionRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('noteTypeId: $noteTypeId, ')
           ..write('position: $position, ')
@@ -4444,11 +6034,14 @@ class FieldDefinitionRow extends DataClass
   }
 
   @override
-  int get hashCode => Object.hash(id, noteTypeId, position, name, type);
+  int get hashCode =>
+      Object.hash(hlc, deleted, id, noteTypeId, position, name, type);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is FieldDefinitionRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.id == this.id &&
           other.noteTypeId == this.noteTypeId &&
           other.position == this.position &&
@@ -4457,6 +6050,8 @@ class FieldDefinitionRow extends DataClass
 }
 
 class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<FieldDefinitionId> id;
   final Value<NoteTypeId> noteTypeId;
   final Value<int> position;
@@ -4464,6 +6059,8 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
   final Value<FieldType> type;
   final Value<int> rowid;
   const FieldDefinitionsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.id = const Value.absent(),
     this.noteTypeId = const Value.absent(),
     this.position = const Value.absent(),
@@ -4472,18 +6069,23 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
     this.rowid = const Value.absent(),
   });
   FieldDefinitionsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required FieldDefinitionId id,
     required NoteTypeId noteTypeId,
     required int position,
     required String name,
     required FieldType type,
     this.rowid = const Value.absent(),
-  }) : id = Value(id),
+  }) : hlc = Value(hlc),
+       id = Value(id),
        noteTypeId = Value(noteTypeId),
        position = Value(position),
        name = Value(name),
        type = Value(type);
   static Insertable<FieldDefinitionRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? id,
     Expression<Uint8List>? noteTypeId,
     Expression<int>? position,
@@ -4492,6 +6094,8 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (id != null) 'id': id,
       if (noteTypeId != null) 'note_type_id': noteTypeId,
       if (position != null) 'position': position,
@@ -4502,6 +6106,8 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
   }
 
   FieldDefinitionsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<FieldDefinitionId>? id,
     Value<NoteTypeId>? noteTypeId,
     Value<int>? position,
@@ -4510,6 +6116,8 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
     Value<int>? rowid,
   }) {
     return FieldDefinitionsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       id: id ?? this.id,
       noteTypeId: noteTypeId ?? this.noteTypeId,
       position: position ?? this.position,
@@ -4522,6 +6130,14 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $FieldDefinitionsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (id.present) {
       map['id'] = Variable<Uint8List>(
         $FieldDefinitionsTable.$converterid.toSql(id.value),
@@ -4552,6 +6168,8 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
   @override
   String toString() {
     return (StringBuffer('FieldDefinitionsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('noteTypeId: $noteTypeId, ')
           ..write('position: $position, ')
@@ -4569,6 +6187,30 @@ class $NoteFieldsTable extends NoteFields
   final GeneratedDatabase attachedDatabase;
   final String? _alias;
   $NoteFieldsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($NoteFieldsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<NoteId, Uint8List> noteId =
       GeneratedColumn<Uint8List>(
@@ -4603,7 +6245,7 @@ class $NoteFieldsTable extends NoteFields
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [noteId, fieldId, value];
+  List<GeneratedColumn> get $columns => [hlc, deleted, noteId, fieldId, value];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -4616,6 +6258,12 @@ class $NoteFieldsTable extends NoteFields
   }) {
     final context = VerificationContext();
     final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
     if (data.containsKey('value')) {
       context.handle(
         _valueMeta,
@@ -4633,6 +6281,16 @@ class $NoteFieldsTable extends NoteFields
   NoteFieldRow map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
     return NoteFieldRow(
+      hlc: $NoteFieldsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
       noteId: $NoteFieldsTable.$converternoteId.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
@@ -4657,16 +6315,21 @@ class $NoteFieldsTable extends NoteFields
     return $NoteFieldsTable(attachedDatabase, alias);
   }
 
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<NoteId, Uint8List> $converternoteId = noteIdConverter;
   static TypeConverter<FieldDefinitionId, Uint8List> $converterfieldId =
       fieldDefinitionIdConverter;
 }
 
 class NoteFieldRow extends DataClass implements Insertable<NoteFieldRow> {
+  final Hlc hlc;
+  final bool deleted;
   final NoteId noteId;
   final FieldDefinitionId fieldId;
   final String value;
   const NoteFieldRow({
+    required this.hlc,
+    required this.deleted,
     required this.noteId,
     required this.fieldId,
     required this.value,
@@ -4674,6 +6337,10 @@ class NoteFieldRow extends DataClass implements Insertable<NoteFieldRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($NoteFieldsTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
     {
       map['note_id'] = Variable<Uint8List>(
         $NoteFieldsTable.$converternoteId.toSql(noteId),
@@ -4690,6 +6357,8 @@ class NoteFieldRow extends DataClass implements Insertable<NoteFieldRow> {
 
   NoteFieldsCompanion toCompanion(bool nullToAbsent) {
     return NoteFieldsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
       noteId: Value(noteId),
       fieldId: Value(fieldId),
       value: Value(value),
@@ -4702,6 +6371,8 @@ class NoteFieldRow extends DataClass implements Insertable<NoteFieldRow> {
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return NoteFieldRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
       noteId: serializer.fromJson<NoteId>(json['noteId']),
       fieldId: serializer.fromJson<FieldDefinitionId>(json['fieldId']),
       value: serializer.fromJson<String>(json['value']),
@@ -4711,6 +6382,8 @@ class NoteFieldRow extends DataClass implements Insertable<NoteFieldRow> {
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
     return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
       'noteId': serializer.toJson<NoteId>(noteId),
       'fieldId': serializer.toJson<FieldDefinitionId>(fieldId),
       'value': serializer.toJson<String>(value),
@@ -4718,16 +6391,22 @@ class NoteFieldRow extends DataClass implements Insertable<NoteFieldRow> {
   }
 
   NoteFieldRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
     NoteId? noteId,
     FieldDefinitionId? fieldId,
     String? value,
   }) => NoteFieldRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
     noteId: noteId ?? this.noteId,
     fieldId: fieldId ?? this.fieldId,
     value: value ?? this.value,
   );
   NoteFieldRow copyWithCompanion(NoteFieldsCompanion data) {
     return NoteFieldRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
       noteId: data.noteId.present ? data.noteId.value : this.noteId,
       fieldId: data.fieldId.present ? data.fieldId.value : this.fieldId,
       value: data.value.present ? data.value.value : this.value,
@@ -4737,6 +6416,8 @@ class NoteFieldRow extends DataClass implements Insertable<NoteFieldRow> {
   @override
   String toString() {
     return (StringBuffer('NoteFieldRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('noteId: $noteId, ')
           ..write('fieldId: $fieldId, ')
           ..write('value: $value')
@@ -4745,42 +6426,55 @@ class NoteFieldRow extends DataClass implements Insertable<NoteFieldRow> {
   }
 
   @override
-  int get hashCode => Object.hash(noteId, fieldId, value);
+  int get hashCode => Object.hash(hlc, deleted, noteId, fieldId, value);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
       (other is NoteFieldRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
           other.noteId == this.noteId &&
           other.fieldId == this.fieldId &&
           other.value == this.value);
 }
 
 class NoteFieldsCompanion extends UpdateCompanion<NoteFieldRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
   final Value<NoteId> noteId;
   final Value<FieldDefinitionId> fieldId;
   final Value<String> value;
   final Value<int> rowid;
   const NoteFieldsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
     this.noteId = const Value.absent(),
     this.fieldId = const Value.absent(),
     this.value = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   NoteFieldsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
     required NoteId noteId,
     required FieldDefinitionId fieldId,
     required String value,
     this.rowid = const Value.absent(),
-  }) : noteId = Value(noteId),
+  }) : hlc = Value(hlc),
+       noteId = Value(noteId),
        fieldId = Value(fieldId),
        value = Value(value);
   static Insertable<NoteFieldRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
     Expression<Uint8List>? noteId,
     Expression<Uint8List>? fieldId,
     Expression<String>? value,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
       if (noteId != null) 'note_id': noteId,
       if (fieldId != null) 'field_id': fieldId,
       if (value != null) 'value': value,
@@ -4789,12 +6483,16 @@ class NoteFieldsCompanion extends UpdateCompanion<NoteFieldRow> {
   }
 
   NoteFieldsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
     Value<NoteId>? noteId,
     Value<FieldDefinitionId>? fieldId,
     Value<String>? value,
     Value<int>? rowid,
   }) {
     return NoteFieldsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
       noteId: noteId ?? this.noteId,
       fieldId: fieldId ?? this.fieldId,
       value: value ?? this.value,
@@ -4805,6 +6503,14 @@ class NoteFieldsCompanion extends UpdateCompanion<NoteFieldRow> {
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
     final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $NoteFieldsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
     if (noteId.present) {
       map['note_id'] = Variable<Uint8List>(
         $NoteFieldsTable.$converternoteId.toSql(noteId.value),
@@ -4827,6 +6533,8 @@ class NoteFieldsCompanion extends UpdateCompanion<NoteFieldRow> {
   @override
   String toString() {
     return (StringBuffer('NoteFieldsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
           ..write('noteId: $noteId, ')
           ..write('fieldId: $fieldId, ')
           ..write('value: $value, ')
@@ -4877,6 +6585,12 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
     'media_assets_collection_immutable',
   );
+  late final $DeviceTable device = $DeviceTable(this);
+  late final $OutboxTable outbox = $OutboxTable(this);
+  late final Index outboxHlc = Index(
+    'outbox_hlc',
+    'CREATE INDEX outbox_hlc ON outbox (hlc)',
+  );
   late final Index studyCardsDeck = Index(
     'study_cards_deck',
     'CREATE INDEX study_cards_deck ON study_cards (collection_id, deck_id)',
@@ -4884,6 +6598,10 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
   late final Index studyCardsTemplate = Index(
     'study_cards_template',
     'CREATE INDEX study_cards_template ON study_cards (template_id)',
+  );
+  late final Index studyCardsHlc = Index(
+    'study_cards_hlc',
+    'CREATE INDEX study_cards_hlc ON study_cards (hlc)',
   );
   late final $ReviewEventsTable reviewEvents = $ReviewEventsTable(this);
   late final $SchedulingStatesTable schedulingStates = $SchedulingStatesTable(
@@ -4897,6 +6615,10 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'review_events_at',
     'CREATE INDEX review_events_at ON review_events (at)',
   );
+  late final Index reviewEventsHlc = Index(
+    'review_events_hlc',
+    'CREATE INDEX review_events_hlc ON review_events (hlc)',
+  );
   late final Index schedulingStatesDue = Index(
     'scheduling_states_due',
     'CREATE INDEX scheduling_states_due ON scheduling_states (state, due)',
@@ -4908,34 +6630,74 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'note_types_collection',
     'CREATE INDEX note_types_collection ON note_types (collection_id)',
   );
+  late final Index noteTypesHlc = Index(
+    'note_types_hlc',
+    'CREATE INDEX note_types_hlc ON note_types (hlc)',
+  );
   late final Index fieldDefinitionsNoteType = Index(
     'field_definitions_note_type',
     'CREATE INDEX field_definitions_note_type ON field_definitions (note_type_id)',
   );
+  late final Index fieldDefinitionsHlc = Index(
+    'field_definitions_hlc',
+    'CREATE INDEX field_definitions_hlc ON field_definitions (hlc)',
+  );
   late final Index studyCardTemplatesNoteType = Index(
     'study_card_templates_note_type',
     'CREATE INDEX study_card_templates_note_type ON study_card_templates (note_type_id)',
+  );
+  late final Index studyCardTemplatesHlc = Index(
+    'study_card_templates_hlc',
+    'CREATE INDEX study_card_templates_hlc ON study_card_templates (hlc)',
   );
   late final $NoteFieldsTable noteFields = $NoteFieldsTable(this);
   late final Index notesNoteType = Index(
     'notes_note_type',
     'CREATE INDEX notes_note_type ON notes (collection_id, note_type_id)',
   );
+  late final Index notesHlc = Index(
+    'notes_hlc',
+    'CREATE INDEX notes_hlc ON notes (hlc)',
+  );
   late final Index noteFieldsField = Index(
     'note_fields_field',
     'CREATE INDEX note_fields_field ON note_fields (field_id)',
+  );
+  late final Index noteFieldsHlc = Index(
+    'note_fields_hlc',
+    'CREATE INDEX note_fields_hlc ON note_fields (hlc)',
   );
   late final Index tagsParent = Index(
     'tags_parent',
     'CREATE INDEX tags_parent ON tags (collection_id, parent_id)',
   );
+  late final Index tagsHlc = Index(
+    'tags_hlc',
+    'CREATE INDEX tags_hlc ON tags (hlc)',
+  );
   late final Index noteTagsTag = Index(
     'note_tags_tag',
     'CREATE INDEX note_tags_tag ON note_tags (collection_id, tag_id)',
   );
+  late final Index noteTagsHlc = Index(
+    'note_tags_hlc',
+    'CREATE INDEX note_tags_hlc ON note_tags (hlc)',
+  );
+  late final Index mediaAssetsHlc = Index(
+    'media_assets_hlc',
+    'CREATE INDEX media_assets_hlc ON media_assets (hlc)',
+  );
+  late final Index collectionsHlc = Index(
+    'collections_hlc',
+    'CREATE INDEX collections_hlc ON collections (hlc)',
+  );
   late final Index decksParent = Index(
     'decks_parent',
     'CREATE INDEX decks_parent ON decks (collection_id, parent_id)',
+  );
+  late final Index decksHlc = Index(
+    'decks_hlc',
+    'CREATE INDEX decks_hlc ON decks (hlc)',
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -4958,23 +6720,38 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     studyCardsCollectionImmutable,
     mediaAssets,
     mediaAssetsCollectionImmutable,
+    device,
+    outbox,
+    outboxHlc,
     studyCardsDeck,
     studyCardsTemplate,
+    studyCardsHlc,
     reviewEvents,
     schedulingStates,
     reviewEventsCard,
     reviewEventsAt,
+    reviewEventsHlc,
     schedulingStatesDue,
     fieldDefinitions,
     noteTypesCollection,
+    noteTypesHlc,
     fieldDefinitionsNoteType,
+    fieldDefinitionsHlc,
     studyCardTemplatesNoteType,
+    studyCardTemplatesHlc,
     noteFields,
     notesNoteType,
+    notesHlc,
     noteFieldsField,
+    noteFieldsHlc,
     tagsParent,
+    tagsHlc,
     noteTagsTag,
+    noteTagsHlc,
+    mediaAssetsHlc,
+    collectionsHlc,
     decksParent,
+    decksHlc,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -5067,12 +6844,16 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
 
 typedef $$CollectionsTableCreateCompanionBuilder =
     CollectionsCompanion Function({
+      required Hlc hlc,
+      Value<bool> deleted,
       required CollectionId id,
       required String name,
       Value<int> rowid,
     });
 typedef $$CollectionsTableUpdateCompanionBuilder =
     CollectionsCompanion Function({
+      Value<Hlc> hlc,
+      Value<bool> deleted,
       Value<CollectionId> id,
       Value<String> name,
       Value<int> rowid,
@@ -5215,6 +6996,17 @@ class $$CollectionsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<CollectionId, CollectionId, Uint8List>
   get id => $composableBuilder(
     column: $table.id,
@@ -5411,6 +7203,16 @@ class $$CollectionsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<Uint8List> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -5431,6 +7233,12 @@ class $$CollectionsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<CollectionId, Uint8List> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -5647,16 +7455,34 @@ class $$CollectionsTableTableManager
               $$CollectionsTableOrderingComposer($db: db, $table: table),
           createComputedFieldComposer: () =>
               $$CollectionsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<CollectionId> id = const Value.absent(),
-            Value<String> name = const Value.absent(),
-            Value<int> rowid = const Value.absent(),
-          }) => CollectionsCompanion(id: id, name: name, rowid: rowid),
-          createCompanionCallback: ({
-            required CollectionId id,
-            required String name,
-            Value<int> rowid = const Value.absent(),
-          }) => CollectionsCompanion.insert(id: id, name: name, rowid: rowid),
+          updateCompanionCallback:
+              ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<CollectionId> id = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => CollectionsCompanion(
+                hlc: hlc,
+                deleted: deleted,
+                id: id,
+                name: name,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
+                required CollectionId id,
+                required String name,
+                Value<int> rowid = const Value.absent(),
+              }) => CollectionsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
+                id: id,
+                name: name,
+                rowid: rowid,
+              ),
           withReferenceMapper: (p0) => p0
               .map(
                 (e) => (
@@ -5860,6 +7686,8 @@ typedef $$CollectionsTableProcessedTableManager =
       })
     >;
 typedef $$DecksTableCreateCompanionBuilder = DecksCompanion Function({
+  required Hlc hlc,
+  Value<bool> deleted,
   required DeckId id,
   required CollectionId collectionId,
   Value<DeckId?> parentId,
@@ -5867,6 +7695,8 @@ typedef $$DecksTableCreateCompanionBuilder = DecksCompanion Function({
   Value<int> rowid,
 });
 typedef $$DecksTableUpdateCompanionBuilder = DecksCompanion Function({
+  Value<Hlc> hlc,
+  Value<bool> deleted,
   Value<DeckId> id,
   Value<CollectionId> collectionId,
   Value<DeckId?> parentId,
@@ -5905,6 +7735,17 @@ class $$DecksTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<DeckId, DeckId, Uint8List> get id =>
       $composableBuilder(
         column: $table.id,
@@ -5955,6 +7796,16 @@ class $$DecksTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<Uint8List> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -6003,6 +7854,12 @@ class $$DecksTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<DeckId, Uint8List> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -6064,12 +7921,16 @@ class $$DecksTableTableManager
               $$DecksTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
                 Value<DeckId> id = const Value.absent(),
                 Value<CollectionId> collectionId = const Value.absent(),
                 Value<DeckId?> parentId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DecksCompanion(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 collectionId: collectionId,
                 parentId: parentId,
@@ -6078,12 +7939,16 @@ class $$DecksTableTableManager
               ),
           createCompanionCallback:
               ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
                 required DeckId id,
                 required CollectionId collectionId,
                 Value<DeckId?> parentId = const Value.absent(),
                 required String name,
                 Value<int> rowid = const Value.absent(),
               }) => DecksCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 collectionId: collectionId,
                 parentId: parentId,
@@ -6156,6 +8021,8 @@ typedef $$DecksTableProcessedTableManager =
       PrefetchHooks Function({bool collectionId})
     >;
 typedef $$TagsTableCreateCompanionBuilder = TagsCompanion Function({
+  required Hlc hlc,
+  Value<bool> deleted,
   required TagId id,
   required CollectionId collectionId,
   Value<TagId?> parentId,
@@ -6163,6 +8030,8 @@ typedef $$TagsTableCreateCompanionBuilder = TagsCompanion Function({
   Value<int> rowid,
 });
 typedef $$TagsTableUpdateCompanionBuilder = TagsCompanion Function({
+  Value<Hlc> hlc,
+  Value<bool> deleted,
   Value<TagId> id,
   Value<CollectionId> collectionId,
   Value<TagId?> parentId,
@@ -6200,6 +8069,17 @@ class $$TagsTableFilterComposer extends Composer<_$MemukiDatabase, $TagsTable> {
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<TagId, TagId, Uint8List> get id =>
       $composableBuilder(
         column: $table.id,
@@ -6250,6 +8130,16 @@ class $$TagsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<Uint8List> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -6298,6 +8188,12 @@ class $$TagsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<TagId, Uint8List> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -6359,12 +8255,16 @@ class $$TagsTableTableManager
               $$TagsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
                 Value<TagId> id = const Value.absent(),
                 Value<CollectionId> collectionId = const Value.absent(),
                 Value<TagId?> parentId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => TagsCompanion(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 collectionId: collectionId,
                 parentId: parentId,
@@ -6373,12 +8273,16 @@ class $$TagsTableTableManager
               ),
           createCompanionCallback:
               ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
                 required TagId id,
                 required CollectionId collectionId,
                 Value<TagId?> parentId = const Value.absent(),
                 required String name,
                 Value<int> rowid = const Value.absent(),
               }) => TagsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 collectionId: collectionId,
                 parentId: parentId,
@@ -6451,12 +8355,16 @@ typedef $$TagsTableProcessedTableManager =
       PrefetchHooks Function({bool collectionId})
     >;
 typedef $$NoteTypesTableCreateCompanionBuilder = NoteTypesCompanion Function({
+  required Hlc hlc,
+  Value<bool> deleted,
   required NoteTypeId id,
   required CollectionId collectionId,
   required String name,
   Value<int> rowid,
 });
 typedef $$NoteTypesTableUpdateCompanionBuilder = NoteTypesCompanion Function({
+  Value<Hlc> hlc,
+  Value<bool> deleted,
   Value<NoteTypeId> id,
   Value<CollectionId> collectionId,
   Value<String> name,
@@ -6539,6 +8447,17 @@ class $$NoteTypesTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<NoteTypeId, NoteTypeId, Uint8List> get id =>
       $composableBuilder(
         column: $table.id,
@@ -6633,6 +8552,16 @@ class $$NoteTypesTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<Uint8List> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -6676,6 +8605,12 @@ class $$NoteTypesTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<NoteTypeId, Uint8List> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -6789,11 +8724,15 @@ class $$NoteTypesTableTableManager
               $$NoteTypesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
                 Value<NoteTypeId> id = const Value.absent(),
                 Value<CollectionId> collectionId = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteTypesCompanion(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 collectionId: collectionId,
                 name: name,
@@ -6801,11 +8740,15 @@ class $$NoteTypesTableTableManager
               ),
           createCompanionCallback:
               ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
                 required NoteTypeId id,
                 required CollectionId collectionId,
                 required String name,
                 Value<int> rowid = const Value.absent(),
               }) => NoteTypesCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 collectionId: collectionId,
                 name: name,
@@ -6930,6 +8873,8 @@ typedef $$NoteTypesTableProcessedTableManager =
       })
     >;
 typedef $$NotesTableCreateCompanionBuilder = NotesCompanion Function({
+  required Hlc hlc,
+  Value<bool> deleted,
   required NoteId id,
   required CollectionId collectionId,
   required NoteTypeId noteTypeId,
@@ -6938,6 +8883,8 @@ typedef $$NotesTableCreateCompanionBuilder = NotesCompanion Function({
   Value<int> rowid,
 });
 typedef $$NotesTableUpdateCompanionBuilder = NotesCompanion Function({
+  Value<Hlc> hlc,
+  Value<bool> deleted,
   Value<NoteId> id,
   Value<CollectionId> collectionId,
   Value<NoteTypeId> noteTypeId,
@@ -6995,6 +8942,17 @@ class $$NotesTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<NoteId, NoteId, Uint8List> get id =>
       $composableBuilder(
         column: $table.id,
@@ -7076,6 +9034,16 @@ class $$NotesTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<Uint8List> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -7129,6 +9097,12 @@ class $$NotesTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<NoteId, Uint8List> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -7226,6 +9200,8 @@ class $$NotesTableTableManager
               $$NotesTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
                 Value<NoteId> id = const Value.absent(),
                 Value<CollectionId> collectionId = const Value.absent(),
                 Value<NoteTypeId> noteTypeId = const Value.absent(),
@@ -7233,6 +9209,8 @@ class $$NotesTableTableManager
                 Value<String?> sourceReference = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NotesCompanion(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 collectionId: collectionId,
                 noteTypeId: noteTypeId,
@@ -7242,6 +9220,8 @@ class $$NotesTableTableManager
               ),
           createCompanionCallback:
               ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
                 required NoteId id,
                 required CollectionId collectionId,
                 required NoteTypeId noteTypeId,
@@ -7249,6 +9229,8 @@ class $$NotesTableTableManager
                 Value<String?> sourceReference = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NotesCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 collectionId: collectionId,
                 noteTypeId: noteTypeId,
@@ -7344,12 +9326,16 @@ typedef $$NotesTableProcessedTableManager =
       PrefetchHooks Function({bool collectionId, bool noteFieldsRefs})
     >;
 typedef $$NoteTagsTableCreateCompanionBuilder = NoteTagsCompanion Function({
+  required Hlc hlc,
+  Value<bool> deleted,
   required CollectionId collectionId,
   required NoteId noteId,
   required TagId tagId,
   Value<int> rowid,
 });
 typedef $$NoteTagsTableUpdateCompanionBuilder = NoteTagsCompanion Function({
+  Value<Hlc> hlc,
+  Value<bool> deleted,
   Value<CollectionId> collectionId,
   Value<NoteId> noteId,
   Value<TagId> tagId,
@@ -7387,6 +9373,17 @@ class $$NoteTagsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<NoteId, NoteId, Uint8List> get noteId =>
       $composableBuilder(
         column: $table.noteId,
@@ -7432,6 +9429,16 @@ class $$NoteTagsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<Uint8List> get noteId => $composableBuilder(
     column: $table.noteId,
     builder: (column) => ColumnOrderings(column),
@@ -7475,6 +9482,12 @@ class $$NoteTagsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<NoteId, Uint8List> get noteId =>
       $composableBuilder(column: $table.noteId, builder: (column) => column);
 
@@ -7533,11 +9546,15 @@ class $$NoteTagsTableTableManager
               $$NoteTagsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
                 Value<CollectionId> collectionId = const Value.absent(),
                 Value<NoteId> noteId = const Value.absent(),
                 Value<TagId> tagId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteTagsCompanion(
+                hlc: hlc,
+                deleted: deleted,
                 collectionId: collectionId,
                 noteId: noteId,
                 tagId: tagId,
@@ -7545,11 +9562,15 @@ class $$NoteTagsTableTableManager
               ),
           createCompanionCallback:
               ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
                 required CollectionId collectionId,
                 required NoteId noteId,
                 required TagId tagId,
                 Value<int> rowid = const Value.absent(),
               }) => NoteTagsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
                 collectionId: collectionId,
                 noteId: noteId,
                 tagId: tagId,
@@ -7622,6 +9643,8 @@ typedef $$NoteTagsTableProcessedTableManager =
     >;
 typedef $$StudyCardTemplatesTableCreateCompanionBuilder =
     StudyCardTemplatesCompanion Function({
+      required Hlc hlc,
+      Value<bool> deleted,
       required StudyCardTemplateId id,
       required NoteTypeId noteTypeId,
       required int position,
@@ -7630,6 +9653,8 @@ typedef $$StudyCardTemplatesTableCreateCompanionBuilder =
     });
 typedef $$StudyCardTemplatesTableUpdateCompanionBuilder =
     StudyCardTemplatesCompanion Function({
+      Value<Hlc> hlc,
+      Value<bool> deleted,
       Value<StudyCardTemplateId> id,
       Value<NoteTypeId> noteTypeId,
       Value<int> position,
@@ -7695,6 +9720,17 @@ class $$StudyCardTemplatesTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<
     StudyCardTemplateId,
     StudyCardTemplateId,
@@ -7773,6 +9809,16 @@ class $$StudyCardTemplatesTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<Uint8List> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -7821,6 +9867,12 @@ class $$StudyCardTemplatesTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<StudyCardTemplateId, Uint8List> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -7912,12 +9964,16 @@ class $$StudyCardTemplatesTableTableManager
               ),
           updateCompanionCallback:
               ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
                 Value<StudyCardTemplateId> id = const Value.absent(),
                 Value<NoteTypeId> noteTypeId = const Value.absent(),
                 Value<int> position = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudyCardTemplatesCompanion(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 noteTypeId: noteTypeId,
                 position: position,
@@ -7926,12 +9982,16 @@ class $$StudyCardTemplatesTableTableManager
               ),
           createCompanionCallback:
               ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
                 required StudyCardTemplateId id,
                 required NoteTypeId noteTypeId,
                 required int position,
                 required String name,
                 Value<int> rowid = const Value.absent(),
               }) => StudyCardTemplatesCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 noteTypeId: noteTypeId,
                 position: position,
@@ -8029,6 +10089,8 @@ typedef $$StudyCardTemplatesTableProcessedTableManager =
       PrefetchHooks Function({bool noteTypeId, bool studyCardsRefs})
     >;
 typedef $$StudyCardsTableCreateCompanionBuilder = StudyCardsCompanion Function({
+  required Hlc hlc,
+  Value<bool> deleted,
   required StudyCardId id,
   required CollectionId collectionId,
   required NoteId noteId,
@@ -8037,6 +10099,8 @@ typedef $$StudyCardsTableCreateCompanionBuilder = StudyCardsCompanion Function({
   Value<int> rowid,
 });
 typedef $$StudyCardsTableUpdateCompanionBuilder = StudyCardsCompanion Function({
+  Value<Hlc> hlc,
+  Value<bool> deleted,
   Value<StudyCardId> id,
   Value<CollectionId> collectionId,
   Value<NoteId> noteId,
@@ -8133,6 +10197,17 @@ class $$StudyCardsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<StudyCardId, StudyCardId, Uint8List> get id =>
       $composableBuilder(
         column: $table.id,
@@ -8257,6 +10332,16 @@ class $$StudyCardsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<Uint8List> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -8328,6 +10413,12 @@ class $$StudyCardsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<StudyCardId, Uint8List> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -8468,6 +10559,8 @@ class $$StudyCardsTableTableManager
               $$StudyCardsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
                 Value<StudyCardId> id = const Value.absent(),
                 Value<CollectionId> collectionId = const Value.absent(),
                 Value<NoteId> noteId = const Value.absent(),
@@ -8475,6 +10568,8 @@ class $$StudyCardsTableTableManager
                 Value<DeckId> deckId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudyCardsCompanion(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 collectionId: collectionId,
                 noteId: noteId,
@@ -8484,6 +10579,8 @@ class $$StudyCardsTableTableManager
               ),
           createCompanionCallback:
               ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
                 required StudyCardId id,
                 required CollectionId collectionId,
                 required NoteId noteId,
@@ -8491,6 +10588,8 @@ class $$StudyCardsTableTableManager
                 required DeckId deckId,
                 Value<int> rowid = const Value.absent(),
               }) => StudyCardsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 collectionId: collectionId,
                 noteId: noteId,
@@ -8631,6 +10730,8 @@ typedef $$StudyCardsTableProcessedTableManager =
     >;
 typedef $$MediaAssetsTableCreateCompanionBuilder =
     MediaAssetsCompanion Function({
+      required Hlc hlc,
+      Value<bool> deleted,
       required CollectionId collectionId,
       required ContentHash hash,
       required String mimeType,
@@ -8640,6 +10741,8 @@ typedef $$MediaAssetsTableCreateCompanionBuilder =
     });
 typedef $$MediaAssetsTableUpdateCompanionBuilder =
     MediaAssetsCompanion Function({
+      Value<Hlc> hlc,
+      Value<bool> deleted,
       Value<CollectionId> collectionId,
       Value<ContentHash> hash,
       Value<String> mimeType,
@@ -8680,6 +10783,17 @@ class $$MediaAssetsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<ContentHash, ContentHash, Uint8List>
   get hash => $composableBuilder(
     column: $table.hash,
@@ -8734,6 +10848,16 @@ class $$MediaAssetsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<Uint8List> get hash => $composableBuilder(
     column: $table.hash,
     builder: (column) => ColumnOrderings(column),
@@ -8787,6 +10911,12 @@ class $$MediaAssetsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<ContentHash, Uint8List> get hash =>
       $composableBuilder(column: $table.hash, builder: (column) => column);
 
@@ -8853,6 +10983,8 @@ class $$MediaAssetsTableTableManager
               $$MediaAssetsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
                 Value<CollectionId> collectionId = const Value.absent(),
                 Value<ContentHash> hash = const Value.absent(),
                 Value<String> mimeType = const Value.absent(),
@@ -8860,6 +10992,8 @@ class $$MediaAssetsTableTableManager
                 Value<String?> originalName = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MediaAssetsCompanion(
+                hlc: hlc,
+                deleted: deleted,
                 collectionId: collectionId,
                 hash: hash,
                 mimeType: mimeType,
@@ -8869,6 +11003,8 @@ class $$MediaAssetsTableTableManager
               ),
           createCompanionCallback:
               ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
                 required CollectionId collectionId,
                 required ContentHash hash,
                 required String mimeType,
@@ -8876,6 +11012,8 @@ class $$MediaAssetsTableTableManager
                 Value<String?> originalName = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => MediaAssetsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
                 collectionId: collectionId,
                 hash: hash,
                 mimeType: mimeType,
@@ -8948,6 +11086,349 @@ typedef $$MediaAssetsTableProcessedTableManager =
       MediaAssetRow,
       PrefetchHooks Function({bool collectionId})
     >;
+typedef $$DeviceTableCreateCompanionBuilder = DeviceCompanion Function({
+  Value<int> id,
+  required String node,
+  Value<Hlc?> lastHlc,
+});
+typedef $$DeviceTableUpdateCompanionBuilder = DeviceCompanion Function({
+  Value<int> id,
+  Value<String> node,
+  Value<Hlc?> lastHlc,
+});
+
+class $$DeviceTableFilterComposer
+    extends Composer<_$MemukiDatabase, $DeviceTable> {
+  $$DeviceTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get node => $composableBuilder(
+    column: $table.node,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Hlc?, Hlc, String> get lastHlc =>
+      $composableBuilder(
+        column: $table.lastHlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+}
+
+class $$DeviceTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $DeviceTable> {
+  $$DeviceTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get node => $composableBuilder(
+    column: $table.node,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastHlc => $composableBuilder(
+    column: $table.lastHlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DeviceTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $DeviceTable> {
+  $$DeviceTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get node =>
+      $composableBuilder(column: $table.node, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Hlc?, String> get lastHlc =>
+      $composableBuilder(column: $table.lastHlc, builder: (column) => column);
+}
+
+class $$DeviceTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $DeviceTable,
+          DeviceRow,
+          $$DeviceTableFilterComposer,
+          $$DeviceTableOrderingComposer,
+          $$DeviceTableAnnotationComposer,
+          $$DeviceTableCreateCompanionBuilder,
+          $$DeviceTableUpdateCompanionBuilder,
+          (
+            DeviceRow,
+            BaseReferences<_$MemukiDatabase, $DeviceTable, DeviceRow>,
+          ),
+          DeviceRow,
+          PrefetchHooks Function()
+        > {
+  $$DeviceTableTableManager(_$MemukiDatabase db, $DeviceTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DeviceTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DeviceTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DeviceTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> node = const Value.absent(),
+            Value<Hlc?> lastHlc = const Value.absent(),
+          }) => DeviceCompanion(id: id, node: node, lastHlc: lastHlc),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String node,
+            Value<Hlc?> lastHlc = const Value.absent(),
+          }) => DeviceCompanion.insert(id: id, node: node, lastHlc: lastHlc),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DeviceTable, DeviceRow>(table),
+                  BaseReferences<_$MemukiDatabase, $DeviceTable, DeviceRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DeviceTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $DeviceTable,
+      DeviceRow,
+      $$DeviceTableFilterComposer,
+      $$DeviceTableOrderingComposer,
+      $$DeviceTableAnnotationComposer,
+      $$DeviceTableCreateCompanionBuilder,
+      $$DeviceTableUpdateCompanionBuilder,
+      (DeviceRow, BaseReferences<_$MemukiDatabase, $DeviceTable, DeviceRow>),
+      DeviceRow,
+      PrefetchHooks Function()
+    >;
+typedef $$OutboxTableCreateCompanionBuilder = OutboxCompanion Function({
+  required CollectionId collectionId,
+  required String entityTable,
+  required Uint8List entityKey,
+  required Hlc hlc,
+  Value<int> rowid,
+});
+typedef $$OutboxTableUpdateCompanionBuilder = OutboxCompanion Function({
+  Value<CollectionId> collectionId,
+  Value<String> entityTable,
+  Value<Uint8List> entityKey,
+  Value<Hlc> hlc,
+  Value<int> rowid,
+});
+
+class $$OutboxTableFilterComposer
+    extends Composer<_$MemukiDatabase, $OutboxTable> {
+  $$OutboxTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<CollectionId, CollectionId, Uint8List>
+  get collectionId => $composableBuilder(
+    column: $table.collectionId,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get entityTable => $composableBuilder(
+    column: $table.entityTable,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<Uint8List> get entityKey => $composableBuilder(
+    column: $table.entityKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+}
+
+class $$OutboxTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $OutboxTable> {
+  $$OutboxTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<Uint8List> get collectionId => $composableBuilder(
+    column: $table.collectionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityTable => $composableBuilder(
+    column: $table.entityTable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get entityKey => $composableBuilder(
+    column: $table.entityKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$OutboxTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $OutboxTable> {
+  $$OutboxTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<CollectionId, Uint8List> get collectionId =>
+      $composableBuilder(
+        column: $table.collectionId,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get entityTable => $composableBuilder(
+    column: $table.entityTable,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<Uint8List> get entityKey =>
+      $composableBuilder(column: $table.entityKey, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+}
+
+class $$OutboxTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $OutboxTable,
+          OutboxRow,
+          $$OutboxTableFilterComposer,
+          $$OutboxTableOrderingComposer,
+          $$OutboxTableAnnotationComposer,
+          $$OutboxTableCreateCompanionBuilder,
+          $$OutboxTableUpdateCompanionBuilder,
+          (
+            OutboxRow,
+            BaseReferences<_$MemukiDatabase, $OutboxTable, OutboxRow>,
+          ),
+          OutboxRow,
+          PrefetchHooks Function()
+        > {
+  $$OutboxTableTableManager(_$MemukiDatabase db, $OutboxTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OutboxTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OutboxTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OutboxTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<CollectionId> collectionId = const Value.absent(),
+                Value<String> entityTable = const Value.absent(),
+                Value<Uint8List> entityKey = const Value.absent(),
+                Value<Hlc> hlc = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OutboxCompanion(
+                collectionId: collectionId,
+                entityTable: entityTable,
+                entityKey: entityKey,
+                hlc: hlc,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required CollectionId collectionId,
+                required String entityTable,
+                required Uint8List entityKey,
+                required Hlc hlc,
+                Value<int> rowid = const Value.absent(),
+              }) => OutboxCompanion.insert(
+                collectionId: collectionId,
+                entityTable: entityTable,
+                entityKey: entityKey,
+                hlc: hlc,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$OutboxTable, OutboxRow>(table),
+                  BaseReferences<_$MemukiDatabase, $OutboxTable, OutboxRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$OutboxTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $OutboxTable,
+      OutboxRow,
+      $$OutboxTableFilterComposer,
+      $$OutboxTableOrderingComposer,
+      $$OutboxTableAnnotationComposer,
+      $$OutboxTableCreateCompanionBuilder,
+      $$OutboxTableUpdateCompanionBuilder,
+      (OutboxRow, BaseReferences<_$MemukiDatabase, $OutboxTable, OutboxRow>),
+      OutboxRow,
+      PrefetchHooks Function()
+    >;
 typedef $$ReviewEventsTableCreateCompanionBuilder =
     ReviewEventsCompanion Function({
       required ReviewEventId id,
@@ -8962,6 +11443,7 @@ typedef $$ReviewEventsTableCreateCompanionBuilder =
       required String schedulerId,
       required int schedulerVersion,
       required int configVersion,
+      required Hlc hlc,
       Value<int> rowid,
     });
 typedef $$ReviewEventsTableUpdateCompanionBuilder =
@@ -8978,6 +11460,7 @@ typedef $$ReviewEventsTableUpdateCompanionBuilder =
       Value<String> schedulerId,
       Value<int> schedulerVersion,
       Value<int> configVersion,
+      Value<Hlc> hlc,
       Value<int> rowid,
     });
 
@@ -9110,6 +11593,12 @@ class $$ReviewEventsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
   $$StudyCardsTableFilterComposer get studyCardId {
     final $$StudyCardsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -9241,6 +11730,11 @@ class $$ReviewEventsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$StudyCardsTableOrderingComposer get studyCardId {
     final $$StudyCardsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -9335,6 +11829,9 @@ class $$ReviewEventsTableAnnotationComposer
     column: $table.configVersion,
     builder: (column) => column,
   );
+
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
 
   $$StudyCardsTableAnnotationComposer get studyCardId {
     final $$StudyCardsTableAnnotationComposer composer = $composerBuilder(
@@ -9452,6 +11949,7 @@ class $$ReviewEventsTableTableManager
                 Value<String> schedulerId = const Value.absent(),
                 Value<int> schedulerVersion = const Value.absent(),
                 Value<int> configVersion = const Value.absent(),
+                Value<Hlc> hlc = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ReviewEventsCompanion(
                 id: id,
@@ -9466,6 +11964,7 @@ class $$ReviewEventsTableTableManager
                 schedulerId: schedulerId,
                 schedulerVersion: schedulerVersion,
                 configVersion: configVersion,
+                hlc: hlc,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -9482,6 +11981,7 @@ class $$ReviewEventsTableTableManager
                 required String schedulerId,
                 required int schedulerVersion,
                 required int configVersion,
+                required Hlc hlc,
                 Value<int> rowid = const Value.absent(),
               }) => ReviewEventsCompanion.insert(
                 id: id,
@@ -9496,6 +11996,7 @@ class $$ReviewEventsTableTableManager
                 schedulerId: schedulerId,
                 schedulerVersion: schedulerVersion,
                 configVersion: configVersion,
+                hlc: hlc,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -10103,6 +12604,8 @@ typedef $$SchedulingStatesTableProcessedTableManager =
     >;
 typedef $$FieldDefinitionsTableCreateCompanionBuilder =
     FieldDefinitionsCompanion Function({
+      required Hlc hlc,
+      Value<bool> deleted,
       required FieldDefinitionId id,
       required NoteTypeId noteTypeId,
       required int position,
@@ -10112,6 +12615,8 @@ typedef $$FieldDefinitionsTableCreateCompanionBuilder =
     });
 typedef $$FieldDefinitionsTableUpdateCompanionBuilder =
     FieldDefinitionsCompanion Function({
+      Value<Hlc> hlc,
+      Value<bool> deleted,
       Value<FieldDefinitionId> id,
       Value<NoteTypeId> noteTypeId,
       Value<int> position,
@@ -10178,6 +12683,17 @@ class $$FieldDefinitionsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<
     FieldDefinitionId,
     FieldDefinitionId,
@@ -10262,6 +12778,16 @@ class $$FieldDefinitionsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<Uint8List> get id => $composableBuilder(
     column: $table.id,
     builder: (column) => ColumnOrderings(column),
@@ -10315,6 +12841,12 @@ class $$FieldDefinitionsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> get id =>
       $composableBuilder(column: $table.id, builder: (column) => column);
 
@@ -10406,6 +12938,8 @@ class $$FieldDefinitionsTableTableManager
               $$FieldDefinitionsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
                 Value<FieldDefinitionId> id = const Value.absent(),
                 Value<NoteTypeId> noteTypeId = const Value.absent(),
                 Value<int> position = const Value.absent(),
@@ -10413,6 +12947,8 @@ class $$FieldDefinitionsTableTableManager
                 Value<FieldType> type = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FieldDefinitionsCompanion(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 noteTypeId: noteTypeId,
                 position: position,
@@ -10422,6 +12958,8 @@ class $$FieldDefinitionsTableTableManager
               ),
           createCompanionCallback:
               ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
                 required FieldDefinitionId id,
                 required NoteTypeId noteTypeId,
                 required int position,
@@ -10429,6 +12967,8 @@ class $$FieldDefinitionsTableTableManager
                 required FieldType type,
                 Value<int> rowid = const Value.absent(),
               }) => FieldDefinitionsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
                 id: id,
                 noteTypeId: noteTypeId,
                 position: position,
@@ -10526,12 +13066,16 @@ typedef $$FieldDefinitionsTableProcessedTableManager =
       PrefetchHooks Function({bool noteTypeId, bool noteFieldsRefs})
     >;
 typedef $$NoteFieldsTableCreateCompanionBuilder = NoteFieldsCompanion Function({
+  required Hlc hlc,
+  Value<bool> deleted,
   required NoteId noteId,
   required FieldDefinitionId fieldId,
   required String value,
   Value<int> rowid,
 });
 typedef $$NoteFieldsTableUpdateCompanionBuilder = NoteFieldsCompanion Function({
+  Value<Hlc> hlc,
+  Value<bool> deleted,
   Value<NoteId> noteId,
   Value<FieldDefinitionId> fieldId,
   Value<String> value,
@@ -10587,6 +13131,17 @@ class $$NoteFieldsTableFilterComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnFilters<String> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnFilters(column),
@@ -10648,6 +13203,16 @@ class $$NoteFieldsTableOrderingComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get value => $composableBuilder(
     column: $table.value,
     builder: (column) => ColumnOrderings(column),
@@ -10709,6 +13274,12 @@ class $$NoteFieldsTableAnnotationComposer
     super.$addJoinBuilderToRootComposer,
     super.$removeJoinBuilderFromRootComposer,
   });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
   GeneratedColumn<String> get value =>
       $composableBuilder(column: $table.value, builder: (column) => column);
 
@@ -10787,11 +13358,15 @@ class $$NoteFieldsTableTableManager
               $$NoteFieldsTableAnnotationComposer($db: db, $table: table),
           updateCompanionCallback:
               ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
                 Value<NoteId> noteId = const Value.absent(),
                 Value<FieldDefinitionId> fieldId = const Value.absent(),
                 Value<String> value = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteFieldsCompanion(
+                hlc: hlc,
+                deleted: deleted,
                 noteId: noteId,
                 fieldId: fieldId,
                 value: value,
@@ -10799,11 +13374,15 @@ class $$NoteFieldsTableTableManager
               ),
           createCompanionCallback:
               ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
                 required NoteId noteId,
                 required FieldDefinitionId fieldId,
                 required String value,
                 Value<int> rowid = const Value.absent(),
               }) => NoteFieldsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
                 noteId: noteId,
                 fieldId: fieldId,
                 value: value,
@@ -10906,6 +13485,10 @@ class $MemukiDatabaseManager {
       $$StudyCardsTableTableManager(_db, _db.studyCards);
   $$MediaAssetsTableTableManager get mediaAssets =>
       $$MediaAssetsTableTableManager(_db, _db.mediaAssets);
+  $$DeviceTableTableManager get device =>
+      $$DeviceTableTableManager(_db, _db.device);
+  $$OutboxTableTableManager get outbox =>
+      $$OutboxTableTableManager(_db, _db.outbox);
   $$ReviewEventsTableTableManager get reviewEvents =>
       $$ReviewEventsTableTableManager(_db, _db.reviewEvents);
   $$SchedulingStatesTableTableManager get schedulingStates =>

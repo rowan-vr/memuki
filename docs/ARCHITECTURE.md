@@ -64,10 +64,12 @@ Collection
 Decided in Phase 1. See [ROADMAP.md](ROADMAP.md#phase-1--domain-models-and-persistence).
 
 - **IDs:** client-generated UUIDv7.
-- **Ordering:** hybrid logical clock (HLC) timestamps on every change, rather than wall-clock time.
-- **Deletion:** tombstones; rows are not hard-deleted while sync may still reference them.
-- **Merge granularity:** per-field last-writer-wins on notes, per-entity on other entities.
-- **Outbox:** every local mutation is recorded as a change entry for later sync.
+- **Ordering:** hybrid logical clock (HLC) timestamps on every change, rather than wall-clock time. A timestamp is wall-clock milliseconds, a counter, and the device's random node ID, stored as fixed-width hex text (`<12 ms>-<4 counter>-<16 node>`) so text order is timestamp order. The device's node ID and latest timestamp are kept in a local `device` table, so the clock never goes backwards across restarts.
+- **Deletion:** tombstones; rows are not hard-deleted while sync may still reference them. Every synced row has an `hlc` (its last change) and a `deleted` flag; reads skip tombstones. Removing tombstones for good is part of Phase 8.
+- **Merge granularity:** per-field last-writer-wins on notes, per-entity on other entities. Each note field value is its own row with its own timestamp, and an update only stamps the values that changed.
+- **Outbox:** every local change is recorded for later sync. The outbox holds one entry per changed entity (table, key, timestamp); later changes to the same entity overwrite its entry. Sync reads the entity's current row, which may be a tombstone, when pushing.
+- **Recording:** repositories stamp each write with one new timestamp and record every row carrying it in the outbox, in the same transaction.
+- **Not synced:** scheduling state, which each device rebuilds from the synced review events.
 
 ## Review history and scheduling
 
@@ -212,6 +214,9 @@ memuki/
 | D28 | Cross-collection references rejected by composite foreign keys; `collection_id` is immutable | Decided | 1 |
 | D29 | Parent cycles from concurrent moves are broken at merge by detaching the node whose parent change has the highest HLC | Proposed | 8 |
 | D30 | Deleting a deck deletes its subdecks and cards, and notes left without cards; deleting a tag deletes its subtree and removes it from notes | Decided | 1 |
+| D31 | Outbox lists changed entities, coalesced per entity; sync reads current rows (including tombstones) at push time | Decided | 1 |
+| D32 | HLC timestamps stored as fixed-width hex text; stamped and recorded by repositories | Decided | 1 |
+| D33 | Scheduling state is not synced; each device rebuilds it from synced review events | Decided | 1 |
 
 ## Open questions
 

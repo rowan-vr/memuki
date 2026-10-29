@@ -83,10 +83,12 @@ void main() {
     );
   });
 
-  test('deleting an unused one removes it with its parts', () async {
+  test('deleting an unused one leaves a tombstone', () async {
     await repos.noteTypes.deleteNoteType(japanese.noteType.id);
     expect(await repos.noteTypes.noteTypes(japanese.id), isEmpty);
-    expect(await repos.db.select(repos.db.fieldDefinitions).get(), isEmpty);
+    expect(await repos.noteTypes.noteType(japanese.noteType.id), isNull);
+    final row = await repos.db.select(repos.db.noteTypes).getSingle();
+    expect(row.deleted, isTrue);
   });
 
   test('watching emits when a field is renamed', () async {

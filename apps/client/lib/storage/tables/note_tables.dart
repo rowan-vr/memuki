@@ -4,10 +4,12 @@ import '../../domain/note.dart' show SourceKind;
 import '../converters.dart';
 import 'collection_tables.dart';
 import 'note_type_tables.dart';
+import 'sync_tables.dart';
 
 @TableIndex(name: 'notes_note_type', columns: {#collectionId, #noteTypeId})
+@TableIndex(name: 'notes_hlc', columns: {#hlc})
 @DataClassName('NoteRow')
-class Notes extends Table {
+class Notes extends Table with SyncedColumns {
   BlobColumn get id => blob().map(noteIdConverter)();
   BlobColumn get collectionId =>
       blob().map(collectionIdConverter).references(Collections, #id)();
@@ -33,8 +35,9 @@ class Notes extends Table {
 
 /// One row per field value of a note. Fields without a value have no row.
 @TableIndex(name: 'note_fields_field', columns: {#fieldId})
+@TableIndex(name: 'note_fields_hlc', columns: {#hlc})
 @DataClassName('NoteFieldRow')
-class NoteFields extends Table {
+class NoteFields extends Table with SyncedColumns {
   BlobColumn get noteId => blob()
       .map(noteIdConverter)
       .references(Notes, #id, onDelete: KeyAction.cascade)();
@@ -48,8 +51,9 @@ class NoteFields extends Table {
 }
 
 @TableIndex(name: 'tags_parent', columns: {#collectionId, #parentId})
+@TableIndex(name: 'tags_hlc', columns: {#hlc})
 @DataClassName('TagRow')
-class Tags extends Table {
+class Tags extends Table with SyncedColumns {
   BlobColumn get id => blob().map(tagIdConverter)();
   BlobColumn get collectionId =>
       blob().map(collectionIdConverter).references(Collections, #id)();
@@ -73,8 +77,9 @@ class Tags extends Table {
 
 /// A tag on a note. Both must be in [collectionId].
 @TableIndex(name: 'note_tags_tag', columns: {#collectionId, #tagId})
+@TableIndex(name: 'note_tags_hlc', columns: {#hlc})
 @DataClassName('NoteTagRow')
-class NoteTags extends Table {
+class NoteTags extends Table with SyncedColumns {
   BlobColumn get collectionId =>
       blob().map(collectionIdConverter).references(Collections, #id)();
   BlobColumn get noteId => blob().map(noteIdConverter)();

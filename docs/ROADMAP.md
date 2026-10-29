@@ -140,6 +140,9 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Cross-collection integrity | Composite foreign keys on `(collection_id, id)`; `collection_id` is immutable, moving is a copy | Decided |
 | Deleting a deck | Deletes its subdecks and their cards; notes left without cards are deleted | Decided |
 | Deleting a tag | Deletes the tags below it and removes them from notes | Decided |
+| Outbox contents | One entry per changed entity, overwritten by later changes; sync reads the current row (or tombstone) when pushing | Decided |
+| HLC storage | Fixed-width hex text, stamped by repositories in the same transaction as the change | Decided |
+| Scheduling state sync | Not synced; rebuilt from synced review events | Decided |
 
 ### Acceptance Criteria
 
@@ -547,7 +550,7 @@ Future or optional providers: CC-CEDICT, FreeDict, Korean learner dictionaries w
 Synchronized data:
 
 - Collections, decks, notes, cards, note types, templates, tags.
-- Review history and scheduling state.
+- Review history. Scheduling state is rebuilt from it on each device.
 - Mining profiles and relevant preferences.
 - Media metadata and content.
 - Dictionary package references and preferences.

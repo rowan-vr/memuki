@@ -4,9 +4,11 @@ import '../../domain/review.dart' show Grade, ReviewEventKind, StudyCardState;
 import '../converters.dart';
 import 'study_card_tables.dart';
 
-/// The append-only review history.
+/// The append-only review history. Events are synced but never deleted, so
+/// they have an [hlc] but no tombstone flag.
 @TableIndex(name: 'review_events_card', columns: {#studyCardId, #at})
 @TableIndex(name: 'review_events_at', columns: {#at})
+@TableIndex(name: 'review_events_hlc', columns: {#hlc})
 @DataClassName('ReviewEventRow')
 class ReviewEvents extends Table {
   BlobColumn get id => blob().map(reviewEventIdConverter)();
@@ -28,13 +30,14 @@ class ReviewEvents extends Table {
   TextColumn get schedulerId => text()();
   IntColumn get schedulerVersion => integer()();
   IntColumn get configVersion => integer()();
+  TextColumn get hlc => text().map(const HlcConverter())();
 
   @override
   Set<Column> get primaryKey => {id};
 }
 
 /// The materialized scheduling state of each card, rebuildable from
-/// [ReviewEvents].
+/// [ReviewEvents]. Not synced; each device rebuilds it from the events.
 @TableIndex(name: 'scheduling_states_due', columns: {#state, #due})
 @DataClassName('SchedulingStateRow')
 class SchedulingStates extends Table {

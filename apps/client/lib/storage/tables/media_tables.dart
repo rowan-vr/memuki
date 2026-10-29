@@ -2,9 +2,11 @@ import 'package:drift/drift.dart';
 
 import '../converters.dart';
 import 'collection_tables.dart';
+import 'sync_tables.dart';
 
+@TableIndex(name: 'media_assets_hlc', columns: {#hlc})
 @DataClassName('MediaAssetRow')
-class MediaAssets extends Table {
+class MediaAssets extends Table with SyncedColumns {
   BlobColumn get collectionId =>
       blob().map(collectionIdConverter).references(Collections, #id)();
   BlobColumn get hash => blob().map(const ContentHashConverter())();
