@@ -34,6 +34,12 @@ const _syncedTables = <String, ({String key, String collection})>{
     key: 'unhex(hex(src.collection_id) || hex(src.hash))',
     collection: 'src.collection_id',
   ),
+  'presets': (key: 'src.id', collection: 'src.collection_id'),
+  'preset_versions': (
+    key: 'src.id',
+    collection:
+        '(SELECT p.collection_id FROM presets p WHERE p.id = src.preset_id)',
+  ),
   'review_events': (
     key: 'src.id',
     collection: '(SELECT c.collection_id FROM study_cards c WHERE c.id = src.study_card_id)',

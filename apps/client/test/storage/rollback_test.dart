@@ -206,7 +206,7 @@ final _writes = <String, _Case>{
         grade: Grade.good,
         schedulerId: 'sm2',
         schedulerVersion: 1,
-        configVersion: 1,
+        presetVersionId: w.fixture.preset.version.id,
       ),
     ),
   ),

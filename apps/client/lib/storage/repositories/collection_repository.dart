@@ -2,9 +2,11 @@ import 'package:drift/drift.dart';
 
 import '../../domain/collection.dart';
 import '../../domain/ids.dart';
+import '../../domain/preset.dart';
 import '../converters.dart';
 import '../database.dart';
 import '../sync/change_recorder.dart';
+import 'preset_repository.dart';
 import 'repository_exceptions.dart';
 import 'tree_queries.dart';
 import 'visibility.dart';
@@ -36,17 +38,38 @@ class CollectionRepository {
   Stream<List<Collection>> watchCollections() =>
       _collectionsQuery().map(_collection).watch();
 
-  Future<void> createCollection(Collection collection) => _changes.write(
-    (hlc) => _db
+  /// Creates a collection with its default preset: [defaultPreset], or a
+  /// preset named "Default" with the default settings.
+  Future<void> createCollection(
+    Collection collection, {
+    Preset? defaultPreset,
+  }) => _changes.write((hlc) async {
+    final preset =
+        defaultPreset ??
+        Preset(
+          id: PresetId.generate(),
+          collectionId: collection.id,
+          name: 'Default',
+          version: PresetVersion(id: PresetVersionId.generate()),
+        );
+    if (preset.collectionId != collection.id) {
+      throw CrossCollectionException(
+        'Preset ${preset.id} is for another collection',
+      );
+    }
+    await _db
         .into(_db.collections)
         .insert(
           CollectionsCompanion.insert(
             id: collection.id,
             name: collection.name,
+            defaultPresetId: preset.id,
+            dayStart: collection.dayStart,
             hlc: hlc,
           ),
-        ),
-  );
+        );
+    await insertPreset(_db, preset, hlc);
+  });
 
   Future<void> updateCollection(Collection collection) =>
       _changes.write((hlc) async {
@@ -59,6 +82,7 @@ class CollectionRepository {
                 .write(
                   CollectionsCompanion(
                     name: Value(collection.name),
+                    dayStart: Value(collection.dayStart),
                     hlc: Value(hlc),
                   ),
                 );
@@ -103,6 +127,7 @@ class CollectionRepository {
     if (deck.parentId case final parentId?) {
       await _requireParent(deck.collectionId, parentId);
     }
+    await _requirePreset(deck);
     await _db
         .into(_db.decks)
         .insert(
@@ -111,6 +136,7 @@ class CollectionRepository {
             collectionId: deck.collectionId,
             parentId: Value(deck.parentId),
             name: deck.name,
+            presetId: Value(deck.presetId),
             hlc: hlc,
           ),
         );
@@ -133,12 +159,14 @@ class CollectionRepository {
         throw ParentCycleException('Deck $parentId is below deck ${deck.id}');
       }
     }
+    if (deck.presetId != current.presetId) await _requirePreset(deck);
     await (_db.update(
       _db.decks,
     )..where((d) => d.id.equalsValue(deck.id))).write(
       DecksCompanion(
         parentId: Value(parentId),
         name: Value(deck.name),
+        presetId: Value(deck.presetId),
         hlc: Value(hlc),
       ),
     );
@@ -171,6 +199,25 @@ class CollectionRepository {
     }
   }
 
+  /// Checks that the deck's own preset, if any, exists in its collection.
+  Future<void> _requirePreset(Deck deck) async {
+    final presetId = deck.presetId;
+    if (presetId == null) return;
+    final preset =
+        await (_db.select(_db.presets)..where(
+              (p) => p.id.equalsValue(presetId) & _db.isVisiblePreset(p.id),
+            ))
+            .getSingleOrNull();
+    if (preset == null) {
+      throw EntityNotFoundException('Preset $presetId does not exist');
+    }
+    if (preset.collectionId != deck.collectionId) {
+      throw CrossCollectionException(
+        'Preset $presetId is in another collection than deck ${deck.id}',
+      );
+    }
+  }
+
   SimpleSelectStatement<$CollectionsTable, CollectionRow> _collectionsQuery() =>
       _db.select(_db.collections)
         ..where((c) => _db.isVisibleCollection(c.id))
@@ -186,13 +233,14 @@ class CollectionRepository {
 }
 
 Collection _collection(CollectionRow row) =>
-    Collection(id: row.id, name: row.name);
+    Collection(id: row.id, name: row.name, dayStart: row.dayStart);
 
 Deck _deck(DeckRow row) => Deck(
   id: row.id,
   collectionId: row.collectionId,
   parentId: row.parentId,
   name: row.name,
+  presetId: row.presetId,
 );
 
 EntityNotFoundException _collectionNotFound(CollectionId id) =>

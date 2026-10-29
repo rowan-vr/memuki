@@ -7,6 +7,7 @@ import '../domain/collection.dart';
 import '../domain/ids.dart';
 import '../domain/note.dart';
 import '../domain/note_type.dart';
+import '../domain/preset.dart';
 import '../domain/review.dart';
 import '../domain/study_card.dart';
 import '../storage/repositories/media_repository.dart';
@@ -18,7 +19,7 @@ final generatorEpoch = DateTime.utc(2026);
 /// A media file of a [GeneratedCollection].
 typedef GeneratedMedia = ({String name, List<int> bytes});
 
-/// A collection generated from a seed: decks and tags in random trees, a
+/// A collection generated from a seed: a default preset, decks and tags in random trees, a
 /// note type with two fields and two templates, notes with tags and a card
 /// per template, review history with scheduling state, and media files.
 ///
@@ -29,6 +30,7 @@ class GeneratedCollection {
   GeneratedCollection._({
     required this.seed,
     required this.collection,
+    required this.preset,
     required this.noteType,
     required this.decks,
     required this.tags,
@@ -54,6 +56,12 @@ class GeneratedCollection {
     final collection = Collection(
       id: CollectionId.parse(ids.next()),
       name: 'Collection $seed',
+    );
+    final preset = Preset(
+      id: PresetId.parse(ids.next()),
+      collectionId: collection.id,
+      name: 'Default',
+      version: PresetVersion(id: PresetVersionId.parse(ids.next())),
     );
     final noteType = NoteType(
       id: NoteTypeId.parse(ids.next()),
@@ -147,9 +155,9 @@ class GeneratedCollection {
               utcOffset: Duration.zero,
               grade: Grade.values[random.nextInt(Grade.values.length)],
               responseTime: Duration(milliseconds: 500 + random.nextInt(9500)),
-              schedulerId: 'sm2',
+              schedulerId: 'memuki.steps-sm2',
               schedulerVersion: 1,
-              configVersion: 1,
+              presetVersionId: preset.version.id,
             ),
         ];
         reviews.addAll(history);
@@ -175,6 +183,7 @@ class GeneratedCollection {
     return GeneratedCollection._(
       seed: seed,
       collection: collection,
+      preset: preset,
       noteType: noteType,
       decks: deckList,
       tags: tagList,
@@ -198,6 +207,9 @@ class GeneratedCollection {
 
   final int seed;
   final Collection collection;
+
+  /// The collection's default preset, used by all its decks.
+  final Preset preset;
   final NoteType noteType;
 
   /// Parents before their children.
@@ -218,7 +230,7 @@ class GeneratedCollection {
 
   /// Writes the whole collection through the repositories.
   Future<void> writeTo(Repositories repos, MediaRepository mediaRepo) async {
-    await repos.collections.createCollection(collection);
+    await repos.collections.createCollection(collection, defaultPreset: preset);
     await repos.noteTypes.createNoteType(noteType);
     for (final deck in decks) {
       await repos.collections.createDeck(deck);

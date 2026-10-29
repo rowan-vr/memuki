@@ -14,6 +14,11 @@ class EntityNotFoundException extends RepositoryException {
   const EntityNotFoundException(super.message);
 }
 
+/// The entity cannot be deleted, e.g. a collection's default preset.
+class ProtectedEntityException extends RepositoryException {
+  const ProtectedEntityException(super.message);
+}
+
 /// An entity with this identity already exists.
 class DuplicateEntityException extends RepositoryException {
   const DuplicateEntityException(super.message);

@@ -9,7 +9,6 @@ import 'study_day.dart';
 final class SchedulingSettings {
   const SchedulingSettings({
     this.schedulerId = 'memuki.steps-sm2',
-    this.configVersion = 0,
     this.schedulerConfig = const {},
     this.burnThreshold,
     this.leechThreshold = 8,
@@ -18,10 +17,6 @@ final class SchedulingSettings {
 
   /// The scheduler that new reviews use, in its latest version.
   final String schedulerId;
-
-  /// The version of the preset these settings come from, recorded on each
-  /// review event.
-  final int configVersion;
 
   /// The scheduler's own settings, decoded by [Scheduler.decodeConfig].
   final Map<String, Object?> schedulerConfig;

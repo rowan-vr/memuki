@@ -5,6 +5,7 @@ import 'package:memuki/domain/collection.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/note.dart';
 import 'package:memuki/domain/note_type.dart';
+import 'package:memuki/domain/preset.dart';
 import 'package:memuki/domain/study_card.dart';
 import 'package:memuki/storage/database.dart';
 import 'package:memuki/storage/repositories/repositories.dart';
@@ -46,15 +47,30 @@ extension SeedCollection on Repositories {
     await collections.createCollection(collection);
     await noteTypes.createNoteType(noteType);
     await collections.createDeck(deck);
-    return SeededCollection(this, collection, noteType, deck);
+    return SeededCollection(
+      this,
+      collection,
+      await presets.defaultPreset(collection.id),
+      noteType,
+      deck,
+    );
   }
 }
 
 class SeededCollection {
-  SeededCollection(this._repos, this.collection, this.noteType, this.deck);
+  SeededCollection(
+    this._repos,
+    this.collection,
+    this.preset,
+    this.noteType,
+    this.deck,
+  );
 
   final Repositories _repos;
   final Collection collection;
+
+  /// The collection's default preset.
+  final Preset preset;
   final NoteType noteType;
   final Deck deck;
 

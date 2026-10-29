@@ -17,7 +17,8 @@ mixin _$ReviewEvent {
 
  ReviewEventId get id; StudyCardId get studyCardId; ReviewEventKind get kind; DateTime get at;/// The reviewing device's offset from UTC at [at]. Study-day boundaries
 /// are computed in this offset, so every device rebuilds the same state.
- Duration get utcOffset; Grade? get grade; Duration? get responseTime; DateTime? get dueBefore; DateTime? get dueAfter; ReviewEventId? get undoneEventId; String get schedulerId; int get schedulerVersion; int get configVersion;
+ Duration get utcOffset; Grade? get grade; Duration? get responseTime; DateTime? get dueBefore; DateTime? get dueAfter; ReviewEventId? get undoneEventId; String get schedulerId; int get schedulerVersion;/// The preset settings the event was recorded with.
+ PresetVersionId get presetVersionId;
 /// Create a copy of ReviewEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -29,20 +30,20 @@ $ReviewEventCopyWith<ReviewEvent> get copyWith => _$ReviewEventCopyWithImpl<Revi
 @override
 bool operator ==(Object other) {
   final _this = this as ReviewEvent;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReviewEvent&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.studyCardId, _this.studyCardId) || other.studyCardId == _this.studyCardId)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.at, _this.at) || other.at == _this.at)&&(identical(other.utcOffset, _this.utcOffset) || other.utcOffset == _this.utcOffset)&&(identical(other.grade, _this.grade) || other.grade == _this.grade)&&(identical(other.responseTime, _this.responseTime) || other.responseTime == _this.responseTime)&&(identical(other.dueBefore, _this.dueBefore) || other.dueBefore == _this.dueBefore)&&(identical(other.dueAfter, _this.dueAfter) || other.dueAfter == _this.dueAfter)&&(identical(other.undoneEventId, _this.undoneEventId) || other.undoneEventId == _this.undoneEventId)&&(identical(other.schedulerId, _this.schedulerId) || other.schedulerId == _this.schedulerId)&&(identical(other.schedulerVersion, _this.schedulerVersion) || other.schedulerVersion == _this.schedulerVersion)&&(identical(other.configVersion, _this.configVersion) || other.configVersion == _this.configVersion));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is ReviewEvent&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.studyCardId, _this.studyCardId) || other.studyCardId == _this.studyCardId)&&(identical(other.kind, _this.kind) || other.kind == _this.kind)&&(identical(other.at, _this.at) || other.at == _this.at)&&(identical(other.utcOffset, _this.utcOffset) || other.utcOffset == _this.utcOffset)&&(identical(other.grade, _this.grade) || other.grade == _this.grade)&&(identical(other.responseTime, _this.responseTime) || other.responseTime == _this.responseTime)&&(identical(other.dueBefore, _this.dueBefore) || other.dueBefore == _this.dueBefore)&&(identical(other.dueAfter, _this.dueAfter) || other.dueAfter == _this.dueAfter)&&(identical(other.undoneEventId, _this.undoneEventId) || other.undoneEventId == _this.undoneEventId)&&(identical(other.schedulerId, _this.schedulerId) || other.schedulerId == _this.schedulerId)&&(identical(other.schedulerVersion, _this.schedulerVersion) || other.schedulerVersion == _this.schedulerVersion)&&(identical(other.presetVersionId, _this.presetVersionId) || other.presetVersionId == _this.presetVersionId));
 }
 
 
 @override
 int get hashCode {
   final _this = this as ReviewEvent;
-  return Object.hash(runtimeType,_this.id,_this.studyCardId,_this.kind,_this.at,_this.utcOffset,_this.grade,_this.responseTime,_this.dueBefore,_this.dueAfter,_this.undoneEventId,_this.schedulerId,_this.schedulerVersion,_this.configVersion);
+  return Object.hash(runtimeType,_this.id,_this.studyCardId,_this.kind,_this.at,_this.utcOffset,_this.grade,_this.responseTime,_this.dueBefore,_this.dueAfter,_this.undoneEventId,_this.schedulerId,_this.schedulerVersion,_this.presetVersionId);
 }
 
 @override
 String toString() {
   final _this = this as ReviewEvent;
-  return 'ReviewEvent(id: ${_this.id}, studyCardId: ${_this.studyCardId}, kind: ${_this.kind}, at: ${_this.at}, utcOffset: ${_this.utcOffset}, grade: ${_this.grade}, responseTime: ${_this.responseTime}, dueBefore: ${_this.dueBefore}, dueAfter: ${_this.dueAfter}, undoneEventId: ${_this.undoneEventId}, schedulerId: ${_this.schedulerId}, schedulerVersion: ${_this.schedulerVersion}, configVersion: ${_this.configVersion})';
+  return 'ReviewEvent(id: ${_this.id}, studyCardId: ${_this.studyCardId}, kind: ${_this.kind}, at: ${_this.at}, utcOffset: ${_this.utcOffset}, grade: ${_this.grade}, responseTime: ${_this.responseTime}, dueBefore: ${_this.dueBefore}, dueAfter: ${_this.dueAfter}, undoneEventId: ${_this.undoneEventId}, schedulerId: ${_this.schedulerId}, schedulerVersion: ${_this.schedulerVersion}, presetVersionId: ${_this.presetVersionId})';
 }
 
 
@@ -53,7 +54,7 @@ abstract mixin class $ReviewEventCopyWith<$Res>  {
   factory $ReviewEventCopyWith(ReviewEvent value, $Res Function(ReviewEvent) _then) = _$ReviewEventCopyWithImpl;
 @useResult
 $Res call({
- ReviewEventId id, StudyCardId studyCardId, ReviewEventKind kind, DateTime at, Duration utcOffset, Grade? grade, Duration? responseTime, DateTime? dueBefore, DateTime? dueAfter, ReviewEventId? undoneEventId, String schedulerId, int schedulerVersion, int configVersion
+ ReviewEventId id, StudyCardId studyCardId, ReviewEventKind kind, DateTime at, Duration utcOffset, Grade? grade, Duration? responseTime, DateTime? dueBefore, DateTime? dueAfter, ReviewEventId? undoneEventId, String schedulerId, int schedulerVersion, PresetVersionId presetVersionId
 });
 
 
@@ -70,7 +71,7 @@ class _$ReviewEventCopyWithImpl<$Res>
 
 /// Create a copy of ReviewEvent
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? studyCardId = null,Object? kind = null,Object? at = null,Object? utcOffset = null,Object? grade = freezed,Object? responseTime = freezed,Object? dueBefore = freezed,Object? dueAfter = freezed,Object? undoneEventId = freezed,Object? schedulerId = null,Object? schedulerVersion = null,Object? configVersion = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? studyCardId = null,Object? kind = null,Object? at = null,Object? utcOffset = null,Object? grade = freezed,Object? responseTime = freezed,Object? dueBefore = freezed,Object? dueAfter = freezed,Object? undoneEventId = freezed,Object? schedulerId = null,Object? schedulerVersion = null,Object? presetVersionId = null,}) {
   return _then(ReviewEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as ReviewEventId,studyCardId: null == studyCardId ? _self.studyCardId : studyCardId // ignore: cast_nullable_to_non_nullable
@@ -84,8 +85,8 @@ as DateTime?,dueAfter: freezed == dueAfter ? _self.dueAfter : dueAfter // ignore
 as DateTime?,undoneEventId: freezed == undoneEventId ? _self.undoneEventId : undoneEventId // ignore: cast_nullable_to_non_nullable
 as ReviewEventId?,schedulerId: null == schedulerId ? _self.schedulerId : schedulerId // ignore: cast_nullable_to_non_nullable
 as String,schedulerVersion: null == schedulerVersion ? _self.schedulerVersion : schedulerVersion // ignore: cast_nullable_to_non_nullable
-as int,configVersion: null == configVersion ? _self.configVersion : configVersion // ignore: cast_nullable_to_non_nullable
-as int,
+as int,presetVersionId: null == presetVersionId ? _self.presetVersionId : presetVersionId // ignore: cast_nullable_to_non_nullable
+as PresetVersionId,
   ));
 }
 
@@ -170,10 +171,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ReviewEventId id,  StudyCardId studyCardId,  ReviewEventKind kind,  DateTime at,  Duration utcOffset,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  int configVersion)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ReviewEventId id,  StudyCardId studyCardId,  ReviewEventKind kind,  DateTime at,  Duration utcOffset,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  PresetVersionId presetVersionId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReviewEvent() when $default != null:
-return $default(_that.id,_that.studyCardId,_that.kind,_that.at,_that.utcOffset,_that.grade,_that.responseTime,_that.dueBefore,_that.dueAfter,_that.undoneEventId,_that.schedulerId,_that.schedulerVersion,_that.configVersion);case _:
+return $default(_that.id,_that.studyCardId,_that.kind,_that.at,_that.utcOffset,_that.grade,_that.responseTime,_that.dueBefore,_that.dueAfter,_that.undoneEventId,_that.schedulerId,_that.schedulerVersion,_that.presetVersionId);case _:
   return orElse();
 
 }
@@ -191,10 +192,10 @@ return $default(_that.id,_that.studyCardId,_that.kind,_that.at,_that.utcOffset,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ReviewEventId id,  StudyCardId studyCardId,  ReviewEventKind kind,  DateTime at,  Duration utcOffset,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  int configVersion)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ReviewEventId id,  StudyCardId studyCardId,  ReviewEventKind kind,  DateTime at,  Duration utcOffset,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  PresetVersionId presetVersionId)  $default,) {final _that = this;
 switch (_that) {
 case _ReviewEvent():
-return $default(_that.id,_that.studyCardId,_that.kind,_that.at,_that.utcOffset,_that.grade,_that.responseTime,_that.dueBefore,_that.dueAfter,_that.undoneEventId,_that.schedulerId,_that.schedulerVersion,_that.configVersion);case _:
+return $default(_that.id,_that.studyCardId,_that.kind,_that.at,_that.utcOffset,_that.grade,_that.responseTime,_that.dueBefore,_that.dueAfter,_that.undoneEventId,_that.schedulerId,_that.schedulerVersion,_that.presetVersionId);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -211,10 +212,10 @@ return $default(_that.id,_that.studyCardId,_that.kind,_that.at,_that.utcOffset,_
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ReviewEventId id,  StudyCardId studyCardId,  ReviewEventKind kind,  DateTime at,  Duration utcOffset,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  int configVersion)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ReviewEventId id,  StudyCardId studyCardId,  ReviewEventKind kind,  DateTime at,  Duration utcOffset,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  PresetVersionId presetVersionId)?  $default,) {final _that = this;
 switch (_that) {
 case _ReviewEvent() when $default != null:
-return $default(_that.id,_that.studyCardId,_that.kind,_that.at,_that.utcOffset,_that.grade,_that.responseTime,_that.dueBefore,_that.dueAfter,_that.undoneEventId,_that.schedulerId,_that.schedulerVersion,_that.configVersion);case _:
+return $default(_that.id,_that.studyCardId,_that.kind,_that.at,_that.utcOffset,_that.grade,_that.responseTime,_that.dueBefore,_that.dueAfter,_that.undoneEventId,_that.schedulerId,_that.schedulerVersion,_that.presetVersionId);case _:
   return null;
 
 }
@@ -226,7 +227,7 @@ return $default(_that.id,_that.studyCardId,_that.kind,_that.at,_that.utcOffset,_
 
 
 class _ReviewEvent extends ReviewEvent {
-   _ReviewEvent({required this.id, required this.studyCardId, required this.kind, required this.at, required this.utcOffset, this.grade, this.responseTime, this.dueBefore, this.dueAfter, this.undoneEventId, required this.schedulerId, required this.schedulerVersion, required this.configVersion}): super._();
+   _ReviewEvent({required this.id, required this.studyCardId, required this.kind, required this.at, required this.utcOffset, this.grade, this.responseTime, this.dueBefore, this.dueAfter, this.undoneEventId, required this.schedulerId, required this.schedulerVersion, required this.presetVersionId}): super._();
   
 
 @override final  ReviewEventId id;
@@ -243,7 +244,8 @@ class _ReviewEvent extends ReviewEvent {
 @override final  ReviewEventId? undoneEventId;
 @override final  String schedulerId;
 @override final  int schedulerVersion;
-@override final  int configVersion;
+/// The preset settings the event was recorded with.
+@override final  PresetVersionId presetVersionId;
 
 /// Create a copy of ReviewEvent
 /// with the given fields replaced by the non-null parameter values.
@@ -255,18 +257,18 @@ _$ReviewEventCopyWith<_ReviewEvent> get copyWith => __$ReviewEventCopyWithImpl<_
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReviewEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.studyCardId, studyCardId) || other.studyCardId == studyCardId)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.at, at) || other.at == at)&&(identical(other.utcOffset, utcOffset) || other.utcOffset == utcOffset)&&(identical(other.grade, grade) || other.grade == grade)&&(identical(other.responseTime, responseTime) || other.responseTime == responseTime)&&(identical(other.dueBefore, dueBefore) || other.dueBefore == dueBefore)&&(identical(other.dueAfter, dueAfter) || other.dueAfter == dueAfter)&&(identical(other.undoneEventId, undoneEventId) || other.undoneEventId == undoneEventId)&&(identical(other.schedulerId, schedulerId) || other.schedulerId == schedulerId)&&(identical(other.schedulerVersion, schedulerVersion) || other.schedulerVersion == schedulerVersion)&&(identical(other.configVersion, configVersion) || other.configVersion == configVersion));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _ReviewEvent&&(identical(other.id, id) || other.id == id)&&(identical(other.studyCardId, studyCardId) || other.studyCardId == studyCardId)&&(identical(other.kind, kind) || other.kind == kind)&&(identical(other.at, at) || other.at == at)&&(identical(other.utcOffset, utcOffset) || other.utcOffset == utcOffset)&&(identical(other.grade, grade) || other.grade == grade)&&(identical(other.responseTime, responseTime) || other.responseTime == responseTime)&&(identical(other.dueBefore, dueBefore) || other.dueBefore == dueBefore)&&(identical(other.dueAfter, dueAfter) || other.dueAfter == dueAfter)&&(identical(other.undoneEventId, undoneEventId) || other.undoneEventId == undoneEventId)&&(identical(other.schedulerId, schedulerId) || other.schedulerId == schedulerId)&&(identical(other.schedulerVersion, schedulerVersion) || other.schedulerVersion == schedulerVersion)&&(identical(other.presetVersionId, presetVersionId) || other.presetVersionId == presetVersionId));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,studyCardId,kind,at,utcOffset,grade,responseTime,dueBefore,dueAfter,undoneEventId,schedulerId,schedulerVersion,configVersion);
+    return Object.hash(runtimeType,id,studyCardId,kind,at,utcOffset,grade,responseTime,dueBefore,dueAfter,undoneEventId,schedulerId,schedulerVersion,presetVersionId);
 }
 
 @override
 String toString() {
-    return 'ReviewEvent(id: $id, studyCardId: $studyCardId, kind: $kind, at: $at, utcOffset: $utcOffset, grade: $grade, responseTime: $responseTime, dueBefore: $dueBefore, dueAfter: $dueAfter, undoneEventId: $undoneEventId, schedulerId: $schedulerId, schedulerVersion: $schedulerVersion, configVersion: $configVersion)';
+    return 'ReviewEvent(id: $id, studyCardId: $studyCardId, kind: $kind, at: $at, utcOffset: $utcOffset, grade: $grade, responseTime: $responseTime, dueBefore: $dueBefore, dueAfter: $dueAfter, undoneEventId: $undoneEventId, schedulerId: $schedulerId, schedulerVersion: $schedulerVersion, presetVersionId: $presetVersionId)';
 }
 
 
@@ -277,7 +279,7 @@ abstract mixin class _$ReviewEventCopyWith<$Res> implements $ReviewEventCopyWith
   factory _$ReviewEventCopyWith(_ReviewEvent value, $Res Function(_ReviewEvent) _then) = __$ReviewEventCopyWithImpl;
 @override @useResult
 $Res call({
- ReviewEventId id, StudyCardId studyCardId, ReviewEventKind kind, DateTime at, Duration utcOffset, Grade? grade, Duration? responseTime, DateTime? dueBefore, DateTime? dueAfter, ReviewEventId? undoneEventId, String schedulerId, int schedulerVersion, int configVersion
+ ReviewEventId id, StudyCardId studyCardId, ReviewEventKind kind, DateTime at, Duration utcOffset, Grade? grade, Duration? responseTime, DateTime? dueBefore, DateTime? dueAfter, ReviewEventId? undoneEventId, String schedulerId, int schedulerVersion, PresetVersionId presetVersionId
 });
 
 
@@ -294,7 +296,7 @@ class __$ReviewEventCopyWithImpl<$Res>
 
 /// Create a copy of ReviewEvent
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? studyCardId = null,Object? kind = null,Object? at = null,Object? utcOffset = null,Object? grade = freezed,Object? responseTime = freezed,Object? dueBefore = freezed,Object? dueAfter = freezed,Object? undoneEventId = freezed,Object? schedulerId = null,Object? schedulerVersion = null,Object? configVersion = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? studyCardId = null,Object? kind = null,Object? at = null,Object? utcOffset = null,Object? grade = freezed,Object? responseTime = freezed,Object? dueBefore = freezed,Object? dueAfter = freezed,Object? undoneEventId = freezed,Object? schedulerId = null,Object? schedulerVersion = null,Object? presetVersionId = null,}) {
   return _then(_ReviewEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as ReviewEventId,studyCardId: null == studyCardId ? _self.studyCardId : studyCardId // ignore: cast_nullable_to_non_nullable
@@ -308,8 +310,8 @@ as DateTime?,dueAfter: freezed == dueAfter ? _self.dueAfter : dueAfter // ignore
 as DateTime?,undoneEventId: freezed == undoneEventId ? _self.undoneEventId : undoneEventId // ignore: cast_nullable_to_non_nullable
 as ReviewEventId?,schedulerId: null == schedulerId ? _self.schedulerId : schedulerId // ignore: cast_nullable_to_non_nullable
 as String,schedulerVersion: null == schedulerVersion ? _self.schedulerVersion : schedulerVersion // ignore: cast_nullable_to_non_nullable
-as int,configVersion: null == configVersion ? _self.configVersion : configVersion // ignore: cast_nullable_to_non_nullable
-as int,
+as int,presetVersionId: null == presetVersionId ? _self.presetVersionId : presetVersionId // ignore: cast_nullable_to_non_nullable
+as PresetVersionId,
   ));
 }
 

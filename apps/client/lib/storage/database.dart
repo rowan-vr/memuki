@@ -8,6 +8,7 @@ import 'package:path/path.dart' as p;
 import '../domain/ids.dart';
 import '../domain/note.dart' show SourceKind;
 import '../domain/note_type.dart' show FieldType;
+import '../domain/preset.dart' show PresetVersion;
 import '../domain/review.dart' show Grade, ReviewEventKind, StudyCardState;
 import 'converters.dart';
 import 'database.steps.dart';
@@ -39,6 +40,8 @@ final _log = Logger('memuki.storage');
     NoteTags,
     StudyCards,
     MediaAssets,
+    Presets,
+    PresetVersions,
     ReviewEvents,
     SchedulingStates,
     Device,
@@ -71,7 +74,7 @@ class MemukiDatabase extends _$MemukiDatabase {
   HlcClock get clock => _clock;
 
   @override
-  int get schemaVersion => 4;
+  int get schemaVersion => 5;
 
   /// Opens the database now rather than on the first query, creating or
   /// upgrading the schema. Throws [DatabaseTooNewException] or
@@ -145,6 +148,7 @@ class MemukiDatabase extends _$MemukiDatabase {
           from1To2: _from1To2,
           from2To3: _from2To3,
           from3To4: _from3To4,
+          from4To5: _from4To5,
         ),
       );
 
@@ -244,5 +248,122 @@ class MemukiDatabase extends _$MemukiDatabase {
         newColumns: [utcOffset],
       ),
     );
+  }
+
+  /// Adds presets. Each collection gets a "Default" preset with the default
+  /// settings, used by all its decks, and existing review events refer to
+  /// its version. Study days start at 03:00.
+  Future<void> _from4To5(Migrator m, Schema5 schema) async {
+    await m.createTable(schema.presets);
+    await m.createTable(schema.presetVersions);
+    for (final index in [
+      schema.presetsCollection,
+      schema.presetsHlc,
+      schema.presetVersionsHlc,
+    ]) {
+      await m.createIndex(index);
+    }
+    for (final trigger in [
+      schema.presetsCollectionImmutable,
+      schema.presetsHlcChanges,
+      schema.presetVersionsAppendOnly,
+    ]) {
+      await m.createTrigger(trigger);
+    }
+
+    // The device row exists unless the database was created without being
+    // opened, as in migration tests; it is then created after the upgrade.
+    final device = await customSelect('SELECT node, last_hlc FROM device')
+        .getSingleOrNull();
+    final last = device?.read<String?>('last_hlc');
+    final hlc = HlcClock(
+      device?.read<String>('node') ?? _node ?? Hlc.generateNode(),
+      last: last == null ? null : Hlc.parse(last),
+      now: _now,
+    ).tick();
+    if (device != null) {
+      await customUpdate(
+        'UPDATE device SET last_hlc = ?',
+        variables: [Variable.withString(hlc.toString())],
+      );
+    }
+    // Written as SQL against the v5 schema, so later changes to the tables
+    // do not change this step.
+    final defaults = PresetVersion(id: PresetVersionId.generate());
+    final collections = await customSelect('SELECT id FROM collections').get();
+    for (final collection in collections) {
+      final id = collection.read<Uint8List>('id');
+      final preset = presetIdConverter.toSql(PresetId.generate());
+      final version = presetVersionIdConverter.toSql(
+        PresetVersionId.generate(),
+      );
+      await customInsert(
+        'INSERT INTO presets (id, collection_id, name, current_version_id, hlc) '
+        "VALUES (?, ?, 'Default', ?, ?)",
+        variables: [
+          Variable.withBlob(preset),
+          Variable.withBlob(id),
+          Variable.withBlob(version),
+          Variable.withString(hlc.toString()),
+        ],
+      );
+      await customInsert(
+        'INSERT INTO preset_versions (id, preset_id, scheduler_id, '
+        'scheduler_config, burn_threshold_days, leech_threshold, '
+        'new_cards_per_day, reviews_per_day, hlc) '
+        "VALUES (?, ?, ?, '{}', ?, ?, ?, ?, ?)",
+        variables: [
+          Variable.withBlob(version),
+          Variable.withBlob(preset),
+          Variable.withString(defaults.schedulerId),
+          Variable.withInt(defaults.burnThreshold!.inDays),
+          Variable.withInt(defaults.leechThreshold!),
+          Variable.withInt(defaults.newCardsPerDay),
+          Variable.withInt(defaults.reviewsPerDay),
+          Variable.withString(hlc.toString()),
+        ],
+      );
+    }
+
+    final collectionsTable = schema.collections;
+    await m.alterTable(
+      TableMigration(
+        collectionsTable,
+        columnTransformer: {
+          collectionsTable.columnsByName['default_preset_id']!:
+              const CustomExpression<Uint8List>(
+                '(SELECT p.id FROM presets p '
+                'WHERE p.collection_id = collections.id)',
+              ),
+          collectionsTable.columnsByName['day_start']!: const Constant(180),
+        },
+        newColumns: [
+          collectionsTable.columnsByName['default_preset_id']!,
+          collectionsTable.columnsByName['day_start']!,
+        ],
+      ),
+    );
+    await m.alterTable(
+      TableMigration(
+        schema.decks,
+        newColumns: [schema.decks.columnsByName['preset_id']!],
+      ),
+    );
+    final events = schema.reviewEvents;
+    await m.alterTable(
+      TableMigration(
+        events,
+        columnTransformer: {
+          events.columnsByName['preset_version_id']!:
+              const CustomExpression<Uint8List>(
+                '(SELECT p.current_version_id FROM presets p '
+                'JOIN study_cards c ON c.collection_id = p.collection_id '
+                'WHERE c.id = review_events.study_card_id)',
+              ),
+        },
+        newColumns: [events.columnsByName['preset_version_id']!],
+      ),
+    );
+    await m.createView(schema.visiblePresets);
   }
 }

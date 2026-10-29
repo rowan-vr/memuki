@@ -77,7 +77,7 @@ Decided in Phase 1. See [ROADMAP.md](ROADMAP.md#phase-1--domain-models-and-persi
 - Scheduling state is a materialized cache that can be rebuilt by replaying a card's review events through the scheduler.
 - Undo appends a compensating event; it does not delete the original event.
 - Deleting a card tombstones the card and keeps its events, so recreating the card (same derived ID) restores its history. Whether events are removed when tombstones are purged is open (Phase 8).
-- Each event records the scheduler ID, scheduler version, and configuration version used, and the reviewing device's UTC offset. Replay applies each event with the scheduler version recorded on it, so every released scheduler version stays available, and computes study days in the recorded offset rather than the replaying device's time zone. Every device therefore rebuilds the same state from the same events.
+- Each event records the scheduler ID, scheduler version, and preset version used, and the reviewing device's UTC offset. Replay applies each event with the scheduler version recorded on it, so every released scheduler version stays available, and computes study days in the recorded offset rather than the replaying device's time zone. Every device therefore rebuilds the same state from the same events.
 - Replay uses the configuration recorded on each event. Applying new configuration to existing cards is an explicit reschedule operation, never a side effect of replay.
 
 With this model, merging concurrent reviews from different devices reduces to merging event logs and replaying.
@@ -90,7 +90,8 @@ With this model, merging concurrent reviews from different devices reduces to me
 - **Burning:** independent of the review algorithm. When a grade produces a next interval at or above the preset's burn threshold, the card enters the Burned state with no due date and is excluded from normal queues. Burned cards have a separate review session; failing one returns it to relearning. Manual burn and unburn are recorded as events so replay and sync reproduce the state.
 - **Leeches:** detected by the engine from the lapse count, at the preset's threshold (default 8) and every half of it after. Tagging the note is a side effect of recording a review, never of replay.
 - **Recording a review:** the review service appends the event, saves the new scheduling state, and applies side effects such as the leech tag in one transaction.
-- **Configuration:** decks select a shared preset; a deck without its own preset inherits its parent's. Presets set the scheduler, steps, limits, and burn threshold (default 1 year, can be disabled).
+- **Configuration:** decks select a shared preset; a deck without its own preset inherits its parent's, and a root deck without one uses the collection's default preset, which cannot be deleted. Decks whose preset is deleted inherit again. Presets set the scheduler and its settings, the burn threshold (default 1 year), the leech threshold (default 8), and daily limits (default 50 new cards and 500 reviews).
+- **Preset versions:** a preset's settings are immutable versions with their own IDs; editing a preset adds a version and makes it current. Review events record the version ID, so concurrent edits on different devices cannot produce two different versions with the same identity, and replay always finds the settings an event used.
 - **Study day:** starts at a per-collection hour (default 03:00 local time). Steps under 1d are exact durations; steps of 1d or more fall due at the start of a study day.
 - **Nested decks:** studying a deck includes all decks below it. Each subdeck's daily limit applies, and the studied deck's limit caps the combined total.
 - **FSRS:** added in a later phase as an alternative review-phase algorithm; learning and relearning steps remain. Review events store grade, timestamps, due times, and response time from the start, so FSRS memory state can be computed from existing history when it is introduced.
@@ -230,6 +231,7 @@ memuki/
 | D37 | Study day starts at a per-collection hour (default 03:00); steps of 1d or more fall due at its start | Decided | 2 |
 | D38 | Studying a deck includes its subdecks; the studied deck's daily limit caps the subdecks' combined total | Decided | 2 |
 | D39 | Review events record the device's UTC offset; replay uses it and the recorded scheduler version, keeping old versions available | Decided | 2 |
+| D40 | Preset settings are immutable versions identified by UUID; review events record the version ID; each collection has an undeletable default preset | Decided | 2 |
 
 ## Open questions
 

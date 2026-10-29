@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/review.dart' show Grade, ReviewEventKind, StudyCardState;
 import '../converters.dart';
+import 'preset_tables.dart';
 import 'study_card_tables.dart';
 
 /// The append-only review history. Events are synced but never deleted, so
@@ -30,7 +31,8 @@ class ReviewEvents extends Table {
       .references(ReviewEvents, #id)();
   TextColumn get schedulerId => text()();
   IntColumn get schedulerVersion => integer()();
-  IntColumn get configVersion => integer()();
+  BlobColumn get presetVersionId =>
+      blob().map(presetVersionIdConverter).references(PresetVersions, #id)();
   TextColumn get hlc => text().map(const HlcConverter())();
 
   @override

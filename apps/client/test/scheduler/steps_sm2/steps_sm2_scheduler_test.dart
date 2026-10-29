@@ -380,7 +380,7 @@ void main() {
       grade: grade,
       schedulerId: scheduler.id,
       schedulerVersion: scheduler.version,
-      configVersion: 1,
+      presetVersionId: PresetVersionId.generate(),
     );
 
     test('decodes the preset and schedules a new card', () {

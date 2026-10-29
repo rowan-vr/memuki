@@ -7,6 +7,9 @@ import 'package:memuki/domain/note.dart';
 import 'package:memuki/domain/note_type.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/domain/study_card.dart';
+import 'package:memuki/scheduler/scheduler_registry.dart';
+import 'package:memuki/scheduler/steps_sm2/steps_sm2_scheduler.dart';
+import 'package:memuki/services/review_service.dart';
 
 import 'runner.dart';
 import 'session.dart';
@@ -236,8 +239,8 @@ List<Command<void>> editCommands() => [
   ]),
   ActionCommand(
     'review',
-    'Record a review of a card. Its scheduling state is not updated: there '
-        'is no scheduler yet (Phase 2).',
+    'Review a card now with its deck\'s preset and update its scheduling '
+        'state.',
     (c, s) async {
       final card = await _card(s, c.arg(0, 'card'));
       final gradeName = c.arg(1, 'again|hard|good|easy');
@@ -245,20 +248,20 @@ List<Command<void>> editCommands() => [
       if (grade == null) {
         throw UsageException('Unknown grade "$gradeName".', c.usage);
       }
-      final now = DateTime.now();
-      final event = ReviewEvent(
-        id: ReviewEventId.generate(),
-        studyCardId: card,
-        kind: ReviewEventKind.review,
-        at: now.toUtc(),
-        utcOffset: now.timeZoneOffset,
-        grade: grade,
-        schedulerId: 'manual',
-        schedulerVersion: 0,
-        configVersion: 0,
+      final state = await ReviewService(
+        db: s.db,
+        collections: s.repos.collections,
+        presets: s.repos.presets,
+        cards: s.repos.cards,
+        notes: s.repos.notes,
+        tags: s.repos.tags,
+        reviews: s.repos.reviews,
+        schedulers: SchedulerRegistry([const StepsSm2Scheduler()]),
+      ).review(card, grade);
+      s.out.writeln(
+        'Recorded review ${short(state.lastEventId!)}: '
+        '${state.state.name}, due ${state.due?.toLocal() ?? 'never'}.',
       );
-      await s.repos.reviews.append(event);
-      s.out.writeln('Recorded review ${short(event.id)}.');
     },
     arguments: '<card> <again|hard|good|easy>',
   ),

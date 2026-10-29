@@ -26,7 +26,7 @@ void main() {
         undoneEventId: undoes,
         schedulerId: 'sm2',
         schedulerVersion: 1,
-        configVersion: 1,
+        presetVersionId: japanese.preset.version.id,
       );
 
   test('history is in order of time', () async {

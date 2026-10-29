@@ -31,6 +31,9 @@ extension Visibility on MemukiDatabase {
   Expression<bool> isVisibleCard(Expression<Uint8List> id) =>
       _isIn(id, visibleStudyCards, visibleStudyCards.id);
 
+  Expression<bool> isVisiblePreset(Expression<Uint8List> id) =>
+      _isIn(id, visiblePresets, visiblePresets.id);
+
   Expression<bool> _isIn<V extends HasResultSet, R>(
     Expression<Uint8List> id,
     ResultSetImplementation<V, R> view,

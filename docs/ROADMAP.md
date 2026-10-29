@@ -205,7 +205,9 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Grading a burned card | Pass: stays burned; Again: returns to relearning | Decided |
 | Sub-day vs. day steps | Steps under 1d are exact durations; steps of 1d or more fall due at the start of the study day | Decided |
 | Start of study day | Per collection; default 03:00 local time | Decided |
-| Configuration scope | Per deck, via shared presets; a deck without its own preset inherits its parent's | Decided |
+| Configuration scope | Per deck, via shared presets; a deck without its own preset inherits its parent's; root decks without one use the collection's default preset, which cannot be deleted | Decided |
+| Preset versions | Editing a preset adds an immutable version with its own ID; review events record it | Decided |
+| Default daily limits | 50 new cards and 500 reviews per day, per preset | Decided |
 | Studying a parent deck | Includes the cards of all its subdecks; studying a subdeck includes only that subdeck and the decks below it | Decided |
 | Daily limits in nested decks | Each subdeck's own limit applies, and the studied deck's limit caps the combined total | Decided |
 | FSRS | Separate later phase; placement TBD | Decided |

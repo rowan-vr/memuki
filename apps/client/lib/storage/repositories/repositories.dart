@@ -2,6 +2,7 @@ import '../database.dart';
 import 'collection_repository.dart';
 import 'note_repository.dart';
 import 'note_type_repository.dart';
+import 'preset_repository.dart';
 import 'review_repository.dart';
 import 'study_card_repository.dart';
 import 'tag_repository.dart';
@@ -14,6 +15,7 @@ class Repositories {
       tags = TagRepository(db),
       noteTypes = NoteTypeRepository(db),
       notes = NoteRepository(db),
+      presets = PresetRepository(db),
       cards = StudyCardRepository(db),
       reviews = ReviewRepository(db);
 
@@ -22,6 +24,7 @@ class Repositories {
   final TagRepository tags;
   final NoteTypeRepository noteTypes;
   final NoteRepository notes;
+  final PresetRepository presets;
   final StudyCardRepository cards;
   final ReviewRepository reviews;
 }

@@ -64,7 +64,7 @@ class ReviewRepository {
             undoneEventId: Value(event.undoneEventId),
             schedulerId: event.schedulerId,
             schedulerVersion: event.schedulerVersion,
-            configVersion: event.configVersion,
+            presetVersionId: event.presetVersionId,
             hlc: hlc,
           ),
         );
@@ -84,5 +84,5 @@ ReviewEvent _event(ReviewEventRow row) => ReviewEvent(
   undoneEventId: row.undoneEventId,
   schedulerId: row.schedulerId,
   schedulerVersion: row.schedulerVersion,
-  configVersion: row.configVersion,
+  presetVersionId: row.presetVersionId,
 );

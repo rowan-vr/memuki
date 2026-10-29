@@ -52,7 +52,32 @@ class $CollectionsTable extends Collections
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [hlc, deleted, id, name];
+  late final GeneratedColumnWithTypeConverter<PresetId, Uint8List>
+  defaultPresetId = GeneratedColumn<Uint8List>(
+    'default_preset_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  ).withConverter<PresetId>($CollectionsTable.$converterdefaultPresetId);
+  @override
+  late final GeneratedColumnWithTypeConverter<Duration, int> dayStart =
+      GeneratedColumn<int>(
+        'day_start',
+        aliasedName,
+        false,
+        type: DriftSqlType.int,
+        requiredDuringInsert: true,
+      ).withConverter<Duration>($CollectionsTable.$converterdayStart);
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    name,
+    defaultPresetId,
+    dayStart,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -108,6 +133,18 @@ class $CollectionsTable extends Collections
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      defaultPresetId: $CollectionsTable.$converterdefaultPresetId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}default_preset_id'],
+        )!,
+      ),
+      dayStart: $CollectionsTable.$converterdayStart.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}day_start'],
+        )!,
+      ),
     );
   }
 
@@ -119,6 +156,10 @@ class $CollectionsTable extends Collections
   static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
   static TypeConverter<CollectionId, Uint8List> $converterid =
       collectionIdConverter;
+  static TypeConverter<PresetId, Uint8List> $converterdefaultPresetId =
+      presetIdConverter;
+  static TypeConverter<Duration, int> $converterdayStart =
+      const DurationMinutesConverter();
 }
 
 class CollectionRow extends DataClass implements Insertable<CollectionRow> {
@@ -126,11 +167,19 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
   final bool deleted;
   final CollectionId id;
   final String name;
+
+  /// The preset of root decks without their own.
+  final PresetId defaultPresetId;
+
+  /// The local time of day at which a study day starts, in minutes.
+  final Duration dayStart;
   const CollectionRow({
     required this.hlc,
     required this.deleted,
     required this.id,
     required this.name,
+    required this.defaultPresetId,
+    required this.dayStart,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -143,6 +192,16 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
       map['id'] = Variable<Uint8List>($CollectionsTable.$converterid.toSql(id));
     }
     map['name'] = Variable<String>(name);
+    {
+      map['default_preset_id'] = Variable<Uint8List>(
+        $CollectionsTable.$converterdefaultPresetId.toSql(defaultPresetId),
+      );
+    }
+    {
+      map['day_start'] = Variable<int>(
+        $CollectionsTable.$converterdayStart.toSql(dayStart),
+      );
+    }
     return map;
   }
 
@@ -152,6 +211,8 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
       deleted: Value(deleted),
       id: Value(id),
       name: Value(name),
+      defaultPresetId: Value(defaultPresetId),
+      dayStart: Value(dayStart),
     );
   }
 
@@ -165,6 +226,8 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
       deleted: serializer.fromJson<bool>(json['deleted']),
       id: serializer.fromJson<CollectionId>(json['id']),
       name: serializer.fromJson<String>(json['name']),
+      defaultPresetId: serializer.fromJson<PresetId>(json['defaultPresetId']),
+      dayStart: serializer.fromJson<Duration>(json['dayStart']),
     );
   }
   @override
@@ -175,6 +238,8 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
       'deleted': serializer.toJson<bool>(deleted),
       'id': serializer.toJson<CollectionId>(id),
       'name': serializer.toJson<String>(name),
+      'defaultPresetId': serializer.toJson<PresetId>(defaultPresetId),
+      'dayStart': serializer.toJson<Duration>(dayStart),
     };
   }
 
@@ -183,11 +248,15 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
     bool? deleted,
     CollectionId? id,
     String? name,
+    PresetId? defaultPresetId,
+    Duration? dayStart,
   }) => CollectionRow(
     hlc: hlc ?? this.hlc,
     deleted: deleted ?? this.deleted,
     id: id ?? this.id,
     name: name ?? this.name,
+    defaultPresetId: defaultPresetId ?? this.defaultPresetId,
+    dayStart: dayStart ?? this.dayStart,
   );
   CollectionRow copyWithCompanion(CollectionsCompanion data) {
     return CollectionRow(
@@ -195,6 +264,10 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
       deleted: data.deleted.present ? data.deleted.value : this.deleted,
       id: data.id.present ? data.id.value : this.id,
       name: data.name.present ? data.name.value : this.name,
+      defaultPresetId: data.defaultPresetId.present
+          ? data.defaultPresetId.value
+          : this.defaultPresetId,
+      dayStart: data.dayStart.present ? data.dayStart.value : this.dayStart,
     );
   }
 
@@ -204,13 +277,16 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
           ..write('hlc: $hlc, ')
           ..write('deleted: $deleted, ')
           ..write('id: $id, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('defaultPresetId: $defaultPresetId, ')
+          ..write('dayStart: $dayStart')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(hlc, deleted, id, name);
+  int get hashCode =>
+      Object.hash(hlc, deleted, id, name, defaultPresetId, dayStart);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -218,7 +294,9 @@ class CollectionRow extends DataClass implements Insertable<CollectionRow> {
           other.hlc == this.hlc &&
           other.deleted == this.deleted &&
           other.id == this.id &&
-          other.name == this.name);
+          other.name == this.name &&
+          other.defaultPresetId == this.defaultPresetId &&
+          other.dayStart == this.dayStart);
 }
 
 class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
@@ -226,12 +304,16 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
   final Value<bool> deleted;
   final Value<CollectionId> id;
   final Value<String> name;
+  final Value<PresetId> defaultPresetId;
+  final Value<Duration> dayStart;
   final Value<int> rowid;
   const CollectionsCompanion({
     this.hlc = const Value.absent(),
     this.deleted = const Value.absent(),
     this.id = const Value.absent(),
     this.name = const Value.absent(),
+    this.defaultPresetId = const Value.absent(),
+    this.dayStart = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   CollectionsCompanion.insert({
@@ -239,15 +321,21 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
     this.deleted = const Value.absent(),
     required CollectionId id,
     required String name,
+    required PresetId defaultPresetId,
+    required Duration dayStart,
     this.rowid = const Value.absent(),
   }) : hlc = Value(hlc),
        id = Value(id),
-       name = Value(name);
+       name = Value(name),
+       defaultPresetId = Value(defaultPresetId),
+       dayStart = Value(dayStart);
   static Insertable<CollectionRow> custom({
     Expression<String>? hlc,
     Expression<bool>? deleted,
     Expression<Uint8List>? id,
     Expression<String>? name,
+    Expression<Uint8List>? defaultPresetId,
+    Expression<int>? dayStart,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -255,6 +343,8 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
       if (deleted != null) 'deleted': deleted,
       if (id != null) 'id': id,
       if (name != null) 'name': name,
+      if (defaultPresetId != null) 'default_preset_id': defaultPresetId,
+      if (dayStart != null) 'day_start': dayStart,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -264,6 +354,8 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
     Value<bool>? deleted,
     Value<CollectionId>? id,
     Value<String>? name,
+    Value<PresetId>? defaultPresetId,
+    Value<Duration>? dayStart,
     Value<int>? rowid,
   }) {
     return CollectionsCompanion(
@@ -271,6 +363,8 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
       deleted: deleted ?? this.deleted,
       id: id ?? this.id,
       name: name ?? this.name,
+      defaultPresetId: defaultPresetId ?? this.defaultPresetId,
+      dayStart: dayStart ?? this.dayStart,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -294,6 +388,18 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (defaultPresetId.present) {
+      map['default_preset_id'] = Variable<Uint8List>(
+        $CollectionsTable.$converterdefaultPresetId.toSql(
+          defaultPresetId.value,
+        ),
+      );
+    }
+    if (dayStart.present) {
+      map['day_start'] = Variable<int>(
+        $CollectionsTable.$converterdayStart.toSql(dayStart.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -307,6 +413,8 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
           ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('name: $name, ')
+          ..write('defaultPresetId: $defaultPresetId, ')
+          ..write('dayStart: $dayStart, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -465,6 +573,15 @@ class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
     requiredDuringInsert: true,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<PresetId?, Uint8List> presetId =
+      GeneratedColumn<Uint8List>(
+        'preset_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: false,
+      ).withConverter<PresetId?>($DecksTable.$converterpresetIdn);
+  @override
   List<GeneratedColumn> get $columns => [
     hlc,
     deleted,
@@ -472,6 +589,7 @@ class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
     collectionId,
     parentId,
     name,
+    presetId,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -544,6 +662,12 @@ class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      presetId: $DecksTable.$converterpresetIdn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}preset_id'],
+        ),
+      ),
     );
   }
 
@@ -559,6 +683,10 @@ class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
   static TypeConverter<DeckId, Uint8List> $converterparentId = deckIdConverter;
   static TypeConverter<DeckId?, Uint8List?> $converterparentIdn =
       NullAwareTypeConverter.wrap($converterparentId);
+  static TypeConverter<PresetId, Uint8List> $converterpresetId =
+      presetIdConverter;
+  static TypeConverter<PresetId?, Uint8List?> $converterpresetIdn =
+      NullAwareTypeConverter.wrap($converterpresetId);
 }
 
 class DeckRow extends DataClass implements Insertable<DeckRow> {
@@ -568,6 +696,9 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
   final CollectionId collectionId;
   final DeckId? parentId;
   final String name;
+
+  /// Null to use the parent's preset.
+  final PresetId? presetId;
   const DeckRow({
     required this.hlc,
     required this.deleted,
@@ -575,6 +706,7 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
     required this.collectionId,
     this.parentId,
     required this.name,
+    this.presetId,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -597,6 +729,11 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
       );
     }
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || presetId != null) {
+      map['preset_id'] = Variable<Uint8List>(
+        $DecksTable.$converterpresetIdn.toSql(presetId),
+      );
+    }
     return map;
   }
 
@@ -610,6 +747,9 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
           ? const Value.absent()
           : Value(parentId),
       name: Value(name),
+      presetId: presetId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(presetId),
     );
   }
 
@@ -625,6 +765,7 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
       collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
       parentId: serializer.fromJson<DeckId?>(json['parentId']),
       name: serializer.fromJson<String>(json['name']),
+      presetId: serializer.fromJson<PresetId?>(json['presetId']),
     );
   }
   @override
@@ -637,6 +778,7 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
       'collectionId': serializer.toJson<CollectionId>(collectionId),
       'parentId': serializer.toJson<DeckId?>(parentId),
       'name': serializer.toJson<String>(name),
+      'presetId': serializer.toJson<PresetId?>(presetId),
     };
   }
 
@@ -647,6 +789,7 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
     CollectionId? collectionId,
     Value<DeckId?> parentId = const Value.absent(),
     String? name,
+    Value<PresetId?> presetId = const Value.absent(),
   }) => DeckRow(
     hlc: hlc ?? this.hlc,
     deleted: deleted ?? this.deleted,
@@ -654,6 +797,7 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
     collectionId: collectionId ?? this.collectionId,
     parentId: parentId.present ? parentId.value : this.parentId,
     name: name ?? this.name,
+    presetId: presetId.present ? presetId.value : this.presetId,
   );
   DeckRow copyWithCompanion(DecksCompanion data) {
     return DeckRow(
@@ -665,6 +809,7 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
           : this.collectionId,
       parentId: data.parentId.present ? data.parentId.value : this.parentId,
       name: data.name.present ? data.name.value : this.name,
+      presetId: data.presetId.present ? data.presetId.value : this.presetId,
     );
   }
 
@@ -676,14 +821,15 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('parentId: $parentId, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('presetId: $presetId')
           ..write(')'))
         .toString();
   }
 
   @override
   int get hashCode =>
-      Object.hash(hlc, deleted, id, collectionId, parentId, name);
+      Object.hash(hlc, deleted, id, collectionId, parentId, name, presetId);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -693,7 +839,8 @@ class DeckRow extends DataClass implements Insertable<DeckRow> {
           other.id == this.id &&
           other.collectionId == this.collectionId &&
           other.parentId == this.parentId &&
-          other.name == this.name);
+          other.name == this.name &&
+          other.presetId == this.presetId);
 }
 
 class DecksCompanion extends UpdateCompanion<DeckRow> {
@@ -703,6 +850,7 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
   final Value<CollectionId> collectionId;
   final Value<DeckId?> parentId;
   final Value<String> name;
+  final Value<PresetId?> presetId;
   final Value<int> rowid;
   const DecksCompanion({
     this.hlc = const Value.absent(),
@@ -711,6 +859,7 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
     this.collectionId = const Value.absent(),
     this.parentId = const Value.absent(),
     this.name = const Value.absent(),
+    this.presetId = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   DecksCompanion.insert({
@@ -720,6 +869,7 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
     required CollectionId collectionId,
     this.parentId = const Value.absent(),
     required String name,
+    this.presetId = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : hlc = Value(hlc),
        id = Value(id),
@@ -732,6 +882,7 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
     Expression<Uint8List>? collectionId,
     Expression<Uint8List>? parentId,
     Expression<String>? name,
+    Expression<Uint8List>? presetId,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -741,6 +892,7 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
       if (collectionId != null) 'collection_id': collectionId,
       if (parentId != null) 'parent_id': parentId,
       if (name != null) 'name': name,
+      if (presetId != null) 'preset_id': presetId,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -752,6 +904,7 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
     Value<CollectionId>? collectionId,
     Value<DeckId?>? parentId,
     Value<String>? name,
+    Value<PresetId?>? presetId,
     Value<int>? rowid,
   }) {
     return DecksCompanion(
@@ -761,6 +914,7 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
       collectionId: collectionId ?? this.collectionId,
       parentId: parentId ?? this.parentId,
       name: name ?? this.name,
+      presetId: presetId ?? this.presetId,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -790,6 +944,11 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (presetId.present) {
+      map['preset_id'] = Variable<Uint8List>(
+        $DecksTable.$converterpresetIdn.toSql(presetId.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -805,6 +964,7 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
           ..write('collectionId: $collectionId, ')
           ..write('parentId: $parentId, ')
           ..write('name: $name, ')
+          ..write('presetId: $presetId, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5712,6 +5872,1126 @@ class VisibleMediaAssets extends ViewInfo<VisibleMediaAssets, VisibleMediaAsset>
   Set<String> get readTables => const {'media_assets', 'collections'};
 }
 
+class $PresetVersionsTable extends PresetVersions
+    with TableInfo<$PresetVersionsTable, PresetVersionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PresetVersionsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<PresetVersionId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+      ).withConverter<PresetVersionId>($PresetVersionsTable.$converterid);
+  @override
+  late final GeneratedColumnWithTypeConverter<PresetId, Uint8List> presetId =
+      GeneratedColumn<Uint8List>(
+        'preset_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+      ).withConverter<PresetId>($PresetVersionsTable.$converterpresetId);
+  static const VerificationMeta _schedulerIdMeta = const VerificationMeta(
+    'schedulerId',
+  );
+  @override
+  late final GeneratedColumn<String> schedulerId = GeneratedColumn<String>(
+    'scheduler_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Map<String, Object?>, String>
+  schedulerConfig =
+      GeneratedColumn<String>(
+        'scheduler_config',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Map<String, Object?>>(
+        $PresetVersionsTable.$converterschedulerConfig,
+      );
+  static const VerificationMeta _burnThresholdDaysMeta = const VerificationMeta(
+    'burnThresholdDays',
+  );
+  @override
+  late final GeneratedColumn<int> burnThresholdDays = GeneratedColumn<int>(
+    'burn_threshold_days',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _leechThresholdMeta = const VerificationMeta(
+    'leechThreshold',
+  );
+  @override
+  late final GeneratedColumn<int> leechThreshold = GeneratedColumn<int>(
+    'leech_threshold',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _newCardsPerDayMeta = const VerificationMeta(
+    'newCardsPerDay',
+  );
+  @override
+  late final GeneratedColumn<int> newCardsPerDay = GeneratedColumn<int>(
+    'new_cards_per_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _reviewsPerDayMeta = const VerificationMeta(
+    'reviewsPerDay',
+  );
+  @override
+  late final GeneratedColumn<int> reviewsPerDay = GeneratedColumn<int>(
+    'reviews_per_day',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($PresetVersionsTable.$converterhlc);
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    presetId,
+    schedulerId,
+    schedulerConfig,
+    burnThresholdDays,
+    leechThreshold,
+    newCardsPerDay,
+    reviewsPerDay,
+    hlc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'preset_versions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PresetVersionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('scheduler_id')) {
+      context.handle(
+        _schedulerIdMeta,
+        schedulerId.isAcceptableOrUnknown(
+          data['scheduler_id']!,
+          _schedulerIdMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_schedulerIdMeta);
+    }
+    if (data.containsKey('burn_threshold_days')) {
+      context.handle(
+        _burnThresholdDaysMeta,
+        burnThresholdDays.isAcceptableOrUnknown(
+          data['burn_threshold_days']!,
+          _burnThresholdDaysMeta,
+        ),
+      );
+    }
+    if (data.containsKey('leech_threshold')) {
+      context.handle(
+        _leechThresholdMeta,
+        leechThreshold.isAcceptableOrUnknown(
+          data['leech_threshold']!,
+          _leechThresholdMeta,
+        ),
+      );
+    }
+    if (data.containsKey('new_cards_per_day')) {
+      context.handle(
+        _newCardsPerDayMeta,
+        newCardsPerDay.isAcceptableOrUnknown(
+          data['new_cards_per_day']!,
+          _newCardsPerDayMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_newCardsPerDayMeta);
+    }
+    if (data.containsKey('reviews_per_day')) {
+      context.handle(
+        _reviewsPerDayMeta,
+        reviewsPerDay.isAcceptableOrUnknown(
+          data['reviews_per_day']!,
+          _reviewsPerDayMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_reviewsPerDayMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {presetId, id},
+  ];
+  @override
+  PresetVersionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PresetVersionRow(
+      id: $PresetVersionsTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+      presetId: $PresetVersionsTable.$converterpresetId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}preset_id'],
+        )!,
+      ),
+      schedulerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scheduler_id'],
+      )!,
+      schedulerConfig: $PresetVersionsTable.$converterschedulerConfig.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}scheduler_config'],
+        )!,
+      ),
+      burnThresholdDays: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}burn_threshold_days'],
+      ),
+      leechThreshold: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}leech_threshold'],
+      ),
+      newCardsPerDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}new_cards_per_day'],
+      )!,
+      reviewsPerDay: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}reviews_per_day'],
+      )!,
+      hlc: $PresetVersionsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $PresetVersionsTable createAlias(String alias) {
+    return $PresetVersionsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<PresetVersionId, Uint8List> $converterid =
+      presetVersionIdConverter;
+  static TypeConverter<PresetId, Uint8List> $converterpresetId =
+      presetIdConverter;
+  static TypeConverter<Map<String, Object?>, String> $converterschedulerConfig =
+      const JsonMapConverter();
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
+}
+
+class PresetVersionRow extends DataClass
+    implements Insertable<PresetVersionRow> {
+  final PresetVersionId id;
+  final PresetId presetId;
+  final String schedulerId;
+
+  /// JSON object.
+  final Map<String, Object?> schedulerConfig;
+  final int? burnThresholdDays;
+  final int? leechThreshold;
+  final int newCardsPerDay;
+  final int reviewsPerDay;
+  final Hlc hlc;
+  const PresetVersionRow({
+    required this.id,
+    required this.presetId,
+    required this.schedulerId,
+    required this.schedulerConfig,
+    this.burnThresholdDays,
+    this.leechThreshold,
+    required this.newCardsPerDay,
+    required this.reviewsPerDay,
+    required this.hlc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['id'] = Variable<Uint8List>(
+        $PresetVersionsTable.$converterid.toSql(id),
+      );
+    }
+    {
+      map['preset_id'] = Variable<Uint8List>(
+        $PresetVersionsTable.$converterpresetId.toSql(presetId),
+      );
+    }
+    map['scheduler_id'] = Variable<String>(schedulerId);
+    {
+      map['scheduler_config'] = Variable<String>(
+        $PresetVersionsTable.$converterschedulerConfig.toSql(schedulerConfig),
+      );
+    }
+    if (!nullToAbsent || burnThresholdDays != null) {
+      map['burn_threshold_days'] = Variable<int>(burnThresholdDays);
+    }
+    if (!nullToAbsent || leechThreshold != null) {
+      map['leech_threshold'] = Variable<int>(leechThreshold);
+    }
+    map['new_cards_per_day'] = Variable<int>(newCardsPerDay);
+    map['reviews_per_day'] = Variable<int>(reviewsPerDay);
+    {
+      map['hlc'] = Variable<String>(
+        $PresetVersionsTable.$converterhlc.toSql(hlc),
+      );
+    }
+    return map;
+  }
+
+  PresetVersionsCompanion toCompanion(bool nullToAbsent) {
+    return PresetVersionsCompanion(
+      id: Value(id),
+      presetId: Value(presetId),
+      schedulerId: Value(schedulerId),
+      schedulerConfig: Value(schedulerConfig),
+      burnThresholdDays: burnThresholdDays == null && nullToAbsent
+          ? const Value.absent()
+          : Value(burnThresholdDays),
+      leechThreshold: leechThreshold == null && nullToAbsent
+          ? const Value.absent()
+          : Value(leechThreshold),
+      newCardsPerDay: Value(newCardsPerDay),
+      reviewsPerDay: Value(reviewsPerDay),
+      hlc: Value(hlc),
+    );
+  }
+
+  factory PresetVersionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PresetVersionRow(
+      id: serializer.fromJson<PresetVersionId>(json['id']),
+      presetId: serializer.fromJson<PresetId>(json['presetId']),
+      schedulerId: serializer.fromJson<String>(json['schedulerId']),
+      schedulerConfig: serializer.fromJson<Map<String, Object?>>(
+        json['schedulerConfig'],
+      ),
+      burnThresholdDays: serializer.fromJson<int?>(json['burnThresholdDays']),
+      leechThreshold: serializer.fromJson<int?>(json['leechThreshold']),
+      newCardsPerDay: serializer.fromJson<int>(json['newCardsPerDay']),
+      reviewsPerDay: serializer.fromJson<int>(json['reviewsPerDay']),
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<PresetVersionId>(id),
+      'presetId': serializer.toJson<PresetId>(presetId),
+      'schedulerId': serializer.toJson<String>(schedulerId),
+      'schedulerConfig': serializer.toJson<Map<String, Object?>>(
+        schedulerConfig,
+      ),
+      'burnThresholdDays': serializer.toJson<int?>(burnThresholdDays),
+      'leechThreshold': serializer.toJson<int?>(leechThreshold),
+      'newCardsPerDay': serializer.toJson<int>(newCardsPerDay),
+      'reviewsPerDay': serializer.toJson<int>(reviewsPerDay),
+      'hlc': serializer.toJson<Hlc>(hlc),
+    };
+  }
+
+  PresetVersionRow copyWith({
+    PresetVersionId? id,
+    PresetId? presetId,
+    String? schedulerId,
+    Map<String, Object?>? schedulerConfig,
+    Value<int?> burnThresholdDays = const Value.absent(),
+    Value<int?> leechThreshold = const Value.absent(),
+    int? newCardsPerDay,
+    int? reviewsPerDay,
+    Hlc? hlc,
+  }) => PresetVersionRow(
+    id: id ?? this.id,
+    presetId: presetId ?? this.presetId,
+    schedulerId: schedulerId ?? this.schedulerId,
+    schedulerConfig: schedulerConfig ?? this.schedulerConfig,
+    burnThresholdDays: burnThresholdDays.present
+        ? burnThresholdDays.value
+        : this.burnThresholdDays,
+    leechThreshold: leechThreshold.present
+        ? leechThreshold.value
+        : this.leechThreshold,
+    newCardsPerDay: newCardsPerDay ?? this.newCardsPerDay,
+    reviewsPerDay: reviewsPerDay ?? this.reviewsPerDay,
+    hlc: hlc ?? this.hlc,
+  );
+  PresetVersionRow copyWithCompanion(PresetVersionsCompanion data) {
+    return PresetVersionRow(
+      id: data.id.present ? data.id.value : this.id,
+      presetId: data.presetId.present ? data.presetId.value : this.presetId,
+      schedulerId: data.schedulerId.present
+          ? data.schedulerId.value
+          : this.schedulerId,
+      schedulerConfig: data.schedulerConfig.present
+          ? data.schedulerConfig.value
+          : this.schedulerConfig,
+      burnThresholdDays: data.burnThresholdDays.present
+          ? data.burnThresholdDays.value
+          : this.burnThresholdDays,
+      leechThreshold: data.leechThreshold.present
+          ? data.leechThreshold.value
+          : this.leechThreshold,
+      newCardsPerDay: data.newCardsPerDay.present
+          ? data.newCardsPerDay.value
+          : this.newCardsPerDay,
+      reviewsPerDay: data.reviewsPerDay.present
+          ? data.reviewsPerDay.value
+          : this.reviewsPerDay,
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PresetVersionRow(')
+          ..write('id: $id, ')
+          ..write('presetId: $presetId, ')
+          ..write('schedulerId: $schedulerId, ')
+          ..write('schedulerConfig: $schedulerConfig, ')
+          ..write('burnThresholdDays: $burnThresholdDays, ')
+          ..write('leechThreshold: $leechThreshold, ')
+          ..write('newCardsPerDay: $newCardsPerDay, ')
+          ..write('reviewsPerDay: $reviewsPerDay, ')
+          ..write('hlc: $hlc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    id,
+    presetId,
+    schedulerId,
+    schedulerConfig,
+    burnThresholdDays,
+    leechThreshold,
+    newCardsPerDay,
+    reviewsPerDay,
+    hlc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PresetVersionRow &&
+          other.id == this.id &&
+          other.presetId == this.presetId &&
+          other.schedulerId == this.schedulerId &&
+          other.schedulerConfig == this.schedulerConfig &&
+          other.burnThresholdDays == this.burnThresholdDays &&
+          other.leechThreshold == this.leechThreshold &&
+          other.newCardsPerDay == this.newCardsPerDay &&
+          other.reviewsPerDay == this.reviewsPerDay &&
+          other.hlc == this.hlc);
+}
+
+class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
+  final Value<PresetVersionId> id;
+  final Value<PresetId> presetId;
+  final Value<String> schedulerId;
+  final Value<Map<String, Object?>> schedulerConfig;
+  final Value<int?> burnThresholdDays;
+  final Value<int?> leechThreshold;
+  final Value<int> newCardsPerDay;
+  final Value<int> reviewsPerDay;
+  final Value<Hlc> hlc;
+  final Value<int> rowid;
+  const PresetVersionsCompanion({
+    this.id = const Value.absent(),
+    this.presetId = const Value.absent(),
+    this.schedulerId = const Value.absent(),
+    this.schedulerConfig = const Value.absent(),
+    this.burnThresholdDays = const Value.absent(),
+    this.leechThreshold = const Value.absent(),
+    this.newCardsPerDay = const Value.absent(),
+    this.reviewsPerDay = const Value.absent(),
+    this.hlc = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PresetVersionsCompanion.insert({
+    required PresetVersionId id,
+    required PresetId presetId,
+    required String schedulerId,
+    required Map<String, Object?> schedulerConfig,
+    this.burnThresholdDays = const Value.absent(),
+    this.leechThreshold = const Value.absent(),
+    required int newCardsPerDay,
+    required int reviewsPerDay,
+    required Hlc hlc,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       presetId = Value(presetId),
+       schedulerId = Value(schedulerId),
+       schedulerConfig = Value(schedulerConfig),
+       newCardsPerDay = Value(newCardsPerDay),
+       reviewsPerDay = Value(reviewsPerDay),
+       hlc = Value(hlc);
+  static Insertable<PresetVersionRow> custom({
+    Expression<Uint8List>? id,
+    Expression<Uint8List>? presetId,
+    Expression<String>? schedulerId,
+    Expression<String>? schedulerConfig,
+    Expression<int>? burnThresholdDays,
+    Expression<int>? leechThreshold,
+    Expression<int>? newCardsPerDay,
+    Expression<int>? reviewsPerDay,
+    Expression<String>? hlc,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (presetId != null) 'preset_id': presetId,
+      if (schedulerId != null) 'scheduler_id': schedulerId,
+      if (schedulerConfig != null) 'scheduler_config': schedulerConfig,
+      if (burnThresholdDays != null) 'burn_threshold_days': burnThresholdDays,
+      if (leechThreshold != null) 'leech_threshold': leechThreshold,
+      if (newCardsPerDay != null) 'new_cards_per_day': newCardsPerDay,
+      if (reviewsPerDay != null) 'reviews_per_day': reviewsPerDay,
+      if (hlc != null) 'hlc': hlc,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PresetVersionsCompanion copyWith({
+    Value<PresetVersionId>? id,
+    Value<PresetId>? presetId,
+    Value<String>? schedulerId,
+    Value<Map<String, Object?>>? schedulerConfig,
+    Value<int?>? burnThresholdDays,
+    Value<int?>? leechThreshold,
+    Value<int>? newCardsPerDay,
+    Value<int>? reviewsPerDay,
+    Value<Hlc>? hlc,
+    Value<int>? rowid,
+  }) {
+    return PresetVersionsCompanion(
+      id: id ?? this.id,
+      presetId: presetId ?? this.presetId,
+      schedulerId: schedulerId ?? this.schedulerId,
+      schedulerConfig: schedulerConfig ?? this.schedulerConfig,
+      burnThresholdDays: burnThresholdDays ?? this.burnThresholdDays,
+      leechThreshold: leechThreshold ?? this.leechThreshold,
+      newCardsPerDay: newCardsPerDay ?? this.newCardsPerDay,
+      reviewsPerDay: reviewsPerDay ?? this.reviewsPerDay,
+      hlc: hlc ?? this.hlc,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<Uint8List>(
+        $PresetVersionsTable.$converterid.toSql(id.value),
+      );
+    }
+    if (presetId.present) {
+      map['preset_id'] = Variable<Uint8List>(
+        $PresetVersionsTable.$converterpresetId.toSql(presetId.value),
+      );
+    }
+    if (schedulerId.present) {
+      map['scheduler_id'] = Variable<String>(schedulerId.value);
+    }
+    if (schedulerConfig.present) {
+      map['scheduler_config'] = Variable<String>(
+        $PresetVersionsTable.$converterschedulerConfig.toSql(
+          schedulerConfig.value,
+        ),
+      );
+    }
+    if (burnThresholdDays.present) {
+      map['burn_threshold_days'] = Variable<int>(burnThresholdDays.value);
+    }
+    if (leechThreshold.present) {
+      map['leech_threshold'] = Variable<int>(leechThreshold.value);
+    }
+    if (newCardsPerDay.present) {
+      map['new_cards_per_day'] = Variable<int>(newCardsPerDay.value);
+    }
+    if (reviewsPerDay.present) {
+      map['reviews_per_day'] = Variable<int>(reviewsPerDay.value);
+    }
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $PresetVersionsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PresetVersionsCompanion(')
+          ..write('id: $id, ')
+          ..write('presetId: $presetId, ')
+          ..write('schedulerId: $schedulerId, ')
+          ..write('schedulerConfig: $schedulerConfig, ')
+          ..write('burnThresholdDays: $burnThresholdDays, ')
+          ..write('leechThreshold: $leechThreshold, ')
+          ..write('newCardsPerDay: $newCardsPerDay, ')
+          ..write('reviewsPerDay: $reviewsPerDay, ')
+          ..write('hlc: $hlc, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $PresetsTable extends Presets with TableInfo<$PresetsTable, PresetRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $PresetsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($PresetsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<PresetId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+      ).withConverter<PresetId>($PresetsTable.$converterid);
+  @override
+  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
+  collectionId = GeneratedColumn<Uint8List>(
+    'collection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES collections (id)',
+    ),
+  ).withConverter<CollectionId>($PresetsTable.$convertercollectionId);
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<PresetVersionId, Uint8List>
+  currentVersionId = GeneratedColumn<Uint8List>(
+    'current_version_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  ).withConverter<PresetVersionId>($PresetsTable.$convertercurrentVersionId);
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    collectionId,
+    name,
+    currentVersionId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'presets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<PresetRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  List<Set<GeneratedColumn>> get uniqueKeys => [
+    {collectionId, id},
+  ];
+  @override
+  PresetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return PresetRow(
+      hlc: $PresetsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      id: $PresetsTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+      collectionId: $PresetsTable.$convertercollectionId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}collection_id'],
+        )!,
+      ),
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      currentVersionId: $PresetsTable.$convertercurrentVersionId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}current_version_id'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $PresetsTable createAlias(String alias) {
+    return $PresetsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
+  static TypeConverter<PresetId, Uint8List> $converterid = presetIdConverter;
+  static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
+      collectionIdConverter;
+  static TypeConverter<PresetVersionId, Uint8List> $convertercurrentVersionId =
+      presetVersionIdConverter;
+}
+
+class PresetRow extends DataClass implements Insertable<PresetRow> {
+  final Hlc hlc;
+  final bool deleted;
+  final PresetId id;
+  final CollectionId collectionId;
+  final String name;
+  final PresetVersionId currentVersionId;
+  const PresetRow({
+    required this.hlc,
+    required this.deleted,
+    required this.id,
+    required this.collectionId,
+    required this.name,
+    required this.currentVersionId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($PresetsTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
+    {
+      map['id'] = Variable<Uint8List>($PresetsTable.$converterid.toSql(id));
+    }
+    {
+      map['collection_id'] = Variable<Uint8List>(
+        $PresetsTable.$convertercollectionId.toSql(collectionId),
+      );
+    }
+    map['name'] = Variable<String>(name);
+    {
+      map['current_version_id'] = Variable<Uint8List>(
+        $PresetsTable.$convertercurrentVersionId.toSql(currentVersionId),
+      );
+    }
+    return map;
+  }
+
+  PresetsCompanion toCompanion(bool nullToAbsent) {
+    return PresetsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      id: Value(id),
+      collectionId: Value(collectionId),
+      name: Value(name),
+      currentVersionId: Value(currentVersionId),
+    );
+  }
+
+  factory PresetRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return PresetRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      id: serializer.fromJson<PresetId>(json['id']),
+      collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
+      name: serializer.fromJson<String>(json['name']),
+      currentVersionId: serializer.fromJson<PresetVersionId>(
+        json['currentVersionId'],
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
+      'id': serializer.toJson<PresetId>(id),
+      'collectionId': serializer.toJson<CollectionId>(collectionId),
+      'name': serializer.toJson<String>(name),
+      'currentVersionId': serializer.toJson<PresetVersionId>(currentVersionId),
+    };
+  }
+
+  PresetRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
+    PresetId? id,
+    CollectionId? collectionId,
+    String? name,
+    PresetVersionId? currentVersionId,
+  }) => PresetRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    id: id ?? this.id,
+    collectionId: collectionId ?? this.collectionId,
+    name: name ?? this.name,
+    currentVersionId: currentVersionId ?? this.currentVersionId,
+  );
+  PresetRow copyWithCompanion(PresetsCompanion data) {
+    return PresetRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      id: data.id.present ? data.id.value : this.id,
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      name: data.name.present ? data.name.value : this.name,
+      currentVersionId: data.currentVersionId.present
+          ? data.currentVersionId.value
+          : this.currentVersionId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PresetRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('id: $id, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('name: $name, ')
+          ..write('currentVersionId: $currentVersionId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(hlc, deleted, id, collectionId, name, currentVersionId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is PresetRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
+          other.id == this.id &&
+          other.collectionId == this.collectionId &&
+          other.name == this.name &&
+          other.currentVersionId == this.currentVersionId);
+}
+
+class PresetsCompanion extends UpdateCompanion<PresetRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
+  final Value<PresetId> id;
+  final Value<CollectionId> collectionId;
+  final Value<String> name;
+  final Value<PresetVersionId> currentVersionId;
+  final Value<int> rowid;
+  const PresetsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.id = const Value.absent(),
+    this.collectionId = const Value.absent(),
+    this.name = const Value.absent(),
+    this.currentVersionId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  PresetsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
+    required PresetId id,
+    required CollectionId collectionId,
+    required String name,
+    required PresetVersionId currentVersionId,
+    this.rowid = const Value.absent(),
+  }) : hlc = Value(hlc),
+       id = Value(id),
+       collectionId = Value(collectionId),
+       name = Value(name),
+       currentVersionId = Value(currentVersionId);
+  static Insertable<PresetRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
+    Expression<Uint8List>? id,
+    Expression<Uint8List>? collectionId,
+    Expression<String>? name,
+    Expression<Uint8List>? currentVersionId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
+      if (id != null) 'id': id,
+      if (collectionId != null) 'collection_id': collectionId,
+      if (name != null) 'name': name,
+      if (currentVersionId != null) 'current_version_id': currentVersionId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  PresetsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
+    Value<PresetId>? id,
+    Value<CollectionId>? collectionId,
+    Value<String>? name,
+    Value<PresetVersionId>? currentVersionId,
+    Value<int>? rowid,
+  }) {
+    return PresetsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
+      id: id ?? this.id,
+      collectionId: collectionId ?? this.collectionId,
+      name: name ?? this.name,
+      currentVersionId: currentVersionId ?? this.currentVersionId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $PresetsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<Uint8List>(
+        $PresetsTable.$converterid.toSql(id.value),
+      );
+    }
+    if (collectionId.present) {
+      map['collection_id'] = Variable<Uint8List>(
+        $PresetsTable.$convertercollectionId.toSql(collectionId.value),
+      );
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (currentVersionId.present) {
+      map['current_version_id'] = Variable<Uint8List>(
+        $PresetsTable.$convertercurrentVersionId.toSql(currentVersionId.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('PresetsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('id: $id, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('name: $name, ')
+          ..write('currentVersionId: $currentVersionId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class VisiblePreset extends DataClass {
+  final PresetId id;
+  const VisiblePreset({required this.id});
+  factory VisiblePreset.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisiblePreset(id: serializer.fromJson<PresetId>(json['id']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<PresetId>(id)};
+  }
+
+  VisiblePreset copyWith({PresetId? id}) => VisiblePreset(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisiblePreset(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is VisiblePreset && other.id == this.id);
+}
+
+class VisiblePresets extends ViewInfo<VisiblePresets, VisiblePreset>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisiblePresets(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_presets';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_presets AS SELECT p.id FROM presets AS p WHERE p.deleted = 0 AND EXISTS (SELECT 1 FROM visible_collections AS c WHERE c.id = p.collection_id)',
+  };
+  @override
+  VisiblePresets get asDslTable => this;
+  @override
+  VisiblePreset map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisiblePreset(
+      id: $PresetsTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+    );
+  }
+
+  late final GeneratedColumnWithTypeConverter<PresetId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<PresetId>($PresetsTable.$converterid);
+  @override
+  VisiblePresets createAlias(String alias) {
+    return VisiblePresets(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'presets',
+    'collections',
+    'preset_versions',
+  };
+}
+
 class $DeviceTable extends Device with TableInfo<$DeviceTable, DeviceRow> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -6419,17 +7699,21 @@ class $ReviewEventsTable extends ReviewEvents
     type: DriftSqlType.int,
     requiredDuringInsert: true,
   );
-  static const VerificationMeta _configVersionMeta = const VerificationMeta(
-    'configVersion',
-  );
   @override
-  late final GeneratedColumn<int> configVersion = GeneratedColumn<int>(
-    'config_version',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
+  late final GeneratedColumnWithTypeConverter<PresetVersionId, Uint8List>
+  presetVersionId =
+      GeneratedColumn<Uint8List>(
+        'preset_version_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        defaultConstraints: GeneratedColumn.constraintIsAlways(
+          'REFERENCES preset_versions (id)',
+        ),
+      ).withConverter<PresetVersionId>(
+        $ReviewEventsTable.$converterpresetVersionId,
+      );
   @override
   late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
       GeneratedColumn<String>(
@@ -6453,7 +7737,7 @@ class $ReviewEventsTable extends ReviewEvents
     undoneEventId,
     schedulerId,
     schedulerVersion,
-    configVersion,
+    presetVersionId,
     hlc,
   ];
   @override
@@ -6489,17 +7773,6 @@ class $ReviewEventsTable extends ReviewEvents
       );
     } else if (isInserting) {
       context.missing(_schedulerVersionMeta);
-    }
-    if (data.containsKey('config_version')) {
-      context.handle(
-        _configVersionMeta,
-        configVersion.isAcceptableOrUnknown(
-          data['config_version']!,
-          _configVersionMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_configVersionMeta);
     }
     return context;
   }
@@ -6578,10 +7851,12 @@ class $ReviewEventsTable extends ReviewEvents
         DriftSqlType.int,
         data['${effectivePrefix}scheduler_version'],
       )!,
-      configVersion: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}config_version'],
-      )!,
+      presetVersionId: $ReviewEventsTable.$converterpresetVersionId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}preset_version_id'],
+        )!,
+      ),
       hlc: $ReviewEventsTable.$converterhlc.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -6625,6 +7900,8 @@ class $ReviewEventsTable extends ReviewEvents
       reviewEventIdConverter;
   static TypeConverter<ReviewEventId?, Uint8List?> $converterundoneEventIdn =
       NullAwareTypeConverter.wrap($converterundoneEventId);
+  static TypeConverter<PresetVersionId, Uint8List> $converterpresetVersionId =
+      presetVersionIdConverter;
   static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
 }
 
@@ -6641,7 +7918,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
   final ReviewEventId? undoneEventId;
   final String schedulerId;
   final int schedulerVersion;
-  final int configVersion;
+  final PresetVersionId presetVersionId;
   final Hlc hlc;
   const ReviewEventRow({
     required this.id,
@@ -6656,7 +7933,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     this.undoneEventId,
     required this.schedulerId,
     required this.schedulerVersion,
-    required this.configVersion,
+    required this.presetVersionId,
     required this.hlc,
   });
   @override
@@ -6712,7 +7989,11 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     }
     map['scheduler_id'] = Variable<String>(schedulerId);
     map['scheduler_version'] = Variable<int>(schedulerVersion);
-    map['config_version'] = Variable<int>(configVersion);
+    {
+      map['preset_version_id'] = Variable<Uint8List>(
+        $ReviewEventsTable.$converterpresetVersionId.toSql(presetVersionId),
+      );
+    }
     {
       map['hlc'] = Variable<String>(
         $ReviewEventsTable.$converterhlc.toSql(hlc),
@@ -6745,7 +8026,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
           : Value(undoneEventId),
       schedulerId: Value(schedulerId),
       schedulerVersion: Value(schedulerVersion),
-      configVersion: Value(configVersion),
+      presetVersionId: Value(presetVersionId),
       hlc: Value(hlc),
     );
   }
@@ -6772,7 +8053,9 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
       undoneEventId: serializer.fromJson<ReviewEventId?>(json['undoneEventId']),
       schedulerId: serializer.fromJson<String>(json['schedulerId']),
       schedulerVersion: serializer.fromJson<int>(json['schedulerVersion']),
-      configVersion: serializer.fromJson<int>(json['configVersion']),
+      presetVersionId: serializer.fromJson<PresetVersionId>(
+        json['presetVersionId'],
+      ),
       hlc: serializer.fromJson<Hlc>(json['hlc']),
     );
   }
@@ -6796,7 +8079,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
       'undoneEventId': serializer.toJson<ReviewEventId?>(undoneEventId),
       'schedulerId': serializer.toJson<String>(schedulerId),
       'schedulerVersion': serializer.toJson<int>(schedulerVersion),
-      'configVersion': serializer.toJson<int>(configVersion),
+      'presetVersionId': serializer.toJson<PresetVersionId>(presetVersionId),
       'hlc': serializer.toJson<Hlc>(hlc),
     };
   }
@@ -6814,7 +8097,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     Value<ReviewEventId?> undoneEventId = const Value.absent(),
     String? schedulerId,
     int? schedulerVersion,
-    int? configVersion,
+    PresetVersionId? presetVersionId,
     Hlc? hlc,
   }) => ReviewEventRow(
     id: id ?? this.id,
@@ -6831,7 +8114,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
         : this.undoneEventId,
     schedulerId: schedulerId ?? this.schedulerId,
     schedulerVersion: schedulerVersion ?? this.schedulerVersion,
-    configVersion: configVersion ?? this.configVersion,
+    presetVersionId: presetVersionId ?? this.presetVersionId,
     hlc: hlc ?? this.hlc,
   );
   ReviewEventRow copyWithCompanion(ReviewEventsCompanion data) {
@@ -6858,9 +8141,9 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
       schedulerVersion: data.schedulerVersion.present
           ? data.schedulerVersion.value
           : this.schedulerVersion,
-      configVersion: data.configVersion.present
-          ? data.configVersion.value
-          : this.configVersion,
+      presetVersionId: data.presetVersionId.present
+          ? data.presetVersionId.value
+          : this.presetVersionId,
       hlc: data.hlc.present ? data.hlc.value : this.hlc,
     );
   }
@@ -6880,7 +8163,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
           ..write('undoneEventId: $undoneEventId, ')
           ..write('schedulerId: $schedulerId, ')
           ..write('schedulerVersion: $schedulerVersion, ')
-          ..write('configVersion: $configVersion, ')
+          ..write('presetVersionId: $presetVersionId, ')
           ..write('hlc: $hlc')
           ..write(')'))
         .toString();
@@ -6900,7 +8183,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
     undoneEventId,
     schedulerId,
     schedulerVersion,
-    configVersion,
+    presetVersionId,
     hlc,
   );
   @override
@@ -6919,7 +8202,7 @@ class ReviewEventRow extends DataClass implements Insertable<ReviewEventRow> {
           other.undoneEventId == this.undoneEventId &&
           other.schedulerId == this.schedulerId &&
           other.schedulerVersion == this.schedulerVersion &&
-          other.configVersion == this.configVersion &&
+          other.presetVersionId == this.presetVersionId &&
           other.hlc == this.hlc);
 }
 
@@ -6936,7 +8219,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
   final Value<ReviewEventId?> undoneEventId;
   final Value<String> schedulerId;
   final Value<int> schedulerVersion;
-  final Value<int> configVersion;
+  final Value<PresetVersionId> presetVersionId;
   final Value<Hlc> hlc;
   final Value<int> rowid;
   const ReviewEventsCompanion({
@@ -6952,7 +8235,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     this.undoneEventId = const Value.absent(),
     this.schedulerId = const Value.absent(),
     this.schedulerVersion = const Value.absent(),
-    this.configVersion = const Value.absent(),
+    this.presetVersionId = const Value.absent(),
     this.hlc = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -6969,7 +8252,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     this.undoneEventId = const Value.absent(),
     required String schedulerId,
     required int schedulerVersion,
-    required int configVersion,
+    required PresetVersionId presetVersionId,
     required Hlc hlc,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -6979,7 +8262,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
        utcOffset = Value(utcOffset),
        schedulerId = Value(schedulerId),
        schedulerVersion = Value(schedulerVersion),
-       configVersion = Value(configVersion),
+       presetVersionId = Value(presetVersionId),
        hlc = Value(hlc);
   static Insertable<ReviewEventRow> custom({
     Expression<Uint8List>? id,
@@ -6994,7 +8277,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     Expression<Uint8List>? undoneEventId,
     Expression<String>? schedulerId,
     Expression<int>? schedulerVersion,
-    Expression<int>? configVersion,
+    Expression<Uint8List>? presetVersionId,
     Expression<String>? hlc,
     Expression<int>? rowid,
   }) {
@@ -7011,7 +8294,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
       if (undoneEventId != null) 'undone_event_id': undoneEventId,
       if (schedulerId != null) 'scheduler_id': schedulerId,
       if (schedulerVersion != null) 'scheduler_version': schedulerVersion,
-      if (configVersion != null) 'config_version': configVersion,
+      if (presetVersionId != null) 'preset_version_id': presetVersionId,
       if (hlc != null) 'hlc': hlc,
       if (rowid != null) 'rowid': rowid,
     });
@@ -7030,7 +8313,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     Value<ReviewEventId?>? undoneEventId,
     Value<String>? schedulerId,
     Value<int>? schedulerVersion,
-    Value<int>? configVersion,
+    Value<PresetVersionId>? presetVersionId,
     Value<Hlc>? hlc,
     Value<int>? rowid,
   }) {
@@ -7047,7 +8330,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
       undoneEventId: undoneEventId ?? this.undoneEventId,
       schedulerId: schedulerId ?? this.schedulerId,
       schedulerVersion: schedulerVersion ?? this.schedulerVersion,
-      configVersion: configVersion ?? this.configVersion,
+      presetVersionId: presetVersionId ?? this.presetVersionId,
       hlc: hlc ?? this.hlc,
       rowid: rowid ?? this.rowid,
     );
@@ -7112,8 +8395,12 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
     if (schedulerVersion.present) {
       map['scheduler_version'] = Variable<int>(schedulerVersion.value);
     }
-    if (configVersion.present) {
-      map['config_version'] = Variable<int>(configVersion.value);
+    if (presetVersionId.present) {
+      map['preset_version_id'] = Variable<Uint8List>(
+        $ReviewEventsTable.$converterpresetVersionId.toSql(
+          presetVersionId.value,
+        ),
+      );
     }
     if (hlc.present) {
       map['hlc'] = Variable<String>(
@@ -7141,7 +8428,7 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
           ..write('undoneEventId: $undoneEventId, ')
           ..write('schedulerId: $schedulerId, ')
           ..write('schedulerVersion: $schedulerVersion, ')
-          ..write('configVersion: $configVersion, ')
+          ..write('presetVersionId: $presetVersionId, ')
           ..write('hlc: $hlc, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -7765,6 +9052,9 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
   late final VisibleNoteTags visibleNoteTags = VisibleNoteTags(this);
   late final $MediaAssetsTable mediaAssets = $MediaAssetsTable(this);
   late final VisibleMediaAssets visibleMediaAssets = VisibleMediaAssets(this);
+  late final $PresetVersionsTable presetVersions = $PresetVersionsTable(this);
+  late final $PresetsTable presets = $PresetsTable(this);
+  late final VisiblePresets visiblePresets = VisiblePresets(this);
   late final $DeviceTable device = $DeviceTable(this);
   late final $OutboxTable outbox = $OutboxTable(this);
   late final Index outboxHlc = Index(
@@ -7802,6 +9092,18 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
   late final Index schedulingStatesDue = Index(
     'scheduling_states_due',
     'CREATE INDEX scheduling_states_due ON scheduling_states (state, due)',
+  );
+  late final Index presetsCollection = Index(
+    'presets_collection',
+    'CREATE INDEX presets_collection ON presets (collection_id)',
+  );
+  late final Index presetsHlc = Index(
+    'presets_hlc',
+    'CREATE INDEX presets_hlc ON presets (hlc)',
+  );
+  late final Index presetVersionsHlc = Index(
+    'preset_versions_hlc',
+    'CREATE INDEX preset_versions_hlc ON preset_versions (hlc)',
   );
   late final Index noteTypesCollection = Index(
     'note_types_collection',
@@ -7903,6 +9205,10 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
     'media_assets_collection_immutable',
   );
+  late final Trigger presetsCollectionImmutable = Trigger(
+    'CREATE TRIGGER presets_collection_immutable BEFORE UPDATE OF collection_id ON presets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'presets_collection_immutable',
+  );
   late final Trigger collectionsHlcChanges = Trigger(
     'CREATE TRIGGER collections_hlc_changes BEFORE UPDATE ON collections WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
     'collections_hlc_changes',
@@ -7947,9 +9253,17 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'CREATE TRIGGER media_assets_hlc_changes BEFORE UPDATE ON media_assets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
     'media_assets_hlc_changes',
   );
+  late final Trigger presetsHlcChanges = Trigger(
+    'CREATE TRIGGER presets_hlc_changes BEFORE UPDATE ON presets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'presets_hlc_changes',
+  );
   late final Trigger reviewEventsAppendOnly = Trigger(
     'CREATE TRIGGER review_events_append_only BEFORE UPDATE ON review_events BEGIN SELECT RAISE (ABORT, \'review events are append-only\');END',
     'review_events_append_only',
+  );
+  late final Trigger presetVersionsAppendOnly = Trigger(
+    'CREATE TRIGGER preset_versions_append_only BEFORE UPDATE ON preset_versions BEGIN SELECT RAISE (ABORT, \'preset versions are append-only\');END',
+    'preset_versions_append_only',
   );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
@@ -7978,6 +9292,9 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     visibleNoteTags,
     mediaAssets,
     visibleMediaAssets,
+    presetVersions,
+    presets,
+    visiblePresets,
     device,
     outbox,
     outboxHlc,
@@ -7990,6 +9307,9 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     reviewEventsAt,
     reviewEventsHlc,
     schedulingStatesDue,
+    presetsCollection,
+    presetsHlc,
+    presetVersionsHlc,
     noteTypesCollection,
     noteTypesHlc,
     fieldDefinitionsNoteType,
@@ -8015,6 +9335,7 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     noteTagsCollectionImmutable,
     studyCardsCollectionImmutable,
     mediaAssetsCollectionImmutable,
+    presetsCollectionImmutable,
     collectionsHlcChanges,
     decksHlcChanges,
     tagsHlcChanges,
@@ -8026,7 +9347,9 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     noteTagsHlcChanges,
     studyCardsHlcChanges,
     mediaAssetsHlcChanges,
+    presetsHlcChanges,
     reviewEventsAppendOnly,
+    presetVersionsAppendOnly,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
@@ -8116,6 +9439,13 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'presets',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'collections',
         limitUpdateKind: UpdateKind.update,
       ),
@@ -8193,7 +9523,21 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
+        'presets',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
         'review_events',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'preset_versions',
         limitUpdateKind: UpdateKind.update,
       ),
       result: [],
@@ -8207,6 +9551,8 @@ typedef $$CollectionsTableCreateCompanionBuilder =
       Value<bool> deleted,
       required CollectionId id,
       required String name,
+      required PresetId defaultPresetId,
+      required Duration dayStart,
       Value<int> rowid,
     });
 typedef $$CollectionsTableUpdateCompanionBuilder =
@@ -8215,6 +9561,8 @@ typedef $$CollectionsTableUpdateCompanionBuilder =
       Value<bool> deleted,
       Value<CollectionId> id,
       Value<String> name,
+      Value<PresetId> defaultPresetId,
+      Value<Duration> dayStart,
       Value<int> rowid,
     });
 
@@ -8344,6 +9692,24 @@ final class $$CollectionsTableReferences
       manager.$state.copyWith(prefetchedData: cache),
     );
   }
+
+  static MultiTypedResultKey<$PresetsTable, List<PresetRow>> _presetsRefsTable(
+    _$MemukiDatabase db,
+  ) => MultiTypedResultKey.fromTable(
+    db.presets,
+    aliasName: 'collections__id__presets__collection_id',
+  );
+
+  $$PresetsTableProcessedTableManager get presetsRefs {
+    final manager = $$PresetsTableTableManager($_db, $_db.presets).filter(
+      (f) => f.collectionId.id.sqlEquals($_itemColumn<Uint8List>('id')!),
+    );
+
+    final cache = $_typedResult.readTableOrNull(_presetsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
 }
 
 class $$CollectionsTableFilterComposer
@@ -8376,6 +9742,18 @@ class $$CollectionsTableFilterComposer
     column: $table.name,
     builder: (column) => ColumnFilters(column),
   );
+
+  ColumnWithTypeConverterFilters<PresetId, PresetId, Uint8List>
+  get defaultPresetId => $composableBuilder(
+    column: $table.defaultPresetId,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Duration, Duration, int> get dayStart =>
+      $composableBuilder(
+        column: $table.dayStart,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
 
   Expression<bool> decksRefs(
     Expression<bool> Function($$DecksTableFilterComposer f) f,
@@ -8551,6 +9929,31 @@ class $$CollectionsTableFilterComposer
     );
     return f(composer);
   }
+
+  Expression<bool> presetsRefs(
+    Expression<bool> Function($$PresetsTableFilterComposer f) f,
+  ) {
+    final $$PresetsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.presets,
+      getReferencedColumn: (t) => t.collectionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PresetsTableFilterComposer(
+            $db: $db,
+            $table: $db.presets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CollectionsTableOrderingComposer
@@ -8581,6 +9984,16 @@ class $$CollectionsTableOrderingComposer
     column: $table.name,
     builder: (column) => ColumnOrderings(column),
   );
+
+  ColumnOrderings<Uint8List> get defaultPresetId => $composableBuilder(
+    column: $table.defaultPresetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get dayStart => $composableBuilder(
+    column: $table.dayStart,
+    builder: (column) => ColumnOrderings(column),
+  );
 }
 
 class $$CollectionsTableAnnotationComposer
@@ -8603,6 +10016,15 @@ class $$CollectionsTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<PresetId, Uint8List> get defaultPresetId =>
+      $composableBuilder(
+        column: $table.defaultPresetId,
+        builder: (column) => column,
+      );
+
+  GeneratedColumnWithTypeConverter<Duration, int> get dayStart =>
+      $composableBuilder(column: $table.dayStart, builder: (column) => column);
 
   Expression<T> decksRefs<T extends Object>(
     Expression<T> Function($$DecksTableAnnotationComposer a) f,
@@ -8778,6 +10200,31 @@ class $$CollectionsTableAnnotationComposer
     );
     return f(composer);
   }
+
+  Expression<T> presetsRefs<T extends Object>(
+    Expression<T> Function($$PresetsTableAnnotationComposer a) f,
+  ) {
+    final $$PresetsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.presets,
+      getReferencedColumn: (t) => t.collectionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PresetsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.presets,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
 }
 
 class $$CollectionsTableTableManager
@@ -8801,6 +10248,7 @@ class $$CollectionsTableTableManager
             bool studyCardsRefs,
             bool noteTagsRefs,
             bool mediaAssetsRefs,
+            bool presetsRefs,
           })
         > {
   $$CollectionsTableTableManager(_$MemukiDatabase db, $CollectionsTable table)
@@ -8820,12 +10268,16 @@ class $$CollectionsTableTableManager
                 Value<bool> deleted = const Value.absent(),
                 Value<CollectionId> id = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<PresetId> defaultPresetId = const Value.absent(),
+                Value<Duration> dayStart = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => CollectionsCompanion(
                 hlc: hlc,
                 deleted: deleted,
                 id: id,
                 name: name,
+                defaultPresetId: defaultPresetId,
+                dayStart: dayStart,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -8834,12 +10286,16 @@ class $$CollectionsTableTableManager
                 Value<bool> deleted = const Value.absent(),
                 required CollectionId id,
                 required String name,
+                required PresetId defaultPresetId,
+                required Duration dayStart,
                 Value<int> rowid = const Value.absent(),
               }) => CollectionsCompanion.insert(
                 hlc: hlc,
                 deleted: deleted,
                 id: id,
                 name: name,
+                defaultPresetId: defaultPresetId,
+                dayStart: dayStart,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -8859,6 +10315,7 @@ class $$CollectionsTableTableManager
                 studyCardsRefs = false,
                 noteTagsRefs = false,
                 mediaAssetsRefs = false,
+                presetsRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
@@ -8870,6 +10327,7 @@ class $$CollectionsTableTableManager
                     if (studyCardsRefs) db.studyCards,
                     if (noteTagsRefs) db.noteTags,
                     if (mediaAssetsRefs) db.mediaAssets,
+                    if (presetsRefs) db.presets,
                   ],
                   addJoins: null,
                   getPrefetchedDataCallback: (items) async {
@@ -9014,6 +10472,26 @@ class $$CollectionsTableTableManager
                           referencedColumn: 'collection_id',
                           typedResults: items,
                         ),
+                      if (presetsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          CollectionRow,
+                          $CollectionsTable,
+                          PresetRow,
+                          $PresetsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CollectionsTableReferences
+                              ._presetsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CollectionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).presetsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'collection_id',
+                          typedResults: items,
+                        ),
                     ];
                   },
                 );
@@ -9042,6 +10520,7 @@ typedef $$CollectionsTableProcessedTableManager =
         bool studyCardsRefs,
         bool noteTagsRefs,
         bool mediaAssetsRefs,
+        bool presetsRefs,
       })
     >;
 typedef $$DecksTableCreateCompanionBuilder = DecksCompanion Function({
@@ -9051,6 +10530,7 @@ typedef $$DecksTableCreateCompanionBuilder = DecksCompanion Function({
   required CollectionId collectionId,
   Value<DeckId?> parentId,
   required String name,
+  Value<PresetId?> presetId,
   Value<int> rowid,
 });
 typedef $$DecksTableUpdateCompanionBuilder = DecksCompanion Function({
@@ -9060,6 +10540,7 @@ typedef $$DecksTableUpdateCompanionBuilder = DecksCompanion Function({
   Value<CollectionId> collectionId,
   Value<DeckId?> parentId,
   Value<String> name,
+  Value<PresetId?> presetId,
   Value<int> rowid,
 });
 
@@ -9122,6 +10603,12 @@ class $$DecksTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<PresetId?, PresetId, Uint8List> get presetId =>
+      $composableBuilder(
+        column: $table.presetId,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
   $$CollectionsTableFilterComposer get collectionId {
     final $$CollectionsTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -9180,6 +10667,11 @@ class $$DecksTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<Uint8List> get presetId => $composableBuilder(
+    column: $table.presetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CollectionsTableOrderingComposer get collectionId {
     final $$CollectionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -9227,6 +10719,9 @@ class $$DecksTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<PresetId?, Uint8List> get presetId =>
+      $composableBuilder(column: $table.presetId, builder: (column) => column);
 
   $$CollectionsTableAnnotationComposer get collectionId {
     final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
@@ -9286,6 +10781,7 @@ class $$DecksTableTableManager
                 Value<CollectionId> collectionId = const Value.absent(),
                 Value<DeckId?> parentId = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<PresetId?> presetId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DecksCompanion(
                 hlc: hlc,
@@ -9294,6 +10790,7 @@ class $$DecksTableTableManager
                 collectionId: collectionId,
                 parentId: parentId,
                 name: name,
+                presetId: presetId,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -9304,6 +10801,7 @@ class $$DecksTableTableManager
                 required CollectionId collectionId,
                 Value<DeckId?> parentId = const Value.absent(),
                 required String name,
+                Value<PresetId?> presetId = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => DecksCompanion.insert(
                 hlc: hlc,
@@ -9312,6 +10810,7 @@ class $$DecksTableTableManager
                 collectionId: collectionId,
                 parentId: parentId,
                 name: name,
+                presetId: presetId,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -13307,6 +14806,755 @@ typedef $$MediaAssetsTableProcessedTableManager =
       MediaAssetRow,
       PrefetchHooks Function({bool collectionId})
     >;
+typedef $$PresetVersionsTableCreateCompanionBuilder =
+    PresetVersionsCompanion Function({
+      required PresetVersionId id,
+      required PresetId presetId,
+      required String schedulerId,
+      required Map<String, Object?> schedulerConfig,
+      Value<int?> burnThresholdDays,
+      Value<int?> leechThreshold,
+      required int newCardsPerDay,
+      required int reviewsPerDay,
+      required Hlc hlc,
+      Value<int> rowid,
+    });
+typedef $$PresetVersionsTableUpdateCompanionBuilder =
+    PresetVersionsCompanion Function({
+      Value<PresetVersionId> id,
+      Value<PresetId> presetId,
+      Value<String> schedulerId,
+      Value<Map<String, Object?>> schedulerConfig,
+      Value<int?> burnThresholdDays,
+      Value<int?> leechThreshold,
+      Value<int> newCardsPerDay,
+      Value<int> reviewsPerDay,
+      Value<Hlc> hlc,
+      Value<int> rowid,
+    });
+
+final class $$PresetVersionsTableReferences
+    extends
+        BaseReferences<
+          _$MemukiDatabase,
+          $PresetVersionsTable,
+          PresetVersionRow
+        > {
+  $$PresetVersionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static MultiTypedResultKey<$ReviewEventsTable, List<ReviewEventRow>>
+  _reviewEventsRefsTable(_$MemukiDatabase db) => MultiTypedResultKey.fromTable(
+    db.reviewEvents,
+    aliasName: 'preset_versions__id__review_events__preset_version_id',
+  );
+
+  $$ReviewEventsTableProcessedTableManager get reviewEventsRefs {
+    final manager = $$ReviewEventsTableTableManager($_db, $_db.reviewEvents)
+        .filter(
+          (f) => f.presetVersionId.id.sqlEquals($_itemColumn<Uint8List>('id')!),
+        );
+
+    final cache = $_typedResult.readTableOrNull(_reviewEventsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$PresetVersionsTableFilterComposer
+    extends Composer<_$MemukiDatabase, $PresetVersionsTable> {
+  $$PresetVersionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<PresetVersionId, PresetVersionId, Uint8List>
+  get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<PresetId, PresetId, Uint8List> get presetId =>
+      $composableBuilder(
+        column: $table.presetId,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get schedulerId => $composableBuilder(
+    column: $table.schedulerId,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    Map<String, Object?>,
+    Map<String, Object>,
+    String
+  >
+  get schedulerConfig => $composableBuilder(
+    column: $table.schedulerConfig,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get burnThresholdDays => $composableBuilder(
+    column: $table.burnThresholdDays,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get leechThreshold => $composableBuilder(
+    column: $table.leechThreshold,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get newCardsPerDay => $composableBuilder(
+    column: $table.newCardsPerDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get reviewsPerDay => $composableBuilder(
+    column: $table.reviewsPerDay,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  Expression<bool> reviewEventsRefs(
+    Expression<bool> Function($$ReviewEventsTableFilterComposer f) f,
+  ) {
+    final $$ReviewEventsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reviewEvents,
+      getReferencedColumn: (t) => t.presetVersionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReviewEventsTableFilterComposer(
+            $db: $db,
+            $table: $db.reviewEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$PresetVersionsTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $PresetVersionsTable> {
+  $$PresetVersionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<Uint8List> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get presetId => $composableBuilder(
+    column: $table.presetId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get schedulerId => $composableBuilder(
+    column: $table.schedulerId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get schedulerConfig => $composableBuilder(
+    column: $table.schedulerConfig,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get burnThresholdDays => $composableBuilder(
+    column: $table.burnThresholdDays,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get leechThreshold => $composableBuilder(
+    column: $table.leechThreshold,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get newCardsPerDay => $composableBuilder(
+    column: $table.newCardsPerDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get reviewsPerDay => $composableBuilder(
+    column: $table.reviewsPerDay,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$PresetVersionsTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $PresetVersionsTable> {
+  $$PresetVersionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<PresetVersionId, Uint8List> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<PresetId, Uint8List> get presetId =>
+      $composableBuilder(column: $table.presetId, builder: (column) => column);
+
+  GeneratedColumn<String> get schedulerId => $composableBuilder(
+    column: $table.schedulerId,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<Map<String, Object?>, String>
+  get schedulerConfig => $composableBuilder(
+    column: $table.schedulerConfig,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get burnThresholdDays => $composableBuilder(
+    column: $table.burnThresholdDays,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get leechThreshold => $composableBuilder(
+    column: $table.leechThreshold,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get newCardsPerDay => $composableBuilder(
+    column: $table.newCardsPerDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<int> get reviewsPerDay => $composableBuilder(
+    column: $table.reviewsPerDay,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  Expression<T> reviewEventsRefs<T extends Object>(
+    Expression<T> Function($$ReviewEventsTableAnnotationComposer a) f,
+  ) {
+    final $$ReviewEventsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.reviewEvents,
+      getReferencedColumn: (t) => t.presetVersionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$ReviewEventsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.reviewEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$PresetVersionsTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $PresetVersionsTable,
+          PresetVersionRow,
+          $$PresetVersionsTableFilterComposer,
+          $$PresetVersionsTableOrderingComposer,
+          $$PresetVersionsTableAnnotationComposer,
+          $$PresetVersionsTableCreateCompanionBuilder,
+          $$PresetVersionsTableUpdateCompanionBuilder,
+          (PresetVersionRow, $$PresetVersionsTableReferences),
+          PresetVersionRow,
+          PrefetchHooks Function({bool reviewEventsRefs})
+        > {
+  $$PresetVersionsTableTableManager(
+    _$MemukiDatabase db,
+    $PresetVersionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PresetVersionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PresetVersionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PresetVersionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<PresetVersionId> id = const Value.absent(),
+                Value<PresetId> presetId = const Value.absent(),
+                Value<String> schedulerId = const Value.absent(),
+                Value<Map<String, Object?>> schedulerConfig =
+                    const Value.absent(),
+                Value<int?> burnThresholdDays = const Value.absent(),
+                Value<int?> leechThreshold = const Value.absent(),
+                Value<int> newCardsPerDay = const Value.absent(),
+                Value<int> reviewsPerDay = const Value.absent(),
+                Value<Hlc> hlc = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PresetVersionsCompanion(
+                id: id,
+                presetId: presetId,
+                schedulerId: schedulerId,
+                schedulerConfig: schedulerConfig,
+                burnThresholdDays: burnThresholdDays,
+                leechThreshold: leechThreshold,
+                newCardsPerDay: newCardsPerDay,
+                reviewsPerDay: reviewsPerDay,
+                hlc: hlc,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required PresetVersionId id,
+                required PresetId presetId,
+                required String schedulerId,
+                required Map<String, Object?> schedulerConfig,
+                Value<int?> burnThresholdDays = const Value.absent(),
+                Value<int?> leechThreshold = const Value.absent(),
+                required int newCardsPerDay,
+                required int reviewsPerDay,
+                required Hlc hlc,
+                Value<int> rowid = const Value.absent(),
+              }) => PresetVersionsCompanion.insert(
+                id: id,
+                presetId: presetId,
+                schedulerId: schedulerId,
+                schedulerConfig: schedulerConfig,
+                burnThresholdDays: burnThresholdDays,
+                leechThreshold: leechThreshold,
+                newCardsPerDay: newCardsPerDay,
+                reviewsPerDay: reviewsPerDay,
+                hlc: hlc,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PresetVersionsTable, PresetVersionRow>(table),
+                  $$PresetVersionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({reviewEventsRefs = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [if (reviewEventsRefs) db.reviewEvents],
+              addJoins: null,
+              getPrefetchedDataCallback: (items) async {
+                return [
+                  if (reviewEventsRefs)
+                    await $_getPrefetchedDataByColumns<
+                      PresetVersionRow,
+                      $PresetVersionsTable,
+                      ReviewEventRow,
+                      $ReviewEventsTable
+                    >(
+                      currentTable: table,
+                      referencedTable: $$PresetVersionsTableReferences
+                          ._reviewEventsRefsTable(db),
+                      managerFromTypedResult: (p0) =>
+                          $$PresetVersionsTableReferences(
+                            db,
+                            table,
+                            p0,
+                          ).reviewEventsRefs,
+                      currentColumn: 'id',
+                      referencedColumn: 'preset_version_id',
+                      typedResults: items,
+                    ),
+                ];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PresetVersionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $PresetVersionsTable,
+      PresetVersionRow,
+      $$PresetVersionsTableFilterComposer,
+      $$PresetVersionsTableOrderingComposer,
+      $$PresetVersionsTableAnnotationComposer,
+      $$PresetVersionsTableCreateCompanionBuilder,
+      $$PresetVersionsTableUpdateCompanionBuilder,
+      (PresetVersionRow, $$PresetVersionsTableReferences),
+      PresetVersionRow,
+      PrefetchHooks Function({bool reviewEventsRefs})
+    >;
+typedef $$PresetsTableCreateCompanionBuilder = PresetsCompanion Function({
+  required Hlc hlc,
+  Value<bool> deleted,
+  required PresetId id,
+  required CollectionId collectionId,
+  required String name,
+  required PresetVersionId currentVersionId,
+  Value<int> rowid,
+});
+typedef $$PresetsTableUpdateCompanionBuilder = PresetsCompanion Function({
+  Value<Hlc> hlc,
+  Value<bool> deleted,
+  Value<PresetId> id,
+  Value<CollectionId> collectionId,
+  Value<String> name,
+  Value<PresetVersionId> currentVersionId,
+  Value<int> rowid,
+});
+
+final class $$PresetsTableReferences
+    extends BaseReferences<_$MemukiDatabase, $PresetsTable, PresetRow> {
+  $$PresetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CollectionsTable _collectionIdTable(_$MemukiDatabase db) =>
+      db.collections.createAlias('presets__collection_id__collections__id');
+
+  $$CollectionsTableProcessedTableManager get collectionId {
+    final $_column = $_itemColumn<Uint8List>('collection_id')!;
+
+    final manager = $$CollectionsTableTableManager(
+      $_db,
+      $_db.collections,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_collectionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$PresetsTableFilterComposer
+    extends Composer<_$MemukiDatabase, $PresetsTable> {
+  $$PresetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<PresetId, PresetId, Uint8List> get id =>
+      $composableBuilder(
+        column: $table.id,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<PresetVersionId, PresetVersionId, Uint8List>
+  get currentVersionId => $composableBuilder(
+    column: $table.currentVersionId,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  $$CollectionsTableFilterComposer get collectionId {
+    final $$CollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PresetsTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $PresetsTable> {
+  $$PresetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get currentVersionId => $composableBuilder(
+    column: $table.currentVersionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CollectionsTableOrderingComposer get collectionId {
+    final $$CollectionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PresetsTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $PresetsTable> {
+  $$PresetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<PresetId, Uint8List> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<PresetVersionId, Uint8List>
+  get currentVersionId => $composableBuilder(
+    column: $table.currentVersionId,
+    builder: (column) => column,
+  );
+
+  $$CollectionsTableAnnotationComposer get collectionId {
+    final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$PresetsTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $PresetsTable,
+          PresetRow,
+          $$PresetsTableFilterComposer,
+          $$PresetsTableOrderingComposer,
+          $$PresetsTableAnnotationComposer,
+          $$PresetsTableCreateCompanionBuilder,
+          $$PresetsTableUpdateCompanionBuilder,
+          (PresetRow, $$PresetsTableReferences),
+          PresetRow,
+          PrefetchHooks Function({bool collectionId})
+        > {
+  $$PresetsTableTableManager(_$MemukiDatabase db, $PresetsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$PresetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$PresetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$PresetsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<PresetId> id = const Value.absent(),
+                Value<CollectionId> collectionId = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<PresetVersionId> currentVersionId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => PresetsCompanion(
+                hlc: hlc,
+                deleted: deleted,
+                id: id,
+                collectionId: collectionId,
+                name: name,
+                currentVersionId: currentVersionId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
+                required PresetId id,
+                required CollectionId collectionId,
+                required String name,
+                required PresetVersionId currentVersionId,
+                Value<int> rowid = const Value.absent(),
+              }) => PresetsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
+                id: id,
+                collectionId: collectionId,
+                name: name,
+                currentVersionId: currentVersionId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$PresetsTable, PresetRow>(table),
+                  $$PresetsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({collectionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (collectionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.collectionId,
+                        referencedTable: $$PresetsTableReferences
+                            ._collectionIdTable(db),
+                        referencedColumn: $$PresetsTableReferences
+                            ._collectionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$PresetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $PresetsTable,
+      PresetRow,
+      $$PresetsTableFilterComposer,
+      $$PresetsTableOrderingComposer,
+      $$PresetsTableAnnotationComposer,
+      $$PresetsTableCreateCompanionBuilder,
+      $$PresetsTableUpdateCompanionBuilder,
+      (PresetRow, $$PresetsTableReferences),
+      PresetRow,
+      PrefetchHooks Function({bool collectionId})
+    >;
 typedef $$DeviceTableCreateCompanionBuilder = DeviceCompanion Function({
   Value<int> id,
   required String node,
@@ -13664,7 +15912,7 @@ typedef $$ReviewEventsTableCreateCompanionBuilder =
       Value<ReviewEventId?> undoneEventId,
       required String schedulerId,
       required int schedulerVersion,
-      required int configVersion,
+      required PresetVersionId presetVersionId,
       required Hlc hlc,
       Value<int> rowid,
     });
@@ -13682,7 +15930,7 @@ typedef $$ReviewEventsTableUpdateCompanionBuilder =
       Value<ReviewEventId?> undoneEventId,
       Value<String> schedulerId,
       Value<int> schedulerVersion,
-      Value<int> configVersion,
+      Value<PresetVersionId> presetVersionId,
       Value<Hlc> hlc,
       Value<int> rowid,
     });
@@ -13722,6 +15970,24 @@ final class $$ReviewEventsTableReferences
       $_db.reviewEvents,
     ).filter((f) => f.id.sqlEquals($_column));
     final item = $_typedResult.readTableOrNull(_undoneEventIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static $PresetVersionsTable _presetVersionIdTable(_$MemukiDatabase db) => db
+      .presetVersions
+      .createAlias('review_events__preset_version_id__preset_versions__id');
+
+  $$PresetVersionsTableProcessedTableManager get presetVersionId {
+    final $_column = $_itemColumn<Uint8List>('preset_version_id')!;
+
+    final manager = $$PresetVersionsTableTableManager(
+      $_db,
+      $_db.presetVersions,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_presetVersionIdTable($_db));
     if (item == null) return manager;
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: [item]),
@@ -13817,11 +16083,6 @@ class $$ReviewEventsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
-  ColumnFilters<int> get configVersion => $composableBuilder(
-    column: $table.configVersion,
-    builder: (column) => ColumnFilters(column),
-  );
-
   ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
       $composableBuilder(
         column: $table.hlc,
@@ -13865,6 +16126,29 @@ class $$ReviewEventsTableFilterComposer
           }) => $$ReviewEventsTableFilterComposer(
             $db: $db,
             $table: $db.reviewEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PresetVersionsTableFilterComposer get presetVersionId {
+    final $$PresetVersionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.presetVersionId,
+      referencedTable: $db.presetVersions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PresetVersionsTableFilterComposer(
+            $db: $db,
+            $table: $db.presetVersions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -13959,11 +16243,6 @@ class $$ReviewEventsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
-  ColumnOrderings<int> get configVersion => $composableBuilder(
-    column: $table.configVersion,
-    builder: (column) => ColumnOrderings(column),
-  );
-
   ColumnOrderings<String> get hlc => $composableBuilder(
     column: $table.hlc,
     builder: (column) => ColumnOrderings(column),
@@ -14006,6 +16285,29 @@ class $$ReviewEventsTableOrderingComposer
           }) => $$ReviewEventsTableOrderingComposer(
             $db: $db,
             $table: $db.reviewEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PresetVersionsTableOrderingComposer get presetVersionId {
+    final $$PresetVersionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.presetVersionId,
+      referencedTable: $db.presetVersions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PresetVersionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.presetVersions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -14062,11 +16364,6 @@ class $$ReviewEventsTableAnnotationComposer
     builder: (column) => column,
   );
 
-  GeneratedColumn<int> get configVersion => $composableBuilder(
-    column: $table.configVersion,
-    builder: (column) => column,
-  );
-
   GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
       $composableBuilder(column: $table.hlc, builder: (column) => column);
 
@@ -14107,6 +16404,29 @@ class $$ReviewEventsTableAnnotationComposer
           }) => $$ReviewEventsTableAnnotationComposer(
             $db: $db,
             $table: $db.reviewEvents,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  $$PresetVersionsTableAnnotationComposer get presetVersionId {
+    final $$PresetVersionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.presetVersionId,
+      referencedTable: $db.presetVersions,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$PresetVersionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.presetVersions,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -14158,6 +16478,7 @@ class $$ReviewEventsTableTableManager
           PrefetchHooks Function({
             bool studyCardId,
             bool undoneEventId,
+            bool presetVersionId,
             bool schedulingStatesRefs,
           })
         > {
@@ -14186,7 +16507,7 @@ class $$ReviewEventsTableTableManager
                 Value<ReviewEventId?> undoneEventId = const Value.absent(),
                 Value<String> schedulerId = const Value.absent(),
                 Value<int> schedulerVersion = const Value.absent(),
-                Value<int> configVersion = const Value.absent(),
+                Value<PresetVersionId> presetVersionId = const Value.absent(),
                 Value<Hlc> hlc = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => ReviewEventsCompanion(
@@ -14202,7 +16523,7 @@ class $$ReviewEventsTableTableManager
                 undoneEventId: undoneEventId,
                 schedulerId: schedulerId,
                 schedulerVersion: schedulerVersion,
-                configVersion: configVersion,
+                presetVersionId: presetVersionId,
                 hlc: hlc,
                 rowid: rowid,
               ),
@@ -14220,7 +16541,7 @@ class $$ReviewEventsTableTableManager
                 Value<ReviewEventId?> undoneEventId = const Value.absent(),
                 required String schedulerId,
                 required int schedulerVersion,
-                required int configVersion,
+                required PresetVersionId presetVersionId,
                 required Hlc hlc,
                 Value<int> rowid = const Value.absent(),
               }) => ReviewEventsCompanion.insert(
@@ -14236,7 +16557,7 @@ class $$ReviewEventsTableTableManager
                 undoneEventId: undoneEventId,
                 schedulerId: schedulerId,
                 schedulerVersion: schedulerVersion,
-                configVersion: configVersion,
+                presetVersionId: presetVersionId,
                 hlc: hlc,
                 rowid: rowid,
               ),
@@ -14252,6 +16573,7 @@ class $$ReviewEventsTableTableManager
               ({
                 studyCardId = false,
                 undoneEventId = false,
+                presetVersionId = false,
                 schedulingStatesRefs = false,
               }) {
                 return PrefetchHooks(
@@ -14294,6 +16616,17 @@ class $$ReviewEventsTableTableManager
                                 ._undoneEventIdTable(db),
                             referencedColumn: $$ReviewEventsTableReferences
                                 ._undoneEventIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+                        if (presetVersionId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.presetVersionId,
+                            referencedTable: $$ReviewEventsTableReferences
+                                ._presetVersionIdTable(db),
+                            referencedColumn: $$ReviewEventsTableReferences
+                                ._presetVersionIdTable(db)
                                 .id,
                           ) as T;
                         }
@@ -14345,6 +16678,7 @@ typedef $$ReviewEventsTableProcessedTableManager =
       PrefetchHooks Function({
         bool studyCardId,
         bool undoneEventId,
+        bool presetVersionId,
         bool schedulingStatesRefs,
       })
     >;
@@ -14868,6 +17202,10 @@ class $MemukiDatabaseManager {
       $$NoteTagsTableTableManager(_db, _db.noteTags);
   $$MediaAssetsTableTableManager get mediaAssets =>
       $$MediaAssetsTableTableManager(_db, _db.mediaAssets);
+  $$PresetVersionsTableTableManager get presetVersions =>
+      $$PresetVersionsTableTableManager(_db, _db.presetVersions);
+  $$PresetsTableTableManager get presets =>
+      $$PresetsTableTableManager(_db, _db.presets);
   $$DeviceTableTableManager get device =>
       $$DeviceTableTableManager(_db, _db.device);
   $$OutboxTableTableManager get outbox =>

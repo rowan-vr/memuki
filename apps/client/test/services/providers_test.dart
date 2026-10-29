@@ -1,7 +1,6 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/review.dart';
-import 'package:memuki/scheduler/scheduling_engine.dart';
 import 'package:memuki/services/providers.dart';
 import 'package:memuki/storage/providers.dart';
 
@@ -18,9 +17,7 @@ void main() {
       db,
     ).seedCollection()).addNote('猫');
 
-    await container
-        .read(reviewServiceProvider)
-        .review(card.id, Grade.good, settings: const SchedulingSettings());
+    await container.read(reviewServiceProvider).review(card.id, Grade.good);
 
     expect(await Repositories(db).reviews.history(card.id), hasLength(1));
   });

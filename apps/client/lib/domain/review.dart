@@ -73,7 +73,9 @@ abstract class ReviewEvent with _$ReviewEvent {
     ReviewEventId? undoneEventId,
     required String schedulerId,
     required int schedulerVersion,
-    required int configVersion,
+
+    /// The preset settings the event was recorded with.
+    required PresetVersionId presetVersionId,
   }) = _ReviewEvent;
 }
 
