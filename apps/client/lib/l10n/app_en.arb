@@ -43,5 +43,25 @@
   "settingsThemeModeDark": "Dark",
   "@settingsThemeModeDark": {
     "description": "Dark theme option."
+  },
+  "startupErrorTitle": "Memuki could not open your data",
+  "@startupErrorTitle": {
+    "description": "Heading shown instead of the app when the database cannot be opened at startup."
+  },
+  "startupErrorTooNew": "Your data was saved by a newer version of Memuki. Update Memuki to open it. Your data has not been changed.",
+  "@startupErrorTooNew": {
+    "description": "Startup error when the database was written by a newer app version."
+  },
+  "startupErrorMigration": "Memuki could not update your data for this version. Your data has been left as it was.",
+  "@startupErrorMigration": {
+    "description": "Startup error when upgrading the database to the current version failed."
+  },
+  "startupErrorUnknown": "Something went wrong while opening your data.",
+  "@startupErrorUnknown": {
+    "description": "Startup error for any other failure to open the database."
+  },
+  "startupErrorDetails": "Details",
+  "@startupErrorDetails": {
+    "description": "Label above the technical error details on the startup error screen."
   }
 }
