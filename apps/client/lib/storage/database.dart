@@ -146,7 +146,8 @@ class MemukiDatabase extends _$MemukiDatabase {
         steps: migrationSteps(from1To2: _from1To2),
       );
 
-  /// Adds HLC timestamps and tombstones, the device table, and the outbox.
+  /// Adds HLC timestamps and tombstones, the device table, the outbox, and the
+  /// triggers that guard them.
   /// Existing rows get one initial timestamp. They are not added to the
   /// outbox; the first sync uploads the whole collection.
   Future<void> _from1To2(Migrator m, Schema2 schema) async {
@@ -192,5 +193,22 @@ class MemukiDatabase extends _$MemukiDatabase {
       schema.reviewEventsHlc,
       tombstones: false,
     );
+
+    for (final trigger in [
+      schema.collectionsHlcChanges,
+      schema.decksHlcChanges,
+      schema.tagsHlcChanges,
+      schema.noteTypesHlcChanges,
+      schema.fieldDefinitionsHlcChanges,
+      schema.studyCardTemplatesHlcChanges,
+      schema.notesHlcChanges,
+      schema.noteFieldsHlcChanges,
+      schema.noteTagsHlcChanges,
+      schema.studyCardsHlcChanges,
+      schema.mediaAssetsHlcChanges,
+      schema.reviewEventsAppendOnly,
+    ]) {
+      await m.createTrigger(trigger);
+    }
   }
 }

@@ -1,9 +1,11 @@
 import 'dart:io';
 
+import 'package:drift/drift.dart' hide isNotNull, isNull;
 import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/note.dart';
+import 'package:memuki/domain/review.dart';
 import 'package:memuki/domain/study_card.dart';
 import 'package:memuki/storage/database.dart';
 import 'package:memuki/storage/repositories/repository_exceptions.dart';
@@ -158,6 +160,48 @@ void main() {
       throwsA(isA<EntityNotFoundException>()),
     );
     expect(await db.select(db.outbox).get(), isEmpty);
+  });
+
+  test('an update that keeps the old timestamp is rejected', () async {
+    await expectLater(
+      db.update(db.decks).write(const DecksCompanion(name: Value('Renamed'))),
+      throwsA(
+        isA<SqliteException>().having(
+          (e) => e.message,
+          'message',
+          contains('hlc must change'),
+        ),
+      ),
+    );
+    expect((await db.select(db.decks).getSingle()).name, japanese.deck.name);
+  });
+
+  test('review events cannot be updated', () async {
+    final (_, card) = await japanese.addNote('猫');
+    await repos.reviews.append(
+      ReviewEvent(
+        id: ReviewEventId.generate(),
+        studyCardId: card.id,
+        kind: ReviewEventKind.review,
+        at: DateTime.utc(2026, 10, 29),
+        grade: Grade.good,
+        schedulerId: 'sm2',
+        schedulerVersion: 1,
+        configVersion: 1,
+      ),
+    );
+    await expectLater(
+      db
+          .update(db.reviewEvents)
+          .write(ReviewEventsCompanion(hlc: Value(db.clock.tick()))),
+      throwsA(
+        isA<SqliteException>().having(
+          (e) => e.message,
+          'message',
+          contains('append-only'),
+        ),
+      ),
+    );
   });
 
   test('the clock continues across restarts', () async {

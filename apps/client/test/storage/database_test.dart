@@ -375,7 +375,10 @@ void main() {
 
     await expectLater(
       (db.update(db.decks)..where((d) => d.id.equalsValue(seed.deckId))).write(
-        DecksCompanion(collectionId: Value(other.collectionId)),
+        DecksCompanion(
+          collectionId: Value(other.collectionId),
+          hlc: Value(Hlc(1, 0, _hlc.node)),
+        ),
       ),
       throwsA(
         isA<SqliteException>().having(
@@ -386,8 +389,14 @@ void main() {
       ),
     );
     // Updating other columns still works.
-    await (db.update(db.decks)..where((d) => d.id.equalsValue(seed.deckId)))
-        .write(const DecksCompanion(name: Value('Renamed')));
+    await (db.update(
+      db.decks,
+    )..where((d) => d.id.equalsValue(seed.deckId))).write(
+      DecksCompanion(
+        name: const Value('Renamed'),
+        hlc: Value(Hlc(1, 0, _hlc.node)),
+      ),
+    );
   });
 
   group('opening', () {

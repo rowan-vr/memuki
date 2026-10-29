@@ -1180,97 +1180,74 @@
     },
     {
       "id": 16,
-      "references": [],
-      "type": "table",
+      "references": [
+        0
+      ],
+      "type": "trigger",
       "data": {
-        "name": "device",
-        "was_declared_in_moor": false,
-        "columns": [
-          {
-            "name": "id",
-            "getter_name": "id",
-            "moor_type": "int",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "node",
-            "getter_name": "node",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "last_hlc",
-            "getter_name": "lastHlc",
-            "moor_type": "string",
-            "nullable": true,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [],
-            "type_converter": {
-              "dart_expr": "const HlcConverter()",
-              "dart_type_name": "Hlc"
-            }
-          }
+        "on": 0,
+        "references_in_body": [
+          0
         ],
-        "is_virtual": false,
-        "without_rowid": false,
-        "constraints": [],
-        "explicit_pk": [
-          "id"
-        ]
+        "name": "collections_hlc_changes",
+        "sql": "CREATE TRIGGER collections_hlc_changes\nBEFORE UPDATE ON collections\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
       }
     },
     {
       "id": 17,
-      "references": [],
+      "references": [
+        1
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 1,
+        "references_in_body": [
+          1
+        ],
+        "name": "decks_hlc_changes",
+        "sql": "CREATE TRIGGER decks_hlc_changes\nBEFORE UPDATE ON decks\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
+      }
+    },
+    {
+      "id": 18,
+      "references": [
+        3
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 3,
+        "references_in_body": [
+          3
+        ],
+        "name": "tags_hlc_changes",
+        "sql": "CREATE TRIGGER tags_hlc_changes\nBEFORE UPDATE ON tags\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
+      }
+    },
+    {
+      "id": 19,
+      "references": [
+        5
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 5,
+        "references_in_body": [
+          5
+        ],
+        "name": "note_types_hlc_changes",
+        "sql": "CREATE TRIGGER note_types_hlc_changes\nBEFORE UPDATE ON note_types\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
+      }
+    },
+    {
+      "id": 20,
+      "references": [
+        5
+      ],
       "type": "table",
       "data": {
-        "name": "outbox",
+        "name": "field_definitions",
         "was_declared_in_moor": false,
         "columns": [
-          {
-            "name": "collection_id",
-            "getter_name": "collectionId",
-            "moor_type": "blob",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [],
-            "type_converter": {
-              "dart_expr": "collectionIdConverter",
-              "dart_type_name": "CollectionId"
-            }
-          },
-          {
-            "name": "entity_table",
-            "getter_name": "entityTable",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "entity_key",
-            "getter_name": "entityKey",
-            "moor_type": "blob",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
           {
             "name": "hlc",
             "getter_name": "hlc",
@@ -1284,99 +1261,334 @@
               "dart_expr": "const HlcConverter()",
               "dart_type_name": "Hlc"
             }
+          },
+          {
+            "name": "deleted",
+            "getter_name": "deleted",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "CHECK (\"deleted\" IN (0, 1))",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "CHECK (\"deleted\" IN (0, 1))"
+            },
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "blob",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "fieldDefinitionIdConverter",
+              "dart_type_name": "FieldDefinitionId"
+            }
+          },
+          {
+            "name": "note_type_id",
+            "getter_name": "noteTypeId",
+            "moor_type": "blob",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES note_types (id) ON DELETE CASCADE",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES note_types (id) ON DELETE CASCADE"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "note_types",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ],
+            "type_converter": {
+              "dart_expr": "noteTypeIdConverter",
+              "dart_type_name": "NoteTypeId"
+            }
+          },
+          {
+            "name": "position",
+            "getter_name": "position",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "name",
+            "getter_name": "name",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "type",
+            "getter_name": "type",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<FieldType>(FieldType.values)",
+              "dart_type_name": "FieldType"
+            }
           }
         ],
         "is_virtual": false,
         "without_rowid": false,
         "constraints": [],
         "explicit_pk": [
-          "entity_table",
-          "entity_key"
-        ]
-      }
-    },
-    {
-      "id": 18,
-      "references": [
-        17
-      ],
-      "type": "index",
-      "data": {
-        "on": 17,
-        "name": "outbox_hlc",
-        "sql": null,
-        "unique": false,
-        "columns": [
-          {
-            "column": "hlc",
-            "order_by": null
-          }
-        ]
-      }
-    },
-    {
-      "id": 19,
-      "references": [
-        12
-      ],
-      "type": "index",
-      "data": {
-        "on": 12,
-        "name": "study_cards_deck",
-        "sql": null,
-        "unique": false,
-        "columns": [
-          {
-            "column": "collection_id",
-            "order_by": null
-          },
-          {
-            "column": "deck_id",
-            "order_by": null
-          }
-        ]
-      }
-    },
-    {
-      "id": 20,
-      "references": [
-        12
-      ],
-      "type": "index",
-      "data": {
-        "on": 12,
-        "name": "study_cards_template",
-        "sql": null,
-        "unique": false,
-        "columns": [
-          {
-            "column": "template_id",
-            "order_by": null
-          }
+          "id"
         ]
       }
     },
     {
       "id": 21,
       "references": [
-        12
+        20
       ],
-      "type": "index",
+      "type": "trigger",
       "data": {
-        "on": 12,
-        "name": "study_cards_hlc",
-        "sql": null,
-        "unique": false,
-        "columns": [
-          {
-            "column": "hlc",
-            "order_by": null
-          }
-        ]
+        "on": 20,
+        "references_in_body": [
+          20
+        ],
+        "name": "field_definitions_hlc_changes",
+        "sql": "CREATE TRIGGER field_definitions_hlc_changes\nBEFORE UPDATE ON field_definitions\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
       }
     },
     {
       "id": 22,
+      "references": [
+        11
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 11,
+        "references_in_body": [
+          11
+        ],
+        "name": "study_card_templates_hlc_changes",
+        "sql": "CREATE TRIGGER study_card_templates_hlc_changes\nBEFORE UPDATE ON study_card_templates\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
+      }
+    },
+    {
+      "id": 23,
+      "references": [
+        7
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 7,
+        "references_in_body": [
+          7
+        ],
+        "name": "notes_hlc_changes",
+        "sql": "CREATE TRIGGER notes_hlc_changes\nBEFORE UPDATE ON notes\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
+      }
+    },
+    {
+      "id": 24,
+      "references": [
+        7,
+        20
+      ],
+      "type": "table",
+      "data": {
+        "name": "note_fields",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "hlc",
+            "getter_name": "hlc",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const HlcConverter()",
+              "dart_type_name": "Hlc"
+            }
+          },
+          {
+            "name": "deleted",
+            "getter_name": "deleted",
+            "moor_type": "bool",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "CHECK (\"deleted\" IN (0, 1))",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "CHECK (\"deleted\" IN (0, 1))"
+            },
+            "default_dart": "const CustomExpression('0')",
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "note_id",
+            "getter_name": "noteId",
+            "moor_type": "blob",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES notes (id) ON DELETE CASCADE",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES notes (id) ON DELETE CASCADE"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "notes",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ],
+            "type_converter": {
+              "dart_expr": "noteIdConverter",
+              "dart_type_name": "NoteId"
+            }
+          },
+          {
+            "name": "field_id",
+            "getter_name": "fieldId",
+            "moor_type": "blob",
+            "nullable": false,
+            "customConstraints": null,
+            "defaultConstraints": "REFERENCES field_definitions (id) ON DELETE CASCADE",
+            "dialectAwareDefaultConstraints": {
+              "sqlite": "REFERENCES field_definitions (id) ON DELETE CASCADE"
+            },
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [
+              {
+                "foreign_key": {
+                  "to": {
+                    "table": "field_definitions",
+                    "column": "id"
+                  },
+                  "initially_deferred": false,
+                  "on_update": null,
+                  "on_delete": "cascade"
+                }
+              }
+            ],
+            "type_converter": {
+              "dart_expr": "fieldDefinitionIdConverter",
+              "dart_type_name": "FieldDefinitionId"
+            }
+          },
+          {
+            "name": "value",
+            "getter_name": "value",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "note_id",
+          "field_id"
+        ]
+      }
+    },
+    {
+      "id": 25,
+      "references": [
+        24
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 24,
+        "references_in_body": [
+          24
+        ],
+        "name": "note_fields_hlc_changes",
+        "sql": "CREATE TRIGGER note_fields_hlc_changes\nBEFORE UPDATE ON note_fields\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
+      }
+    },
+    {
+      "id": 26,
+      "references": [
+        9
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 9,
+        "references_in_body": [
+          9
+        ],
+        "name": "note_tags_hlc_changes",
+        "sql": "CREATE TRIGGER note_tags_hlc_changes\nBEFORE UPDATE ON note_tags\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
+      }
+    },
+    {
+      "id": 27,
+      "references": [
+        12
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 12,
+        "references_in_body": [
+          12
+        ],
+        "name": "study_cards_hlc_changes",
+        "sql": "CREATE TRIGGER study_cards_hlc_changes\nBEFORE UPDATE ON study_cards\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
+      }
+    },
+    {
+      "id": 28,
+      "references": [
+        14
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 14,
+        "references_in_body": [
+          14
+        ],
+        "name": "media_assets_hlc_changes",
+        "sql": "CREATE TRIGGER media_assets_hlc_changes\nBEFORE UPDATE ON media_assets\nWHEN NEW.hlc IS OLD.hlc\nBEGIN\n  SELECT RAISE(ABORT, 'hlc must change on every update');\nEND;"
+      }
+    },
+    {
+      "id": 29,
       "references": [
         12
       ],
@@ -1597,10 +1809,222 @@
       }
     },
     {
-      "id": 23,
+      "id": 30,
+      "references": [
+        29
+      ],
+      "type": "trigger",
+      "data": {
+        "on": 29,
+        "references_in_body": [
+          29
+        ],
+        "name": "review_events_append_only",
+        "sql": "CREATE TRIGGER review_events_append_only\nBEFORE UPDATE ON review_events\nBEGIN\n  SELECT RAISE(ABORT, 'review events are append-only');\nEND;"
+      }
+    },
+    {
+      "id": 31,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "device",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "id",
+            "getter_name": "id",
+            "moor_type": "int",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "node",
+            "getter_name": "node",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "last_hlc",
+            "getter_name": "lastHlc",
+            "moor_type": "string",
+            "nullable": true,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const HlcConverter()",
+              "dart_type_name": "Hlc"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "id"
+        ]
+      }
+    },
+    {
+      "id": 32,
+      "references": [],
+      "type": "table",
+      "data": {
+        "name": "outbox",
+        "was_declared_in_moor": false,
+        "columns": [
+          {
+            "name": "collection_id",
+            "getter_name": "collectionId",
+            "moor_type": "blob",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "collectionIdConverter",
+              "dart_type_name": "CollectionId"
+            }
+          },
+          {
+            "name": "entity_table",
+            "getter_name": "entityTable",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "entity_key",
+            "getter_name": "entityKey",
+            "moor_type": "blob",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": []
+          },
+          {
+            "name": "hlc",
+            "getter_name": "hlc",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": null,
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const HlcConverter()",
+              "dart_type_name": "Hlc"
+            }
+          }
+        ],
+        "is_virtual": false,
+        "without_rowid": false,
+        "constraints": [],
+        "explicit_pk": [
+          "entity_table",
+          "entity_key"
+        ]
+      }
+    },
+    {
+      "id": 33,
+      "references": [
+        32
+      ],
+      "type": "index",
+      "data": {
+        "on": 32,
+        "name": "outbox_hlc",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "hlc",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 34,
+      "references": [
+        12
+      ],
+      "type": "index",
+      "data": {
+        "on": 12,
+        "name": "study_cards_deck",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "collection_id",
+            "order_by": null
+          },
+          {
+            "column": "deck_id",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 35,
+      "references": [
+        12
+      ],
+      "type": "index",
+      "data": {
+        "on": 12,
+        "name": "study_cards_template",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "template_id",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 36,
+      "references": [
+        12
+      ],
+      "type": "index",
+      "data": {
+        "on": 12,
+        "name": "study_cards_hlc",
+        "sql": null,
+        "unique": false,
+        "columns": [
+          {
+            "column": "hlc",
+            "order_by": null
+          }
+        ]
+      }
+    },
+    {
+      "id": 37,
       "references": [
         12,
-        22
+        29
       ],
       "type": "table",
       "data": {
@@ -1759,13 +2183,13 @@
       }
     },
     {
-      "id": 24,
+      "id": 38,
       "references": [
-        22
+        29
       ],
       "type": "index",
       "data": {
-        "on": 22,
+        "on": 29,
         "name": "review_events_card",
         "sql": null,
         "unique": false,
@@ -1782,13 +2206,13 @@
       }
     },
     {
-      "id": 25,
+      "id": 39,
       "references": [
-        22
+        29
       ],
       "type": "index",
       "data": {
-        "on": 22,
+        "on": 29,
         "name": "review_events_at",
         "sql": null,
         "unique": false,
@@ -1801,13 +2225,13 @@
       }
     },
     {
-      "id": 26,
+      "id": 40,
       "references": [
-        22
+        29
       ],
       "type": "index",
       "data": {
-        "on": 22,
+        "on": 29,
         "name": "review_events_hlc",
         "sql": null,
         "unique": false,
@@ -1820,13 +2244,13 @@
       }
     },
     {
-      "id": 27,
+      "id": 41,
       "references": [
-        23
+        37
       ],
       "type": "index",
       "data": {
-        "on": 23,
+        "on": 37,
         "name": "scheduling_states_due",
         "sql": null,
         "unique": false,
@@ -1843,132 +2267,7 @@
       }
     },
     {
-      "id": 28,
-      "references": [
-        5
-      ],
-      "type": "table",
-      "data": {
-        "name": "field_definitions",
-        "was_declared_in_moor": false,
-        "columns": [
-          {
-            "name": "hlc",
-            "getter_name": "hlc",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [],
-            "type_converter": {
-              "dart_expr": "const HlcConverter()",
-              "dart_type_name": "Hlc"
-            }
-          },
-          {
-            "name": "deleted",
-            "getter_name": "deleted",
-            "moor_type": "bool",
-            "nullable": false,
-            "customConstraints": null,
-            "defaultConstraints": "CHECK (\"deleted\" IN (0, 1))",
-            "dialectAwareDefaultConstraints": {
-              "sqlite": "CHECK (\"deleted\" IN (0, 1))"
-            },
-            "default_dart": "const CustomExpression('0')",
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "id",
-            "getter_name": "id",
-            "moor_type": "blob",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [],
-            "type_converter": {
-              "dart_expr": "fieldDefinitionIdConverter",
-              "dart_type_name": "FieldDefinitionId"
-            }
-          },
-          {
-            "name": "note_type_id",
-            "getter_name": "noteTypeId",
-            "moor_type": "blob",
-            "nullable": false,
-            "customConstraints": null,
-            "defaultConstraints": "REFERENCES note_types (id) ON DELETE CASCADE",
-            "dialectAwareDefaultConstraints": {
-              "sqlite": "REFERENCES note_types (id) ON DELETE CASCADE"
-            },
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [
-              {
-                "foreign_key": {
-                  "to": {
-                    "table": "note_types",
-                    "column": "id"
-                  },
-                  "initially_deferred": false,
-                  "on_update": null,
-                  "on_delete": "cascade"
-                }
-              }
-            ],
-            "type_converter": {
-              "dart_expr": "noteTypeIdConverter",
-              "dart_type_name": "NoteTypeId"
-            }
-          },
-          {
-            "name": "position",
-            "getter_name": "position",
-            "moor_type": "int",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "name",
-            "getter_name": "name",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "type",
-            "getter_name": "type",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [],
-            "type_converter": {
-              "dart_expr": "const EnumNameConverter<FieldType>(FieldType.values)",
-              "dart_type_name": "FieldType"
-            }
-          }
-        ],
-        "is_virtual": false,
-        "without_rowid": false,
-        "constraints": [],
-        "explicit_pk": [
-          "id"
-        ]
-      }
-    },
-    {
-      "id": 29,
+      "id": 42,
       "references": [
         5
       ],
@@ -1987,7 +2286,7 @@
       }
     },
     {
-      "id": 30,
+      "id": 43,
       "references": [
         5
       ],
@@ -2006,13 +2305,13 @@
       }
     },
     {
-      "id": 31,
+      "id": 44,
       "references": [
-        28
+        20
       ],
       "type": "index",
       "data": {
-        "on": 28,
+        "on": 20,
         "name": "field_definitions_note_type",
         "sql": null,
         "unique": false,
@@ -2025,13 +2324,13 @@
       }
     },
     {
-      "id": 32,
+      "id": 45,
       "references": [
-        28
+        20
       ],
       "type": "index",
       "data": {
-        "on": 28,
+        "on": 20,
         "name": "field_definitions_hlc",
         "sql": null,
         "unique": false,
@@ -2044,7 +2343,7 @@
       }
     },
     {
-      "id": 33,
+      "id": 46,
       "references": [
         11
       ],
@@ -2063,7 +2362,7 @@
       }
     },
     {
-      "id": 34,
+      "id": 47,
       "references": [
         11
       ],
@@ -2082,126 +2381,7 @@
       }
     },
     {
-      "id": 35,
-      "references": [
-        7,
-        28
-      ],
-      "type": "table",
-      "data": {
-        "name": "note_fields",
-        "was_declared_in_moor": false,
-        "columns": [
-          {
-            "name": "hlc",
-            "getter_name": "hlc",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [],
-            "type_converter": {
-              "dart_expr": "const HlcConverter()",
-              "dart_type_name": "Hlc"
-            }
-          },
-          {
-            "name": "deleted",
-            "getter_name": "deleted",
-            "moor_type": "bool",
-            "nullable": false,
-            "customConstraints": null,
-            "defaultConstraints": "CHECK (\"deleted\" IN (0, 1))",
-            "dialectAwareDefaultConstraints": {
-              "sqlite": "CHECK (\"deleted\" IN (0, 1))"
-            },
-            "default_dart": "const CustomExpression('0')",
-            "default_client_dart": null,
-            "dsl_features": []
-          },
-          {
-            "name": "note_id",
-            "getter_name": "noteId",
-            "moor_type": "blob",
-            "nullable": false,
-            "customConstraints": null,
-            "defaultConstraints": "REFERENCES notes (id) ON DELETE CASCADE",
-            "dialectAwareDefaultConstraints": {
-              "sqlite": "REFERENCES notes (id) ON DELETE CASCADE"
-            },
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [
-              {
-                "foreign_key": {
-                  "to": {
-                    "table": "notes",
-                    "column": "id"
-                  },
-                  "initially_deferred": false,
-                  "on_update": null,
-                  "on_delete": "cascade"
-                }
-              }
-            ],
-            "type_converter": {
-              "dart_expr": "noteIdConverter",
-              "dart_type_name": "NoteId"
-            }
-          },
-          {
-            "name": "field_id",
-            "getter_name": "fieldId",
-            "moor_type": "blob",
-            "nullable": false,
-            "customConstraints": null,
-            "defaultConstraints": "REFERENCES field_definitions (id) ON DELETE CASCADE",
-            "dialectAwareDefaultConstraints": {
-              "sqlite": "REFERENCES field_definitions (id) ON DELETE CASCADE"
-            },
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": [
-              {
-                "foreign_key": {
-                  "to": {
-                    "table": "field_definitions",
-                    "column": "id"
-                  },
-                  "initially_deferred": false,
-                  "on_update": null,
-                  "on_delete": "cascade"
-                }
-              }
-            ],
-            "type_converter": {
-              "dart_expr": "fieldDefinitionIdConverter",
-              "dart_type_name": "FieldDefinitionId"
-            }
-          },
-          {
-            "name": "value",
-            "getter_name": "value",
-            "moor_type": "string",
-            "nullable": false,
-            "customConstraints": null,
-            "default_dart": null,
-            "default_client_dart": null,
-            "dsl_features": []
-          }
-        ],
-        "is_virtual": false,
-        "without_rowid": false,
-        "constraints": [],
-        "explicit_pk": [
-          "note_id",
-          "field_id"
-        ]
-      }
-    },
-    {
-      "id": 36,
+      "id": 48,
       "references": [
         7
       ],
@@ -2224,7 +2404,7 @@
       }
     },
     {
-      "id": 37,
+      "id": 49,
       "references": [
         7
       ],
@@ -2243,13 +2423,13 @@
       }
     },
     {
-      "id": 38,
+      "id": 50,
       "references": [
-        35
+        24
       ],
       "type": "index",
       "data": {
-        "on": 35,
+        "on": 24,
         "name": "note_fields_field",
         "sql": null,
         "unique": false,
@@ -2262,13 +2442,13 @@
       }
     },
     {
-      "id": 39,
+      "id": 51,
       "references": [
-        35
+        24
       ],
       "type": "index",
       "data": {
-        "on": 35,
+        "on": 24,
         "name": "note_fields_hlc",
         "sql": null,
         "unique": false,
@@ -2281,7 +2461,7 @@
       }
     },
     {
-      "id": 40,
+      "id": 52,
       "references": [
         3
       ],
@@ -2304,7 +2484,7 @@
       }
     },
     {
-      "id": 41,
+      "id": 53,
       "references": [
         3
       ],
@@ -2323,7 +2503,7 @@
       }
     },
     {
-      "id": 42,
+      "id": 54,
       "references": [
         9
       ],
@@ -2346,7 +2526,7 @@
       }
     },
     {
-      "id": 43,
+      "id": 55,
       "references": [
         9
       ],
@@ -2365,7 +2545,7 @@
       }
     },
     {
-      "id": 44,
+      "id": 56,
       "references": [
         14
       ],
@@ -2384,7 +2564,7 @@
       }
     },
     {
-      "id": 45,
+      "id": 57,
       "references": [
         0
       ],
@@ -2403,7 +2583,7 @@
       }
     },
     {
-      "id": 46,
+      "id": 58,
       "references": [
         1
       ],
@@ -2426,7 +2606,7 @@
       }
     },
     {
-      "id": 47,
+      "id": 59,
       "references": [
         1
       ],
@@ -2591,6 +2771,141 @@
       ]
     },
     {
+      "name": "collections_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER collections_hlc_changes BEFORE UPDATE ON collections WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "decks_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER decks_hlc_changes BEFORE UPDATE ON decks WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "tags_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER tags_hlc_changes BEFORE UPDATE ON tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "note_types_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER note_types_hlc_changes BEFORE UPDATE ON note_types WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "field_definitions",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"field_definitions\" (\"hlc\" TEXT NOT NULL, \"deleted\" INTEGER NOT NULL DEFAULT 0 CHECK (\"deleted\" IN (0, 1)), \"id\" BLOB NOT NULL, \"note_type_id\" BLOB NOT NULL REFERENCES note_types (id) ON DELETE CASCADE, \"position\" INTEGER NOT NULL, \"name\" TEXT NOT NULL, \"type\" TEXT NOT NULL, PRIMARY KEY (\"id\"));"
+        }
+      ]
+    },
+    {
+      "name": "field_definitions_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER field_definitions_hlc_changes BEFORE UPDATE ON field_definitions WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "study_card_templates_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER study_card_templates_hlc_changes BEFORE UPDATE ON study_card_templates WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "notes_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER notes_hlc_changes BEFORE UPDATE ON notes WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "note_fields",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"note_fields\" (\"hlc\" TEXT NOT NULL, \"deleted\" INTEGER NOT NULL DEFAULT 0 CHECK (\"deleted\" IN (0, 1)), \"note_id\" BLOB NOT NULL REFERENCES notes (id) ON DELETE CASCADE, \"field_id\" BLOB NOT NULL REFERENCES field_definitions (id) ON DELETE CASCADE, \"value\" TEXT NOT NULL, PRIMARY KEY (\"note_id\", \"field_id\"));"
+        }
+      ]
+    },
+    {
+      "name": "note_fields_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER note_fields_hlc_changes BEFORE UPDATE ON note_fields WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "note_tags_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER note_tags_hlc_changes BEFORE UPDATE ON note_tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "study_cards_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER study_cards_hlc_changes BEFORE UPDATE ON study_cards WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "media_assets_hlc_changes",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER media_assets_hlc_changes BEFORE UPDATE ON media_assets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, 'hlc must change on every update');END"
+        }
+      ]
+    },
+    {
+      "name": "review_events",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TABLE IF NOT EXISTS \"review_events\" (\"id\" BLOB NOT NULL, \"study_card_id\" BLOB NOT NULL REFERENCES study_cards (id), \"kind\" TEXT NOT NULL, \"at\" INTEGER NOT NULL, \"grade\" TEXT NULL, \"response_time\" INTEGER NULL, \"due_before\" INTEGER NULL, \"due_after\" INTEGER NULL, \"undone_event_id\" BLOB NULL REFERENCES review_events (id), \"scheduler_id\" TEXT NOT NULL, \"scheduler_version\" INTEGER NOT NULL, \"config_version\" INTEGER NOT NULL, \"hlc\" TEXT NOT NULL, PRIMARY KEY (\"id\"));"
+        }
+      ]
+    },
+    {
+      "name": "review_events_append_only",
+      "sql": [
+        {
+          "dialect": "sqlite",
+          "sql": "CREATE TRIGGER review_events_append_only BEFORE UPDATE ON review_events BEGIN SELECT RAISE (ABORT, 'review events are append-only');END"
+        }
+      ]
+    },
+    {
       "name": "device",
       "sql": [
         {
@@ -2645,15 +2960,6 @@
       ]
     },
     {
-      "name": "review_events",
-      "sql": [
-        {
-          "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"review_events\" (\"id\" BLOB NOT NULL, \"study_card_id\" BLOB NOT NULL REFERENCES study_cards (id), \"kind\" TEXT NOT NULL, \"at\" INTEGER NOT NULL, \"grade\" TEXT NULL, \"response_time\" INTEGER NULL, \"due_before\" INTEGER NULL, \"due_after\" INTEGER NULL, \"undone_event_id\" BLOB NULL REFERENCES review_events (id), \"scheduler_id\" TEXT NOT NULL, \"scheduler_version\" INTEGER NOT NULL, \"config_version\" INTEGER NOT NULL, \"hlc\" TEXT NOT NULL, PRIMARY KEY (\"id\"));"
-        }
-      ]
-    },
-    {
       "name": "scheduling_states",
       "sql": [
         {
@@ -2695,15 +3001,6 @@
         {
           "dialect": "sqlite",
           "sql": "CREATE INDEX scheduling_states_due ON scheduling_states (state, due)"
-        }
-      ]
-    },
-    {
-      "name": "field_definitions",
-      "sql": [
-        {
-          "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"field_definitions\" (\"hlc\" TEXT NOT NULL, \"deleted\" INTEGER NOT NULL DEFAULT 0 CHECK (\"deleted\" IN (0, 1)), \"id\" BLOB NOT NULL, \"note_type_id\" BLOB NOT NULL REFERENCES note_types (id) ON DELETE CASCADE, \"position\" INTEGER NOT NULL, \"name\" TEXT NOT NULL, \"type\" TEXT NOT NULL, PRIMARY KEY (\"id\"));"
         }
       ]
     },
@@ -2758,15 +3055,6 @@
         {
           "dialect": "sqlite",
           "sql": "CREATE INDEX study_card_templates_hlc ON study_card_templates (hlc)"
-        }
-      ]
-    },
-    {
-      "name": "note_fields",
-      "sql": [
-        {
-          "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"note_fields\" (\"hlc\" TEXT NOT NULL, \"deleted\" INTEGER NOT NULL DEFAULT 0 CHECK (\"deleted\" IN (0, 1)), \"note_id\" BLOB NOT NULL REFERENCES notes (id) ON DELETE CASCADE, \"field_id\" BLOB NOT NULL REFERENCES field_definitions (id) ON DELETE CASCADE, \"value\" TEXT NOT NULL, PRIMARY KEY (\"note_id\", \"field_id\"));"
         }
       ]
     },

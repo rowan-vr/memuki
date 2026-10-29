@@ -50,3 +50,92 @@ WHEN NEW.collection_id IS NOT OLD.collection_id
 BEGIN
   SELECT RAISE(ABORT, 'collection_id is immutable');
 END;
+
+-- Every update of a synced row must stamp a new timestamp. Changes are found
+-- for the outbox by their timestamp, so an update that keeps the old one
+-- would never be synced.
+
+CREATE TRIGGER collections_hlc_changes
+BEFORE UPDATE ON collections
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+CREATE TRIGGER decks_hlc_changes
+BEFORE UPDATE ON decks
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+CREATE TRIGGER tags_hlc_changes
+BEFORE UPDATE ON tags
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+CREATE TRIGGER note_types_hlc_changes
+BEFORE UPDATE ON note_types
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+CREATE TRIGGER field_definitions_hlc_changes
+BEFORE UPDATE ON field_definitions
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+CREATE TRIGGER study_card_templates_hlc_changes
+BEFORE UPDATE ON study_card_templates
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+CREATE TRIGGER notes_hlc_changes
+BEFORE UPDATE ON notes
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+CREATE TRIGGER note_fields_hlc_changes
+BEFORE UPDATE ON note_fields
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+CREATE TRIGGER note_tags_hlc_changes
+BEFORE UPDATE ON note_tags
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+CREATE TRIGGER study_cards_hlc_changes
+BEFORE UPDATE ON study_cards
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+CREATE TRIGGER media_assets_hlc_changes
+BEFORE UPDATE ON media_assets
+WHEN NEW.hlc IS OLD.hlc
+BEGIN
+  SELECT RAISE(ABORT, 'hlc must change on every update');
+END;
+
+-- Review events are never changed; an undo is a new event.
+
+CREATE TRIGGER review_events_append_only
+BEFORE UPDATE ON review_events
+BEGIN
+  SELECT RAISE(ABORT, 'review events are append-only');
+END;

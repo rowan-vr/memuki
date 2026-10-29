@@ -179,7 +179,7 @@ void main() {
       final b = await japanese.addDeck('B', parentId: a.id);
       // Corrupt data: make A a child of B, bypassing the repository.
       await repos.db.customStatement(
-        'UPDATE decks SET parent_id = ? WHERE id = ?',
+        "UPDATE decks SET parent_id = ?, hlc = hlc || 'x' WHERE id = ?",
         [deckIdConverter.toSql(b.id), deckIdConverter.toSql(a.id)],
       );
 

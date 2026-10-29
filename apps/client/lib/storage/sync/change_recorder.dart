@@ -45,7 +45,8 @@ const _syncedTables = <String, ({String key, String collection})>{
 /// Every repository write goes through [write]: the change runs in a
 /// transaction with one new timestamp, which it sets as the `hlc` of every row
 /// it inserts, updates, or tombstones. Afterwards, every synced row carrying
-/// that timestamp is added to the outbox, so no changed table can be missed.
+/// that timestamp is added to the outbox. Triggers reject an update that keeps
+/// a row's old timestamp, so a changed row cannot be missed.
 class ChangeRecorder {
   ChangeRecorder(this._db);
 

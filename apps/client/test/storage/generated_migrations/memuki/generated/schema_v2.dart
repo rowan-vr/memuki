@@ -3205,1623 +3205,6 @@ class MediaAssetsCompanion extends UpdateCompanion<MediaAssetsData> {
   }
 }
 
-class Device extends Table with TableInfo<Device, DeviceData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  Device(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> node = GeneratedColumn<String>(
-    'node',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> lastHlc = GeneratedColumn<String>(
-    'last_hlc',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
-  @override
-  List<GeneratedColumn> get $columns => [id, node, lastHlc];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'device';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  DeviceData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return DeviceData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      node: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}node'],
-      )!,
-      lastHlc: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}last_hlc'],
-      ),
-    );
-  }
-
-  @override
-  Device createAlias(String alias) {
-    return Device(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class DeviceData extends DataClass implements Insertable<DeviceData> {
-  final int id;
-  final String node;
-  final String? lastHlc;
-  const DeviceData({required this.id, required this.node, this.lastHlc});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['node'] = Variable<String>(node);
-    if (!nullToAbsent || lastHlc != null) {
-      map['last_hlc'] = Variable<String>(lastHlc);
-    }
-    return map;
-  }
-
-  DeviceCompanion toCompanion(bool nullToAbsent) {
-    return DeviceCompanion(
-      id: Value(id),
-      node: Value(node),
-      lastHlc: lastHlc == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lastHlc),
-    );
-  }
-
-  factory DeviceData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return DeviceData(
-      id: serializer.fromJson<int>(json['id']),
-      node: serializer.fromJson<String>(json['node']),
-      lastHlc: serializer.fromJson<String?>(json['lastHlc']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'node': serializer.toJson<String>(node),
-      'lastHlc': serializer.toJson<String?>(lastHlc),
-    };
-  }
-
-  DeviceData copyWith({
-    int? id,
-    String? node,
-    Value<String?> lastHlc = const Value.absent(),
-  }) => DeviceData(
-    id: id ?? this.id,
-    node: node ?? this.node,
-    lastHlc: lastHlc.present ? lastHlc.value : this.lastHlc,
-  );
-  DeviceData copyWithCompanion(DeviceCompanion data) {
-    return DeviceData(
-      id: data.id.present ? data.id.value : this.id,
-      node: data.node.present ? data.node.value : this.node,
-      lastHlc: data.lastHlc.present ? data.lastHlc.value : this.lastHlc,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('DeviceData(')
-          ..write('id: $id, ')
-          ..write('node: $node, ')
-          ..write('lastHlc: $lastHlc')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, node, lastHlc);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is DeviceData &&
-          other.id == this.id &&
-          other.node == this.node &&
-          other.lastHlc == this.lastHlc);
-}
-
-class DeviceCompanion extends UpdateCompanion<DeviceData> {
-  final Value<int> id;
-  final Value<String> node;
-  final Value<String?> lastHlc;
-  const DeviceCompanion({
-    this.id = const Value.absent(),
-    this.node = const Value.absent(),
-    this.lastHlc = const Value.absent(),
-  });
-  DeviceCompanion.insert({
-    this.id = const Value.absent(),
-    required String node,
-    this.lastHlc = const Value.absent(),
-  }) : node = Value(node);
-  static Insertable<DeviceData> custom({
-    Expression<int>? id,
-    Expression<String>? node,
-    Expression<String>? lastHlc,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (node != null) 'node': node,
-      if (lastHlc != null) 'last_hlc': lastHlc,
-    });
-  }
-
-  DeviceCompanion copyWith({
-    Value<int>? id,
-    Value<String>? node,
-    Value<String?>? lastHlc,
-  }) {
-    return DeviceCompanion(
-      id: id ?? this.id,
-      node: node ?? this.node,
-      lastHlc: lastHlc ?? this.lastHlc,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (node.present) {
-      map['node'] = Variable<String>(node.value);
-    }
-    if (lastHlc.present) {
-      map['last_hlc'] = Variable<String>(lastHlc.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('DeviceCompanion(')
-          ..write('id: $id, ')
-          ..write('node: $node, ')
-          ..write('lastHlc: $lastHlc')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class Outbox extends Table with TableInfo<Outbox, OutboxData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  Outbox(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<i2.Uint8List> collectionId =
-      GeneratedColumn<i2.Uint8List>(
-        'collection_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL',
-      );
-  late final GeneratedColumn<String> entityTable = GeneratedColumn<String>(
-    'entity_table',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<i2.Uint8List> entityKey =
-      GeneratedColumn<i2.Uint8List>(
-        'entity_key',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL',
-      );
-  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
-    'hlc',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    collectionId,
-    entityTable,
-    entityKey,
-    hlc,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'outbox';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {entityTable, entityKey};
-  @override
-  OutboxData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return OutboxData(
-      collectionId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}collection_id'],
-      )!,
-      entityTable: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}entity_table'],
-      )!,
-      entityKey: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}entity_key'],
-      )!,
-      hlc: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}hlc'],
-      )!,
-    );
-  }
-
-  @override
-  Outbox createAlias(String alias) {
-    return Outbox(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const [
-    'PRIMARY KEY(entity_table, entity_key)',
-  ];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class OutboxData extends DataClass implements Insertable<OutboxData> {
-  final i2.Uint8List collectionId;
-  final String entityTable;
-  final i2.Uint8List entityKey;
-  final String hlc;
-  const OutboxData({
-    required this.collectionId,
-    required this.entityTable,
-    required this.entityKey,
-    required this.hlc,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['collection_id'] = Variable<i2.Uint8List>(collectionId);
-    map['entity_table'] = Variable<String>(entityTable);
-    map['entity_key'] = Variable<i2.Uint8List>(entityKey);
-    map['hlc'] = Variable<String>(hlc);
-    return map;
-  }
-
-  OutboxCompanion toCompanion(bool nullToAbsent) {
-    return OutboxCompanion(
-      collectionId: Value(collectionId),
-      entityTable: Value(entityTable),
-      entityKey: Value(entityKey),
-      hlc: Value(hlc),
-    );
-  }
-
-  factory OutboxData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return OutboxData(
-      collectionId: serializer.fromJson<i2.Uint8List>(json['collectionId']),
-      entityTable: serializer.fromJson<String>(json['entityTable']),
-      entityKey: serializer.fromJson<i2.Uint8List>(json['entityKey']),
-      hlc: serializer.fromJson<String>(json['hlc']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'collectionId': serializer.toJson<i2.Uint8List>(collectionId),
-      'entityTable': serializer.toJson<String>(entityTable),
-      'entityKey': serializer.toJson<i2.Uint8List>(entityKey),
-      'hlc': serializer.toJson<String>(hlc),
-    };
-  }
-
-  OutboxData copyWith({
-    i2.Uint8List? collectionId,
-    String? entityTable,
-    i2.Uint8List? entityKey,
-    String? hlc,
-  }) => OutboxData(
-    collectionId: collectionId ?? this.collectionId,
-    entityTable: entityTable ?? this.entityTable,
-    entityKey: entityKey ?? this.entityKey,
-    hlc: hlc ?? this.hlc,
-  );
-  OutboxData copyWithCompanion(OutboxCompanion data) {
-    return OutboxData(
-      collectionId: data.collectionId.present
-          ? data.collectionId.value
-          : this.collectionId,
-      entityTable: data.entityTable.present
-          ? data.entityTable.value
-          : this.entityTable,
-      entityKey: data.entityKey.present ? data.entityKey.value : this.entityKey,
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('OutboxData(')
-          ..write('collectionId: $collectionId, ')
-          ..write('entityTable: $entityTable, ')
-          ..write('entityKey: $entityKey, ')
-          ..write('hlc: $hlc')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    $driftBlobEquality.hash(collectionId),
-    entityTable,
-    $driftBlobEquality.hash(entityKey),
-    hlc,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is OutboxData &&
-          $driftBlobEquality.equals(other.collectionId, this.collectionId) &&
-          other.entityTable == this.entityTable &&
-          $driftBlobEquality.equals(other.entityKey, this.entityKey) &&
-          other.hlc == this.hlc);
-}
-
-class OutboxCompanion extends UpdateCompanion<OutboxData> {
-  final Value<i2.Uint8List> collectionId;
-  final Value<String> entityTable;
-  final Value<i2.Uint8List> entityKey;
-  final Value<String> hlc;
-  final Value<int> rowid;
-  const OutboxCompanion({
-    this.collectionId = const Value.absent(),
-    this.entityTable = const Value.absent(),
-    this.entityKey = const Value.absent(),
-    this.hlc = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  OutboxCompanion.insert({
-    required i2.Uint8List collectionId,
-    required String entityTable,
-    required i2.Uint8List entityKey,
-    required String hlc,
-    this.rowid = const Value.absent(),
-  }) : collectionId = Value(collectionId),
-       entityTable = Value(entityTable),
-       entityKey = Value(entityKey),
-       hlc = Value(hlc);
-  static Insertable<OutboxData> custom({
-    Expression<i2.Uint8List>? collectionId,
-    Expression<String>? entityTable,
-    Expression<i2.Uint8List>? entityKey,
-    Expression<String>? hlc,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (collectionId != null) 'collection_id': collectionId,
-      if (entityTable != null) 'entity_table': entityTable,
-      if (entityKey != null) 'entity_key': entityKey,
-      if (hlc != null) 'hlc': hlc,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  OutboxCompanion copyWith({
-    Value<i2.Uint8List>? collectionId,
-    Value<String>? entityTable,
-    Value<i2.Uint8List>? entityKey,
-    Value<String>? hlc,
-    Value<int>? rowid,
-  }) {
-    return OutboxCompanion(
-      collectionId: collectionId ?? this.collectionId,
-      entityTable: entityTable ?? this.entityTable,
-      entityKey: entityKey ?? this.entityKey,
-      hlc: hlc ?? this.hlc,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (collectionId.present) {
-      map['collection_id'] = Variable<i2.Uint8List>(collectionId.value);
-    }
-    if (entityTable.present) {
-      map['entity_table'] = Variable<String>(entityTable.value);
-    }
-    if (entityKey.present) {
-      map['entity_key'] = Variable<i2.Uint8List>(entityKey.value);
-    }
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(hlc.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('OutboxCompanion(')
-          ..write('collectionId: $collectionId, ')
-          ..write('entityTable: $entityTable, ')
-          ..write('entityKey: $entityKey, ')
-          ..write('hlc: $hlc, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class ReviewEvents extends Table
-    with TableInfo<ReviewEvents, ReviewEventsData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  ReviewEvents(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<i2.Uint8List> studyCardId =
-      GeneratedColumn<i2.Uint8List>(
-        'study_card_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL REFERENCES study_cards(id)',
-      );
-  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
-    'kind',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> at = GeneratedColumn<int>(
-    'at',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> grade = GeneratedColumn<String>(
-    'grade',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
-  late final GeneratedColumn<int> responseTime = GeneratedColumn<int>(
-    'response_time',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
-  late final GeneratedColumn<int> dueBefore = GeneratedColumn<int>(
-    'due_before',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
-  late final GeneratedColumn<int> dueAfter = GeneratedColumn<int>(
-    'due_after',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
-  late final GeneratedColumn<i2.Uint8List> undoneEventId =
-      GeneratedColumn<i2.Uint8List>(
-        'undone_event_id',
-        aliasedName,
-        true,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: false,
-        $customConstraints: 'NULL REFERENCES review_events(id)',
-      );
-  late final GeneratedColumn<String> schedulerId = GeneratedColumn<String>(
-    'scheduler_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> schedulerVersion = GeneratedColumn<int>(
-    'scheduler_version',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> configVersion = GeneratedColumn<int>(
-    'config_version',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
-    'hlc',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    id,
-    studyCardId,
-    kind,
-    at,
-    grade,
-    responseTime,
-    dueBefore,
-    dueAfter,
-    undoneEventId,
-    schedulerId,
-    schedulerVersion,
-    configVersion,
-    hlc,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'review_events';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  ReviewEventsData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return ReviewEventsData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}id'],
-      )!,
-      studyCardId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}study_card_id'],
-      )!,
-      kind: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}kind'],
-      )!,
-      at: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}at'],
-      )!,
-      grade: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}grade'],
-      ),
-      responseTime: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}response_time'],
-      ),
-      dueBefore: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}due_before'],
-      ),
-      dueAfter: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}due_after'],
-      ),
-      undoneEventId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}undone_event_id'],
-      ),
-      schedulerId: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}scheduler_id'],
-      )!,
-      schedulerVersion: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}scheduler_version'],
-      )!,
-      configVersion: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}config_version'],
-      )!,
-      hlc: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}hlc'],
-      )!,
-    );
-  }
-
-  @override
-  ReviewEvents createAlias(String alias) {
-    return ReviewEvents(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class ReviewEventsData extends DataClass
-    implements Insertable<ReviewEventsData> {
-  final i2.Uint8List id;
-  final i2.Uint8List studyCardId;
-  final String kind;
-  final int at;
-  final String? grade;
-  final int? responseTime;
-  final int? dueBefore;
-  final int? dueAfter;
-  final i2.Uint8List? undoneEventId;
-  final String schedulerId;
-  final int schedulerVersion;
-  final int configVersion;
-  final String hlc;
-  const ReviewEventsData({
-    required this.id,
-    required this.studyCardId,
-    required this.kind,
-    required this.at,
-    this.grade,
-    this.responseTime,
-    this.dueBefore,
-    this.dueAfter,
-    this.undoneEventId,
-    required this.schedulerId,
-    required this.schedulerVersion,
-    required this.configVersion,
-    required this.hlc,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<i2.Uint8List>(id);
-    map['study_card_id'] = Variable<i2.Uint8List>(studyCardId);
-    map['kind'] = Variable<String>(kind);
-    map['at'] = Variable<int>(at);
-    if (!nullToAbsent || grade != null) {
-      map['grade'] = Variable<String>(grade);
-    }
-    if (!nullToAbsent || responseTime != null) {
-      map['response_time'] = Variable<int>(responseTime);
-    }
-    if (!nullToAbsent || dueBefore != null) {
-      map['due_before'] = Variable<int>(dueBefore);
-    }
-    if (!nullToAbsent || dueAfter != null) {
-      map['due_after'] = Variable<int>(dueAfter);
-    }
-    if (!nullToAbsent || undoneEventId != null) {
-      map['undone_event_id'] = Variable<i2.Uint8List>(undoneEventId);
-    }
-    map['scheduler_id'] = Variable<String>(schedulerId);
-    map['scheduler_version'] = Variable<int>(schedulerVersion);
-    map['config_version'] = Variable<int>(configVersion);
-    map['hlc'] = Variable<String>(hlc);
-    return map;
-  }
-
-  ReviewEventsCompanion toCompanion(bool nullToAbsent) {
-    return ReviewEventsCompanion(
-      id: Value(id),
-      studyCardId: Value(studyCardId),
-      kind: Value(kind),
-      at: Value(at),
-      grade: grade == null && nullToAbsent
-          ? const Value.absent()
-          : Value(grade),
-      responseTime: responseTime == null && nullToAbsent
-          ? const Value.absent()
-          : Value(responseTime),
-      dueBefore: dueBefore == null && nullToAbsent
-          ? const Value.absent()
-          : Value(dueBefore),
-      dueAfter: dueAfter == null && nullToAbsent
-          ? const Value.absent()
-          : Value(dueAfter),
-      undoneEventId: undoneEventId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(undoneEventId),
-      schedulerId: Value(schedulerId),
-      schedulerVersion: Value(schedulerVersion),
-      configVersion: Value(configVersion),
-      hlc: Value(hlc),
-    );
-  }
-
-  factory ReviewEventsData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return ReviewEventsData(
-      id: serializer.fromJson<i2.Uint8List>(json['id']),
-      studyCardId: serializer.fromJson<i2.Uint8List>(json['studyCardId']),
-      kind: serializer.fromJson<String>(json['kind']),
-      at: serializer.fromJson<int>(json['at']),
-      grade: serializer.fromJson<String?>(json['grade']),
-      responseTime: serializer.fromJson<int?>(json['responseTime']),
-      dueBefore: serializer.fromJson<int?>(json['dueBefore']),
-      dueAfter: serializer.fromJson<int?>(json['dueAfter']),
-      undoneEventId: serializer.fromJson<i2.Uint8List?>(json['undoneEventId']),
-      schedulerId: serializer.fromJson<String>(json['schedulerId']),
-      schedulerVersion: serializer.fromJson<int>(json['schedulerVersion']),
-      configVersion: serializer.fromJson<int>(json['configVersion']),
-      hlc: serializer.fromJson<String>(json['hlc']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<i2.Uint8List>(id),
-      'studyCardId': serializer.toJson<i2.Uint8List>(studyCardId),
-      'kind': serializer.toJson<String>(kind),
-      'at': serializer.toJson<int>(at),
-      'grade': serializer.toJson<String?>(grade),
-      'responseTime': serializer.toJson<int?>(responseTime),
-      'dueBefore': serializer.toJson<int?>(dueBefore),
-      'dueAfter': serializer.toJson<int?>(dueAfter),
-      'undoneEventId': serializer.toJson<i2.Uint8List?>(undoneEventId),
-      'schedulerId': serializer.toJson<String>(schedulerId),
-      'schedulerVersion': serializer.toJson<int>(schedulerVersion),
-      'configVersion': serializer.toJson<int>(configVersion),
-      'hlc': serializer.toJson<String>(hlc),
-    };
-  }
-
-  ReviewEventsData copyWith({
-    i2.Uint8List? id,
-    i2.Uint8List? studyCardId,
-    String? kind,
-    int? at,
-    Value<String?> grade = const Value.absent(),
-    Value<int?> responseTime = const Value.absent(),
-    Value<int?> dueBefore = const Value.absent(),
-    Value<int?> dueAfter = const Value.absent(),
-    Value<i2.Uint8List?> undoneEventId = const Value.absent(),
-    String? schedulerId,
-    int? schedulerVersion,
-    int? configVersion,
-    String? hlc,
-  }) => ReviewEventsData(
-    id: id ?? this.id,
-    studyCardId: studyCardId ?? this.studyCardId,
-    kind: kind ?? this.kind,
-    at: at ?? this.at,
-    grade: grade.present ? grade.value : this.grade,
-    responseTime: responseTime.present ? responseTime.value : this.responseTime,
-    dueBefore: dueBefore.present ? dueBefore.value : this.dueBefore,
-    dueAfter: dueAfter.present ? dueAfter.value : this.dueAfter,
-    undoneEventId: undoneEventId.present
-        ? undoneEventId.value
-        : this.undoneEventId,
-    schedulerId: schedulerId ?? this.schedulerId,
-    schedulerVersion: schedulerVersion ?? this.schedulerVersion,
-    configVersion: configVersion ?? this.configVersion,
-    hlc: hlc ?? this.hlc,
-  );
-  ReviewEventsData copyWithCompanion(ReviewEventsCompanion data) {
-    return ReviewEventsData(
-      id: data.id.present ? data.id.value : this.id,
-      studyCardId: data.studyCardId.present
-          ? data.studyCardId.value
-          : this.studyCardId,
-      kind: data.kind.present ? data.kind.value : this.kind,
-      at: data.at.present ? data.at.value : this.at,
-      grade: data.grade.present ? data.grade.value : this.grade,
-      responseTime: data.responseTime.present
-          ? data.responseTime.value
-          : this.responseTime,
-      dueBefore: data.dueBefore.present ? data.dueBefore.value : this.dueBefore,
-      dueAfter: data.dueAfter.present ? data.dueAfter.value : this.dueAfter,
-      undoneEventId: data.undoneEventId.present
-          ? data.undoneEventId.value
-          : this.undoneEventId,
-      schedulerId: data.schedulerId.present
-          ? data.schedulerId.value
-          : this.schedulerId,
-      schedulerVersion: data.schedulerVersion.present
-          ? data.schedulerVersion.value
-          : this.schedulerVersion,
-      configVersion: data.configVersion.present
-          ? data.configVersion.value
-          : this.configVersion,
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ReviewEventsData(')
-          ..write('id: $id, ')
-          ..write('studyCardId: $studyCardId, ')
-          ..write('kind: $kind, ')
-          ..write('at: $at, ')
-          ..write('grade: $grade, ')
-          ..write('responseTime: $responseTime, ')
-          ..write('dueBefore: $dueBefore, ')
-          ..write('dueAfter: $dueAfter, ')
-          ..write('undoneEventId: $undoneEventId, ')
-          ..write('schedulerId: $schedulerId, ')
-          ..write('schedulerVersion: $schedulerVersion, ')
-          ..write('configVersion: $configVersion, ')
-          ..write('hlc: $hlc')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    $driftBlobEquality.hash(id),
-    $driftBlobEquality.hash(studyCardId),
-    kind,
-    at,
-    grade,
-    responseTime,
-    dueBefore,
-    dueAfter,
-    $driftBlobEquality.hash(undoneEventId),
-    schedulerId,
-    schedulerVersion,
-    configVersion,
-    hlc,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is ReviewEventsData &&
-          $driftBlobEquality.equals(other.id, this.id) &&
-          $driftBlobEquality.equals(other.studyCardId, this.studyCardId) &&
-          other.kind == this.kind &&
-          other.at == this.at &&
-          other.grade == this.grade &&
-          other.responseTime == this.responseTime &&
-          other.dueBefore == this.dueBefore &&
-          other.dueAfter == this.dueAfter &&
-          $driftBlobEquality.equals(other.undoneEventId, this.undoneEventId) &&
-          other.schedulerId == this.schedulerId &&
-          other.schedulerVersion == this.schedulerVersion &&
-          other.configVersion == this.configVersion &&
-          other.hlc == this.hlc);
-}
-
-class ReviewEventsCompanion extends UpdateCompanion<ReviewEventsData> {
-  final Value<i2.Uint8List> id;
-  final Value<i2.Uint8List> studyCardId;
-  final Value<String> kind;
-  final Value<int> at;
-  final Value<String?> grade;
-  final Value<int?> responseTime;
-  final Value<int?> dueBefore;
-  final Value<int?> dueAfter;
-  final Value<i2.Uint8List?> undoneEventId;
-  final Value<String> schedulerId;
-  final Value<int> schedulerVersion;
-  final Value<int> configVersion;
-  final Value<String> hlc;
-  final Value<int> rowid;
-  const ReviewEventsCompanion({
-    this.id = const Value.absent(),
-    this.studyCardId = const Value.absent(),
-    this.kind = const Value.absent(),
-    this.at = const Value.absent(),
-    this.grade = const Value.absent(),
-    this.responseTime = const Value.absent(),
-    this.dueBefore = const Value.absent(),
-    this.dueAfter = const Value.absent(),
-    this.undoneEventId = const Value.absent(),
-    this.schedulerId = const Value.absent(),
-    this.schedulerVersion = const Value.absent(),
-    this.configVersion = const Value.absent(),
-    this.hlc = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  ReviewEventsCompanion.insert({
-    required i2.Uint8List id,
-    required i2.Uint8List studyCardId,
-    required String kind,
-    required int at,
-    this.grade = const Value.absent(),
-    this.responseTime = const Value.absent(),
-    this.dueBefore = const Value.absent(),
-    this.dueAfter = const Value.absent(),
-    this.undoneEventId = const Value.absent(),
-    required String schedulerId,
-    required int schedulerVersion,
-    required int configVersion,
-    required String hlc,
-    this.rowid = const Value.absent(),
-  }) : id = Value(id),
-       studyCardId = Value(studyCardId),
-       kind = Value(kind),
-       at = Value(at),
-       schedulerId = Value(schedulerId),
-       schedulerVersion = Value(schedulerVersion),
-       configVersion = Value(configVersion),
-       hlc = Value(hlc);
-  static Insertable<ReviewEventsData> custom({
-    Expression<i2.Uint8List>? id,
-    Expression<i2.Uint8List>? studyCardId,
-    Expression<String>? kind,
-    Expression<int>? at,
-    Expression<String>? grade,
-    Expression<int>? responseTime,
-    Expression<int>? dueBefore,
-    Expression<int>? dueAfter,
-    Expression<i2.Uint8List>? undoneEventId,
-    Expression<String>? schedulerId,
-    Expression<int>? schedulerVersion,
-    Expression<int>? configVersion,
-    Expression<String>? hlc,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (studyCardId != null) 'study_card_id': studyCardId,
-      if (kind != null) 'kind': kind,
-      if (at != null) 'at': at,
-      if (grade != null) 'grade': grade,
-      if (responseTime != null) 'response_time': responseTime,
-      if (dueBefore != null) 'due_before': dueBefore,
-      if (dueAfter != null) 'due_after': dueAfter,
-      if (undoneEventId != null) 'undone_event_id': undoneEventId,
-      if (schedulerId != null) 'scheduler_id': schedulerId,
-      if (schedulerVersion != null) 'scheduler_version': schedulerVersion,
-      if (configVersion != null) 'config_version': configVersion,
-      if (hlc != null) 'hlc': hlc,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  ReviewEventsCompanion copyWith({
-    Value<i2.Uint8List>? id,
-    Value<i2.Uint8List>? studyCardId,
-    Value<String>? kind,
-    Value<int>? at,
-    Value<String?>? grade,
-    Value<int?>? responseTime,
-    Value<int?>? dueBefore,
-    Value<int?>? dueAfter,
-    Value<i2.Uint8List?>? undoneEventId,
-    Value<String>? schedulerId,
-    Value<int>? schedulerVersion,
-    Value<int>? configVersion,
-    Value<String>? hlc,
-    Value<int>? rowid,
-  }) {
-    return ReviewEventsCompanion(
-      id: id ?? this.id,
-      studyCardId: studyCardId ?? this.studyCardId,
-      kind: kind ?? this.kind,
-      at: at ?? this.at,
-      grade: grade ?? this.grade,
-      responseTime: responseTime ?? this.responseTime,
-      dueBefore: dueBefore ?? this.dueBefore,
-      dueAfter: dueAfter ?? this.dueAfter,
-      undoneEventId: undoneEventId ?? this.undoneEventId,
-      schedulerId: schedulerId ?? this.schedulerId,
-      schedulerVersion: schedulerVersion ?? this.schedulerVersion,
-      configVersion: configVersion ?? this.configVersion,
-      hlc: hlc ?? this.hlc,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<i2.Uint8List>(id.value);
-    }
-    if (studyCardId.present) {
-      map['study_card_id'] = Variable<i2.Uint8List>(studyCardId.value);
-    }
-    if (kind.present) {
-      map['kind'] = Variable<String>(kind.value);
-    }
-    if (at.present) {
-      map['at'] = Variable<int>(at.value);
-    }
-    if (grade.present) {
-      map['grade'] = Variable<String>(grade.value);
-    }
-    if (responseTime.present) {
-      map['response_time'] = Variable<int>(responseTime.value);
-    }
-    if (dueBefore.present) {
-      map['due_before'] = Variable<int>(dueBefore.value);
-    }
-    if (dueAfter.present) {
-      map['due_after'] = Variable<int>(dueAfter.value);
-    }
-    if (undoneEventId.present) {
-      map['undone_event_id'] = Variable<i2.Uint8List>(undoneEventId.value);
-    }
-    if (schedulerId.present) {
-      map['scheduler_id'] = Variable<String>(schedulerId.value);
-    }
-    if (schedulerVersion.present) {
-      map['scheduler_version'] = Variable<int>(schedulerVersion.value);
-    }
-    if (configVersion.present) {
-      map['config_version'] = Variable<int>(configVersion.value);
-    }
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(hlc.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('ReviewEventsCompanion(')
-          ..write('id: $id, ')
-          ..write('studyCardId: $studyCardId, ')
-          ..write('kind: $kind, ')
-          ..write('at: $at, ')
-          ..write('grade: $grade, ')
-          ..write('responseTime: $responseTime, ')
-          ..write('dueBefore: $dueBefore, ')
-          ..write('dueAfter: $dueAfter, ')
-          ..write('undoneEventId: $undoneEventId, ')
-          ..write('schedulerId: $schedulerId, ')
-          ..write('schedulerVersion: $schedulerVersion, ')
-          ..write('configVersion: $configVersion, ')
-          ..write('hlc: $hlc, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class SchedulingStates extends Table
-    with TableInfo<SchedulingStates, SchedulingStatesData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  SchedulingStates(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<i2.Uint8List> studyCardId =
-      GeneratedColumn<i2.Uint8List>(
-        'study_card_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints:
-            'NOT NULL REFERENCES study_cards(id)ON DELETE CASCADE',
-      );
-  late final GeneratedColumn<String> state = GeneratedColumn<String>(
-    'state',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> due = GeneratedColumn<int>(
-    'due',
-    aliasedName,
-    true,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
-  late final GeneratedColumn<int> interval = GeneratedColumn<int>(
-    'interval',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<double> ease = GeneratedColumn<double>(
-    'ease',
-    aliasedName,
-    true,
-    type: DriftSqlType.double,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
-  late final GeneratedColumn<int> step = GeneratedColumn<int>(
-    'step',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> lapses = GeneratedColumn<int>(
-    'lapses',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> reviewCount = GeneratedColumn<int>(
-    'review_count',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<i2.Uint8List> lastEventId =
-      GeneratedColumn<i2.Uint8List>(
-        'last_event_id',
-        aliasedName,
-        true,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: false,
-        $customConstraints: 'NULL REFERENCES review_events(id)',
-      );
-  @override
-  List<GeneratedColumn> get $columns => [
-    studyCardId,
-    state,
-    due,
-    interval,
-    ease,
-    step,
-    lapses,
-    reviewCount,
-    lastEventId,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'scheduling_states';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {studyCardId};
-  @override
-  SchedulingStatesData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return SchedulingStatesData(
-      studyCardId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}study_card_id'],
-      )!,
-      state: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}state'],
-      )!,
-      due: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}due'],
-      ),
-      interval: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}interval'],
-      )!,
-      ease: attachedDatabase.typeMapping.read(
-        DriftSqlType.double,
-        data['${effectivePrefix}ease'],
-      ),
-      step: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}step'],
-      )!,
-      lapses: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}lapses'],
-      )!,
-      reviewCount: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}review_count'],
-      )!,
-      lastEventId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}last_event_id'],
-      ),
-    );
-  }
-
-  @override
-  SchedulingStates createAlias(String alias) {
-    return SchedulingStates(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const ['PRIMARY KEY(study_card_id)'];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class SchedulingStatesData extends DataClass
-    implements Insertable<SchedulingStatesData> {
-  final i2.Uint8List studyCardId;
-  final String state;
-  final int? due;
-  final int interval;
-  final double? ease;
-  final int step;
-  final int lapses;
-  final int reviewCount;
-  final i2.Uint8List? lastEventId;
-  const SchedulingStatesData({
-    required this.studyCardId,
-    required this.state,
-    this.due,
-    required this.interval,
-    this.ease,
-    required this.step,
-    required this.lapses,
-    required this.reviewCount,
-    this.lastEventId,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['study_card_id'] = Variable<i2.Uint8List>(studyCardId);
-    map['state'] = Variable<String>(state);
-    if (!nullToAbsent || due != null) {
-      map['due'] = Variable<int>(due);
-    }
-    map['interval'] = Variable<int>(interval);
-    if (!nullToAbsent || ease != null) {
-      map['ease'] = Variable<double>(ease);
-    }
-    map['step'] = Variable<int>(step);
-    map['lapses'] = Variable<int>(lapses);
-    map['review_count'] = Variable<int>(reviewCount);
-    if (!nullToAbsent || lastEventId != null) {
-      map['last_event_id'] = Variable<i2.Uint8List>(lastEventId);
-    }
-    return map;
-  }
-
-  SchedulingStatesCompanion toCompanion(bool nullToAbsent) {
-    return SchedulingStatesCompanion(
-      studyCardId: Value(studyCardId),
-      state: Value(state),
-      due: due == null && nullToAbsent ? const Value.absent() : Value(due),
-      interval: Value(interval),
-      ease: ease == null && nullToAbsent ? const Value.absent() : Value(ease),
-      step: Value(step),
-      lapses: Value(lapses),
-      reviewCount: Value(reviewCount),
-      lastEventId: lastEventId == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lastEventId),
-    );
-  }
-
-  factory SchedulingStatesData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return SchedulingStatesData(
-      studyCardId: serializer.fromJson<i2.Uint8List>(json['studyCardId']),
-      state: serializer.fromJson<String>(json['state']),
-      due: serializer.fromJson<int?>(json['due']),
-      interval: serializer.fromJson<int>(json['interval']),
-      ease: serializer.fromJson<double?>(json['ease']),
-      step: serializer.fromJson<int>(json['step']),
-      lapses: serializer.fromJson<int>(json['lapses']),
-      reviewCount: serializer.fromJson<int>(json['reviewCount']),
-      lastEventId: serializer.fromJson<i2.Uint8List?>(json['lastEventId']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'studyCardId': serializer.toJson<i2.Uint8List>(studyCardId),
-      'state': serializer.toJson<String>(state),
-      'due': serializer.toJson<int?>(due),
-      'interval': serializer.toJson<int>(interval),
-      'ease': serializer.toJson<double?>(ease),
-      'step': serializer.toJson<int>(step),
-      'lapses': serializer.toJson<int>(lapses),
-      'reviewCount': serializer.toJson<int>(reviewCount),
-      'lastEventId': serializer.toJson<i2.Uint8List?>(lastEventId),
-    };
-  }
-
-  SchedulingStatesData copyWith({
-    i2.Uint8List? studyCardId,
-    String? state,
-    Value<int?> due = const Value.absent(),
-    int? interval,
-    Value<double?> ease = const Value.absent(),
-    int? step,
-    int? lapses,
-    int? reviewCount,
-    Value<i2.Uint8List?> lastEventId = const Value.absent(),
-  }) => SchedulingStatesData(
-    studyCardId: studyCardId ?? this.studyCardId,
-    state: state ?? this.state,
-    due: due.present ? due.value : this.due,
-    interval: interval ?? this.interval,
-    ease: ease.present ? ease.value : this.ease,
-    step: step ?? this.step,
-    lapses: lapses ?? this.lapses,
-    reviewCount: reviewCount ?? this.reviewCount,
-    lastEventId: lastEventId.present ? lastEventId.value : this.lastEventId,
-  );
-  SchedulingStatesData copyWithCompanion(SchedulingStatesCompanion data) {
-    return SchedulingStatesData(
-      studyCardId: data.studyCardId.present
-          ? data.studyCardId.value
-          : this.studyCardId,
-      state: data.state.present ? data.state.value : this.state,
-      due: data.due.present ? data.due.value : this.due,
-      interval: data.interval.present ? data.interval.value : this.interval,
-      ease: data.ease.present ? data.ease.value : this.ease,
-      step: data.step.present ? data.step.value : this.step,
-      lapses: data.lapses.present ? data.lapses.value : this.lapses,
-      reviewCount: data.reviewCount.present
-          ? data.reviewCount.value
-          : this.reviewCount,
-      lastEventId: data.lastEventId.present
-          ? data.lastEventId.value
-          : this.lastEventId,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SchedulingStatesData(')
-          ..write('studyCardId: $studyCardId, ')
-          ..write('state: $state, ')
-          ..write('due: $due, ')
-          ..write('interval: $interval, ')
-          ..write('ease: $ease, ')
-          ..write('step: $step, ')
-          ..write('lapses: $lapses, ')
-          ..write('reviewCount: $reviewCount, ')
-          ..write('lastEventId: $lastEventId')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    $driftBlobEquality.hash(studyCardId),
-    state,
-    due,
-    interval,
-    ease,
-    step,
-    lapses,
-    reviewCount,
-    $driftBlobEquality.hash(lastEventId),
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is SchedulingStatesData &&
-          $driftBlobEquality.equals(other.studyCardId, this.studyCardId) &&
-          other.state == this.state &&
-          other.due == this.due &&
-          other.interval == this.interval &&
-          other.ease == this.ease &&
-          other.step == this.step &&
-          other.lapses == this.lapses &&
-          other.reviewCount == this.reviewCount &&
-          $driftBlobEquality.equals(other.lastEventId, this.lastEventId));
-}
-
-class SchedulingStatesCompanion extends UpdateCompanion<SchedulingStatesData> {
-  final Value<i2.Uint8List> studyCardId;
-  final Value<String> state;
-  final Value<int?> due;
-  final Value<int> interval;
-  final Value<double?> ease;
-  final Value<int> step;
-  final Value<int> lapses;
-  final Value<int> reviewCount;
-  final Value<i2.Uint8List?> lastEventId;
-  final Value<int> rowid;
-  const SchedulingStatesCompanion({
-    this.studyCardId = const Value.absent(),
-    this.state = const Value.absent(),
-    this.due = const Value.absent(),
-    this.interval = const Value.absent(),
-    this.ease = const Value.absent(),
-    this.step = const Value.absent(),
-    this.lapses = const Value.absent(),
-    this.reviewCount = const Value.absent(),
-    this.lastEventId = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  SchedulingStatesCompanion.insert({
-    required i2.Uint8List studyCardId,
-    required String state,
-    this.due = const Value.absent(),
-    required int interval,
-    this.ease = const Value.absent(),
-    required int step,
-    required int lapses,
-    required int reviewCount,
-    this.lastEventId = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : studyCardId = Value(studyCardId),
-       state = Value(state),
-       interval = Value(interval),
-       step = Value(step),
-       lapses = Value(lapses),
-       reviewCount = Value(reviewCount);
-  static Insertable<SchedulingStatesData> custom({
-    Expression<i2.Uint8List>? studyCardId,
-    Expression<String>? state,
-    Expression<int>? due,
-    Expression<int>? interval,
-    Expression<double>? ease,
-    Expression<int>? step,
-    Expression<int>? lapses,
-    Expression<int>? reviewCount,
-    Expression<i2.Uint8List>? lastEventId,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (studyCardId != null) 'study_card_id': studyCardId,
-      if (state != null) 'state': state,
-      if (due != null) 'due': due,
-      if (interval != null) 'interval': interval,
-      if (ease != null) 'ease': ease,
-      if (step != null) 'step': step,
-      if (lapses != null) 'lapses': lapses,
-      if (reviewCount != null) 'review_count': reviewCount,
-      if (lastEventId != null) 'last_event_id': lastEventId,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  SchedulingStatesCompanion copyWith({
-    Value<i2.Uint8List>? studyCardId,
-    Value<String>? state,
-    Value<int?>? due,
-    Value<int>? interval,
-    Value<double?>? ease,
-    Value<int>? step,
-    Value<int>? lapses,
-    Value<int>? reviewCount,
-    Value<i2.Uint8List?>? lastEventId,
-    Value<int>? rowid,
-  }) {
-    return SchedulingStatesCompanion(
-      studyCardId: studyCardId ?? this.studyCardId,
-      state: state ?? this.state,
-      due: due ?? this.due,
-      interval: interval ?? this.interval,
-      ease: ease ?? this.ease,
-      step: step ?? this.step,
-      lapses: lapses ?? this.lapses,
-      reviewCount: reviewCount ?? this.reviewCount,
-      lastEventId: lastEventId ?? this.lastEventId,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (studyCardId.present) {
-      map['study_card_id'] = Variable<i2.Uint8List>(studyCardId.value);
-    }
-    if (state.present) {
-      map['state'] = Variable<String>(state.value);
-    }
-    if (due.present) {
-      map['due'] = Variable<int>(due.value);
-    }
-    if (interval.present) {
-      map['interval'] = Variable<int>(interval.value);
-    }
-    if (ease.present) {
-      map['ease'] = Variable<double>(ease.value);
-    }
-    if (step.present) {
-      map['step'] = Variable<int>(step.value);
-    }
-    if (lapses.present) {
-      map['lapses'] = Variable<int>(lapses.value);
-    }
-    if (reviewCount.present) {
-      map['review_count'] = Variable<int>(reviewCount.value);
-    }
-    if (lastEventId.present) {
-      map['last_event_id'] = Variable<i2.Uint8List>(lastEventId.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('SchedulingStatesCompanion(')
-          ..write('studyCardId: $studyCardId, ')
-          ..write('state: $state, ')
-          ..write('due: $due, ')
-          ..write('interval: $interval, ')
-          ..write('ease: $ease, ')
-          ..write('step: $step, ')
-          ..write('lapses: $lapses, ')
-          ..write('reviewCount: $reviewCount, ')
-          ..write('lastEventId: $lastEventId, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class FieldDefinitions extends Table
     with TableInfo<FieldDefinitions, FieldDefinitionsData> {
   @override
@@ -5525,6 +3908,1623 @@ class NoteFieldsCompanion extends UpdateCompanion<NoteFieldsData> {
   }
 }
 
+class ReviewEvents extends Table
+    with TableInfo<ReviewEvents, ReviewEventsData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  ReviewEvents(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<i2.Uint8List> studyCardId =
+      GeneratedColumn<i2.Uint8List>(
+        'study_card_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL REFERENCES study_cards(id)',
+      );
+  late final GeneratedColumn<String> kind = GeneratedColumn<String>(
+    'kind',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> at = GeneratedColumn<int>(
+    'at',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> grade = GeneratedColumn<String>(
+    'grade',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<int> responseTime = GeneratedColumn<int>(
+    'response_time',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<int> dueBefore = GeneratedColumn<int>(
+    'due_before',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<int> dueAfter = GeneratedColumn<int>(
+    'due_after',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<i2.Uint8List> undoneEventId =
+      GeneratedColumn<i2.Uint8List>(
+        'undone_event_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: false,
+        $customConstraints: 'NULL REFERENCES review_events(id)',
+      );
+  late final GeneratedColumn<String> schedulerId = GeneratedColumn<String>(
+    'scheduler_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> schedulerVersion = GeneratedColumn<int>(
+    'scheduler_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> configVersion = GeneratedColumn<int>(
+    'config_version',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
+    'hlc',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    id,
+    studyCardId,
+    kind,
+    at,
+    grade,
+    responseTime,
+    dueBefore,
+    dueAfter,
+    undoneEventId,
+    schedulerId,
+    schedulerVersion,
+    configVersion,
+    hlc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'review_events';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  ReviewEventsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return ReviewEventsData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
+      studyCardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}study_card_id'],
+      )!,
+      kind: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}kind'],
+      )!,
+      at: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}at'],
+      )!,
+      grade: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}grade'],
+      ),
+      responseTime: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}response_time'],
+      ),
+      dueBefore: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}due_before'],
+      ),
+      dueAfter: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}due_after'],
+      ),
+      undoneEventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}undone_event_id'],
+      ),
+      schedulerId: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}scheduler_id'],
+      )!,
+      schedulerVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}scheduler_version'],
+      )!,
+      configVersion: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}config_version'],
+      )!,
+      hlc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hlc'],
+      )!,
+    );
+  }
+
+  @override
+  ReviewEvents createAlias(String alias) {
+    return ReviewEvents(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class ReviewEventsData extends DataClass
+    implements Insertable<ReviewEventsData> {
+  final i2.Uint8List id;
+  final i2.Uint8List studyCardId;
+  final String kind;
+  final int at;
+  final String? grade;
+  final int? responseTime;
+  final int? dueBefore;
+  final int? dueAfter;
+  final i2.Uint8List? undoneEventId;
+  final String schedulerId;
+  final int schedulerVersion;
+  final int configVersion;
+  final String hlc;
+  const ReviewEventsData({
+    required this.id,
+    required this.studyCardId,
+    required this.kind,
+    required this.at,
+    this.grade,
+    this.responseTime,
+    this.dueBefore,
+    this.dueAfter,
+    this.undoneEventId,
+    required this.schedulerId,
+    required this.schedulerVersion,
+    required this.configVersion,
+    required this.hlc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<i2.Uint8List>(id);
+    map['study_card_id'] = Variable<i2.Uint8List>(studyCardId);
+    map['kind'] = Variable<String>(kind);
+    map['at'] = Variable<int>(at);
+    if (!nullToAbsent || grade != null) {
+      map['grade'] = Variable<String>(grade);
+    }
+    if (!nullToAbsent || responseTime != null) {
+      map['response_time'] = Variable<int>(responseTime);
+    }
+    if (!nullToAbsent || dueBefore != null) {
+      map['due_before'] = Variable<int>(dueBefore);
+    }
+    if (!nullToAbsent || dueAfter != null) {
+      map['due_after'] = Variable<int>(dueAfter);
+    }
+    if (!nullToAbsent || undoneEventId != null) {
+      map['undone_event_id'] = Variable<i2.Uint8List>(undoneEventId);
+    }
+    map['scheduler_id'] = Variable<String>(schedulerId);
+    map['scheduler_version'] = Variable<int>(schedulerVersion);
+    map['config_version'] = Variable<int>(configVersion);
+    map['hlc'] = Variable<String>(hlc);
+    return map;
+  }
+
+  ReviewEventsCompanion toCompanion(bool nullToAbsent) {
+    return ReviewEventsCompanion(
+      id: Value(id),
+      studyCardId: Value(studyCardId),
+      kind: Value(kind),
+      at: Value(at),
+      grade: grade == null && nullToAbsent
+          ? const Value.absent()
+          : Value(grade),
+      responseTime: responseTime == null && nullToAbsent
+          ? const Value.absent()
+          : Value(responseTime),
+      dueBefore: dueBefore == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueBefore),
+      dueAfter: dueAfter == null && nullToAbsent
+          ? const Value.absent()
+          : Value(dueAfter),
+      undoneEventId: undoneEventId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(undoneEventId),
+      schedulerId: Value(schedulerId),
+      schedulerVersion: Value(schedulerVersion),
+      configVersion: Value(configVersion),
+      hlc: Value(hlc),
+    );
+  }
+
+  factory ReviewEventsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return ReviewEventsData(
+      id: serializer.fromJson<i2.Uint8List>(json['id']),
+      studyCardId: serializer.fromJson<i2.Uint8List>(json['studyCardId']),
+      kind: serializer.fromJson<String>(json['kind']),
+      at: serializer.fromJson<int>(json['at']),
+      grade: serializer.fromJson<String?>(json['grade']),
+      responseTime: serializer.fromJson<int?>(json['responseTime']),
+      dueBefore: serializer.fromJson<int?>(json['dueBefore']),
+      dueAfter: serializer.fromJson<int?>(json['dueAfter']),
+      undoneEventId: serializer.fromJson<i2.Uint8List?>(json['undoneEventId']),
+      schedulerId: serializer.fromJson<String>(json['schedulerId']),
+      schedulerVersion: serializer.fromJson<int>(json['schedulerVersion']),
+      configVersion: serializer.fromJson<int>(json['configVersion']),
+      hlc: serializer.fromJson<String>(json['hlc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<i2.Uint8List>(id),
+      'studyCardId': serializer.toJson<i2.Uint8List>(studyCardId),
+      'kind': serializer.toJson<String>(kind),
+      'at': serializer.toJson<int>(at),
+      'grade': serializer.toJson<String?>(grade),
+      'responseTime': serializer.toJson<int?>(responseTime),
+      'dueBefore': serializer.toJson<int?>(dueBefore),
+      'dueAfter': serializer.toJson<int?>(dueAfter),
+      'undoneEventId': serializer.toJson<i2.Uint8List?>(undoneEventId),
+      'schedulerId': serializer.toJson<String>(schedulerId),
+      'schedulerVersion': serializer.toJson<int>(schedulerVersion),
+      'configVersion': serializer.toJson<int>(configVersion),
+      'hlc': serializer.toJson<String>(hlc),
+    };
+  }
+
+  ReviewEventsData copyWith({
+    i2.Uint8List? id,
+    i2.Uint8List? studyCardId,
+    String? kind,
+    int? at,
+    Value<String?> grade = const Value.absent(),
+    Value<int?> responseTime = const Value.absent(),
+    Value<int?> dueBefore = const Value.absent(),
+    Value<int?> dueAfter = const Value.absent(),
+    Value<i2.Uint8List?> undoneEventId = const Value.absent(),
+    String? schedulerId,
+    int? schedulerVersion,
+    int? configVersion,
+    String? hlc,
+  }) => ReviewEventsData(
+    id: id ?? this.id,
+    studyCardId: studyCardId ?? this.studyCardId,
+    kind: kind ?? this.kind,
+    at: at ?? this.at,
+    grade: grade.present ? grade.value : this.grade,
+    responseTime: responseTime.present ? responseTime.value : this.responseTime,
+    dueBefore: dueBefore.present ? dueBefore.value : this.dueBefore,
+    dueAfter: dueAfter.present ? dueAfter.value : this.dueAfter,
+    undoneEventId: undoneEventId.present
+        ? undoneEventId.value
+        : this.undoneEventId,
+    schedulerId: schedulerId ?? this.schedulerId,
+    schedulerVersion: schedulerVersion ?? this.schedulerVersion,
+    configVersion: configVersion ?? this.configVersion,
+    hlc: hlc ?? this.hlc,
+  );
+  ReviewEventsData copyWithCompanion(ReviewEventsCompanion data) {
+    return ReviewEventsData(
+      id: data.id.present ? data.id.value : this.id,
+      studyCardId: data.studyCardId.present
+          ? data.studyCardId.value
+          : this.studyCardId,
+      kind: data.kind.present ? data.kind.value : this.kind,
+      at: data.at.present ? data.at.value : this.at,
+      grade: data.grade.present ? data.grade.value : this.grade,
+      responseTime: data.responseTime.present
+          ? data.responseTime.value
+          : this.responseTime,
+      dueBefore: data.dueBefore.present ? data.dueBefore.value : this.dueBefore,
+      dueAfter: data.dueAfter.present ? data.dueAfter.value : this.dueAfter,
+      undoneEventId: data.undoneEventId.present
+          ? data.undoneEventId.value
+          : this.undoneEventId,
+      schedulerId: data.schedulerId.present
+          ? data.schedulerId.value
+          : this.schedulerId,
+      schedulerVersion: data.schedulerVersion.present
+          ? data.schedulerVersion.value
+          : this.schedulerVersion,
+      configVersion: data.configVersion.present
+          ? data.configVersion.value
+          : this.configVersion,
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewEventsData(')
+          ..write('id: $id, ')
+          ..write('studyCardId: $studyCardId, ')
+          ..write('kind: $kind, ')
+          ..write('at: $at, ')
+          ..write('grade: $grade, ')
+          ..write('responseTime: $responseTime, ')
+          ..write('dueBefore: $dueBefore, ')
+          ..write('dueAfter: $dueAfter, ')
+          ..write('undoneEventId: $undoneEventId, ')
+          ..write('schedulerId: $schedulerId, ')
+          ..write('schedulerVersion: $schedulerVersion, ')
+          ..write('configVersion: $configVersion, ')
+          ..write('hlc: $hlc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    $driftBlobEquality.hash(id),
+    $driftBlobEquality.hash(studyCardId),
+    kind,
+    at,
+    grade,
+    responseTime,
+    dueBefore,
+    dueAfter,
+    $driftBlobEquality.hash(undoneEventId),
+    schedulerId,
+    schedulerVersion,
+    configVersion,
+    hlc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is ReviewEventsData &&
+          $driftBlobEquality.equals(other.id, this.id) &&
+          $driftBlobEquality.equals(other.studyCardId, this.studyCardId) &&
+          other.kind == this.kind &&
+          other.at == this.at &&
+          other.grade == this.grade &&
+          other.responseTime == this.responseTime &&
+          other.dueBefore == this.dueBefore &&
+          other.dueAfter == this.dueAfter &&
+          $driftBlobEquality.equals(other.undoneEventId, this.undoneEventId) &&
+          other.schedulerId == this.schedulerId &&
+          other.schedulerVersion == this.schedulerVersion &&
+          other.configVersion == this.configVersion &&
+          other.hlc == this.hlc);
+}
+
+class ReviewEventsCompanion extends UpdateCompanion<ReviewEventsData> {
+  final Value<i2.Uint8List> id;
+  final Value<i2.Uint8List> studyCardId;
+  final Value<String> kind;
+  final Value<int> at;
+  final Value<String?> grade;
+  final Value<int?> responseTime;
+  final Value<int?> dueBefore;
+  final Value<int?> dueAfter;
+  final Value<i2.Uint8List?> undoneEventId;
+  final Value<String> schedulerId;
+  final Value<int> schedulerVersion;
+  final Value<int> configVersion;
+  final Value<String> hlc;
+  final Value<int> rowid;
+  const ReviewEventsCompanion({
+    this.id = const Value.absent(),
+    this.studyCardId = const Value.absent(),
+    this.kind = const Value.absent(),
+    this.at = const Value.absent(),
+    this.grade = const Value.absent(),
+    this.responseTime = const Value.absent(),
+    this.dueBefore = const Value.absent(),
+    this.dueAfter = const Value.absent(),
+    this.undoneEventId = const Value.absent(),
+    this.schedulerId = const Value.absent(),
+    this.schedulerVersion = const Value.absent(),
+    this.configVersion = const Value.absent(),
+    this.hlc = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  ReviewEventsCompanion.insert({
+    required i2.Uint8List id,
+    required i2.Uint8List studyCardId,
+    required String kind,
+    required int at,
+    this.grade = const Value.absent(),
+    this.responseTime = const Value.absent(),
+    this.dueBefore = const Value.absent(),
+    this.dueAfter = const Value.absent(),
+    this.undoneEventId = const Value.absent(),
+    required String schedulerId,
+    required int schedulerVersion,
+    required int configVersion,
+    required String hlc,
+    this.rowid = const Value.absent(),
+  }) : id = Value(id),
+       studyCardId = Value(studyCardId),
+       kind = Value(kind),
+       at = Value(at),
+       schedulerId = Value(schedulerId),
+       schedulerVersion = Value(schedulerVersion),
+       configVersion = Value(configVersion),
+       hlc = Value(hlc);
+  static Insertable<ReviewEventsData> custom({
+    Expression<i2.Uint8List>? id,
+    Expression<i2.Uint8List>? studyCardId,
+    Expression<String>? kind,
+    Expression<int>? at,
+    Expression<String>? grade,
+    Expression<int>? responseTime,
+    Expression<int>? dueBefore,
+    Expression<int>? dueAfter,
+    Expression<i2.Uint8List>? undoneEventId,
+    Expression<String>? schedulerId,
+    Expression<int>? schedulerVersion,
+    Expression<int>? configVersion,
+    Expression<String>? hlc,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (studyCardId != null) 'study_card_id': studyCardId,
+      if (kind != null) 'kind': kind,
+      if (at != null) 'at': at,
+      if (grade != null) 'grade': grade,
+      if (responseTime != null) 'response_time': responseTime,
+      if (dueBefore != null) 'due_before': dueBefore,
+      if (dueAfter != null) 'due_after': dueAfter,
+      if (undoneEventId != null) 'undone_event_id': undoneEventId,
+      if (schedulerId != null) 'scheduler_id': schedulerId,
+      if (schedulerVersion != null) 'scheduler_version': schedulerVersion,
+      if (configVersion != null) 'config_version': configVersion,
+      if (hlc != null) 'hlc': hlc,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  ReviewEventsCompanion copyWith({
+    Value<i2.Uint8List>? id,
+    Value<i2.Uint8List>? studyCardId,
+    Value<String>? kind,
+    Value<int>? at,
+    Value<String?>? grade,
+    Value<int?>? responseTime,
+    Value<int?>? dueBefore,
+    Value<int?>? dueAfter,
+    Value<i2.Uint8List?>? undoneEventId,
+    Value<String>? schedulerId,
+    Value<int>? schedulerVersion,
+    Value<int>? configVersion,
+    Value<String>? hlc,
+    Value<int>? rowid,
+  }) {
+    return ReviewEventsCompanion(
+      id: id ?? this.id,
+      studyCardId: studyCardId ?? this.studyCardId,
+      kind: kind ?? this.kind,
+      at: at ?? this.at,
+      grade: grade ?? this.grade,
+      responseTime: responseTime ?? this.responseTime,
+      dueBefore: dueBefore ?? this.dueBefore,
+      dueAfter: dueAfter ?? this.dueAfter,
+      undoneEventId: undoneEventId ?? this.undoneEventId,
+      schedulerId: schedulerId ?? this.schedulerId,
+      schedulerVersion: schedulerVersion ?? this.schedulerVersion,
+      configVersion: configVersion ?? this.configVersion,
+      hlc: hlc ?? this.hlc,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<i2.Uint8List>(id.value);
+    }
+    if (studyCardId.present) {
+      map['study_card_id'] = Variable<i2.Uint8List>(studyCardId.value);
+    }
+    if (kind.present) {
+      map['kind'] = Variable<String>(kind.value);
+    }
+    if (at.present) {
+      map['at'] = Variable<int>(at.value);
+    }
+    if (grade.present) {
+      map['grade'] = Variable<String>(grade.value);
+    }
+    if (responseTime.present) {
+      map['response_time'] = Variable<int>(responseTime.value);
+    }
+    if (dueBefore.present) {
+      map['due_before'] = Variable<int>(dueBefore.value);
+    }
+    if (dueAfter.present) {
+      map['due_after'] = Variable<int>(dueAfter.value);
+    }
+    if (undoneEventId.present) {
+      map['undone_event_id'] = Variable<i2.Uint8List>(undoneEventId.value);
+    }
+    if (schedulerId.present) {
+      map['scheduler_id'] = Variable<String>(schedulerId.value);
+    }
+    if (schedulerVersion.present) {
+      map['scheduler_version'] = Variable<int>(schedulerVersion.value);
+    }
+    if (configVersion.present) {
+      map['config_version'] = Variable<int>(configVersion.value);
+    }
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(hlc.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('ReviewEventsCompanion(')
+          ..write('id: $id, ')
+          ..write('studyCardId: $studyCardId, ')
+          ..write('kind: $kind, ')
+          ..write('at: $at, ')
+          ..write('grade: $grade, ')
+          ..write('responseTime: $responseTime, ')
+          ..write('dueBefore: $dueBefore, ')
+          ..write('dueAfter: $dueAfter, ')
+          ..write('undoneEventId: $undoneEventId, ')
+          ..write('schedulerId: $schedulerId, ')
+          ..write('schedulerVersion: $schedulerVersion, ')
+          ..write('configVersion: $configVersion, ')
+          ..write('hlc: $hlc, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class Device extends Table with TableInfo<Device, DeviceData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Device(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> node = GeneratedColumn<String>(
+    'node',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> lastHlc = GeneratedColumn<String>(
+    'last_hlc',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, node, lastHlc];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'device';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DeviceData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeviceData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      node: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node'],
+      )!,
+      lastHlc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_hlc'],
+      ),
+    );
+  }
+
+  @override
+  Device createAlias(String alias) {
+    return Device(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class DeviceData extends DataClass implements Insertable<DeviceData> {
+  final int id;
+  final String node;
+  final String? lastHlc;
+  const DeviceData({required this.id, required this.node, this.lastHlc});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['node'] = Variable<String>(node);
+    if (!nullToAbsent || lastHlc != null) {
+      map['last_hlc'] = Variable<String>(lastHlc);
+    }
+    return map;
+  }
+
+  DeviceCompanion toCompanion(bool nullToAbsent) {
+    return DeviceCompanion(
+      id: Value(id),
+      node: Value(node),
+      lastHlc: lastHlc == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastHlc),
+    );
+  }
+
+  factory DeviceData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeviceData(
+      id: serializer.fromJson<int>(json['id']),
+      node: serializer.fromJson<String>(json['node']),
+      lastHlc: serializer.fromJson<String?>(json['lastHlc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'node': serializer.toJson<String>(node),
+      'lastHlc': serializer.toJson<String?>(lastHlc),
+    };
+  }
+
+  DeviceData copyWith({
+    int? id,
+    String? node,
+    Value<String?> lastHlc = const Value.absent(),
+  }) => DeviceData(
+    id: id ?? this.id,
+    node: node ?? this.node,
+    lastHlc: lastHlc.present ? lastHlc.value : this.lastHlc,
+  );
+  DeviceData copyWithCompanion(DeviceCompanion data) {
+    return DeviceData(
+      id: data.id.present ? data.id.value : this.id,
+      node: data.node.present ? data.node.value : this.node,
+      lastHlc: data.lastHlc.present ? data.lastHlc.value : this.lastHlc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeviceData(')
+          ..write('id: $id, ')
+          ..write('node: $node, ')
+          ..write('lastHlc: $lastHlc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, node, lastHlc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeviceData &&
+          other.id == this.id &&
+          other.node == this.node &&
+          other.lastHlc == this.lastHlc);
+}
+
+class DeviceCompanion extends UpdateCompanion<DeviceData> {
+  final Value<int> id;
+  final Value<String> node;
+  final Value<String?> lastHlc;
+  const DeviceCompanion({
+    this.id = const Value.absent(),
+    this.node = const Value.absent(),
+    this.lastHlc = const Value.absent(),
+  });
+  DeviceCompanion.insert({
+    this.id = const Value.absent(),
+    required String node,
+    this.lastHlc = const Value.absent(),
+  }) : node = Value(node);
+  static Insertable<DeviceData> custom({
+    Expression<int>? id,
+    Expression<String>? node,
+    Expression<String>? lastHlc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (node != null) 'node': node,
+      if (lastHlc != null) 'last_hlc': lastHlc,
+    });
+  }
+
+  DeviceCompanion copyWith({
+    Value<int>? id,
+    Value<String>? node,
+    Value<String?>? lastHlc,
+  }) {
+    return DeviceCompanion(
+      id: id ?? this.id,
+      node: node ?? this.node,
+      lastHlc: lastHlc ?? this.lastHlc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (node.present) {
+      map['node'] = Variable<String>(node.value);
+    }
+    if (lastHlc.present) {
+      map['last_hlc'] = Variable<String>(lastHlc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeviceCompanion(')
+          ..write('id: $id, ')
+          ..write('node: $node, ')
+          ..write('lastHlc: $lastHlc')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class Outbox extends Table with TableInfo<Outbox, OutboxData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Outbox(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<i2.Uint8List> collectionId =
+      GeneratedColumn<i2.Uint8List>(
+        'collection_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      );
+  late final GeneratedColumn<String> entityTable = GeneratedColumn<String>(
+    'entity_table',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<i2.Uint8List> entityKey =
+      GeneratedColumn<i2.Uint8List>(
+        'entity_key',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      );
+  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
+    'hlc',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    collectionId,
+    entityTable,
+    entityKey,
+    hlc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'outbox';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {entityTable, entityKey};
+  @override
+  OutboxData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OutboxData(
+      collectionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}collection_id'],
+      )!,
+      entityTable: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_table'],
+      )!,
+      entityKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}entity_key'],
+      )!,
+      hlc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hlc'],
+      )!,
+    );
+  }
+
+  @override
+  Outbox createAlias(String alias) {
+    return Outbox(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(entity_table, entity_key)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class OutboxData extends DataClass implements Insertable<OutboxData> {
+  final i2.Uint8List collectionId;
+  final String entityTable;
+  final i2.Uint8List entityKey;
+  final String hlc;
+  const OutboxData({
+    required this.collectionId,
+    required this.entityTable,
+    required this.entityKey,
+    required this.hlc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['collection_id'] = Variable<i2.Uint8List>(collectionId);
+    map['entity_table'] = Variable<String>(entityTable);
+    map['entity_key'] = Variable<i2.Uint8List>(entityKey);
+    map['hlc'] = Variable<String>(hlc);
+    return map;
+  }
+
+  OutboxCompanion toCompanion(bool nullToAbsent) {
+    return OutboxCompanion(
+      collectionId: Value(collectionId),
+      entityTable: Value(entityTable),
+      entityKey: Value(entityKey),
+      hlc: Value(hlc),
+    );
+  }
+
+  factory OutboxData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OutboxData(
+      collectionId: serializer.fromJson<i2.Uint8List>(json['collectionId']),
+      entityTable: serializer.fromJson<String>(json['entityTable']),
+      entityKey: serializer.fromJson<i2.Uint8List>(json['entityKey']),
+      hlc: serializer.fromJson<String>(json['hlc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'collectionId': serializer.toJson<i2.Uint8List>(collectionId),
+      'entityTable': serializer.toJson<String>(entityTable),
+      'entityKey': serializer.toJson<i2.Uint8List>(entityKey),
+      'hlc': serializer.toJson<String>(hlc),
+    };
+  }
+
+  OutboxData copyWith({
+    i2.Uint8List? collectionId,
+    String? entityTable,
+    i2.Uint8List? entityKey,
+    String? hlc,
+  }) => OutboxData(
+    collectionId: collectionId ?? this.collectionId,
+    entityTable: entityTable ?? this.entityTable,
+    entityKey: entityKey ?? this.entityKey,
+    hlc: hlc ?? this.hlc,
+  );
+  OutboxData copyWithCompanion(OutboxCompanion data) {
+    return OutboxData(
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      entityTable: data.entityTable.present
+          ? data.entityTable.value
+          : this.entityTable,
+      entityKey: data.entityKey.present ? data.entityKey.value : this.entityKey,
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxData(')
+          ..write('collectionId: $collectionId, ')
+          ..write('entityTable: $entityTable, ')
+          ..write('entityKey: $entityKey, ')
+          ..write('hlc: $hlc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    $driftBlobEquality.hash(collectionId),
+    entityTable,
+    $driftBlobEquality.hash(entityKey),
+    hlc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OutboxData &&
+          $driftBlobEquality.equals(other.collectionId, this.collectionId) &&
+          other.entityTable == this.entityTable &&
+          $driftBlobEquality.equals(other.entityKey, this.entityKey) &&
+          other.hlc == this.hlc);
+}
+
+class OutboxCompanion extends UpdateCompanion<OutboxData> {
+  final Value<i2.Uint8List> collectionId;
+  final Value<String> entityTable;
+  final Value<i2.Uint8List> entityKey;
+  final Value<String> hlc;
+  final Value<int> rowid;
+  const OutboxCompanion({
+    this.collectionId = const Value.absent(),
+    this.entityTable = const Value.absent(),
+    this.entityKey = const Value.absent(),
+    this.hlc = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OutboxCompanion.insert({
+    required i2.Uint8List collectionId,
+    required String entityTable,
+    required i2.Uint8List entityKey,
+    required String hlc,
+    this.rowid = const Value.absent(),
+  }) : collectionId = Value(collectionId),
+       entityTable = Value(entityTable),
+       entityKey = Value(entityKey),
+       hlc = Value(hlc);
+  static Insertable<OutboxData> custom({
+    Expression<i2.Uint8List>? collectionId,
+    Expression<String>? entityTable,
+    Expression<i2.Uint8List>? entityKey,
+    Expression<String>? hlc,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (collectionId != null) 'collection_id': collectionId,
+      if (entityTable != null) 'entity_table': entityTable,
+      if (entityKey != null) 'entity_key': entityKey,
+      if (hlc != null) 'hlc': hlc,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OutboxCompanion copyWith({
+    Value<i2.Uint8List>? collectionId,
+    Value<String>? entityTable,
+    Value<i2.Uint8List>? entityKey,
+    Value<String>? hlc,
+    Value<int>? rowid,
+  }) {
+    return OutboxCompanion(
+      collectionId: collectionId ?? this.collectionId,
+      entityTable: entityTable ?? this.entityTable,
+      entityKey: entityKey ?? this.entityKey,
+      hlc: hlc ?? this.hlc,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (collectionId.present) {
+      map['collection_id'] = Variable<i2.Uint8List>(collectionId.value);
+    }
+    if (entityTable.present) {
+      map['entity_table'] = Variable<String>(entityTable.value);
+    }
+    if (entityKey.present) {
+      map['entity_key'] = Variable<i2.Uint8List>(entityKey.value);
+    }
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(hlc.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxCompanion(')
+          ..write('collectionId: $collectionId, ')
+          ..write('entityTable: $entityTable, ')
+          ..write('entityKey: $entityKey, ')
+          ..write('hlc: $hlc, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class SchedulingStates extends Table
+    with TableInfo<SchedulingStates, SchedulingStatesData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  SchedulingStates(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<i2.Uint8List> studyCardId =
+      GeneratedColumn<i2.Uint8List>(
+        'study_card_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL REFERENCES study_cards(id)ON DELETE CASCADE',
+      );
+  late final GeneratedColumn<String> state = GeneratedColumn<String>(
+    'state',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> due = GeneratedColumn<int>(
+    'due',
+    aliasedName,
+    true,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<int> interval = GeneratedColumn<int>(
+    'interval',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<double> ease = GeneratedColumn<double>(
+    'ease',
+    aliasedName,
+    true,
+    type: DriftSqlType.double,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  late final GeneratedColumn<int> step = GeneratedColumn<int>(
+    'step',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> lapses = GeneratedColumn<int>(
+    'lapses',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> reviewCount = GeneratedColumn<int>(
+    'review_count',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<i2.Uint8List> lastEventId =
+      GeneratedColumn<i2.Uint8List>(
+        'last_event_id',
+        aliasedName,
+        true,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: false,
+        $customConstraints: 'NULL REFERENCES review_events(id)',
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    studyCardId,
+    state,
+    due,
+    interval,
+    ease,
+    step,
+    lapses,
+    reviewCount,
+    lastEventId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'scheduling_states';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {studyCardId};
+  @override
+  SchedulingStatesData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return SchedulingStatesData(
+      studyCardId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}study_card_id'],
+      )!,
+      state: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}state'],
+      )!,
+      due: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}due'],
+      ),
+      interval: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}interval'],
+      )!,
+      ease: attachedDatabase.typeMapping.read(
+        DriftSqlType.double,
+        data['${effectivePrefix}ease'],
+      ),
+      step: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}step'],
+      )!,
+      lapses: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}lapses'],
+      )!,
+      reviewCount: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}review_count'],
+      )!,
+      lastEventId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}last_event_id'],
+      ),
+    );
+  }
+
+  @override
+  SchedulingStates createAlias(String alias) {
+    return SchedulingStates(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(study_card_id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class SchedulingStatesData extends DataClass
+    implements Insertable<SchedulingStatesData> {
+  final i2.Uint8List studyCardId;
+  final String state;
+  final int? due;
+  final int interval;
+  final double? ease;
+  final int step;
+  final int lapses;
+  final int reviewCount;
+  final i2.Uint8List? lastEventId;
+  const SchedulingStatesData({
+    required this.studyCardId,
+    required this.state,
+    this.due,
+    required this.interval,
+    this.ease,
+    required this.step,
+    required this.lapses,
+    required this.reviewCount,
+    this.lastEventId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['study_card_id'] = Variable<i2.Uint8List>(studyCardId);
+    map['state'] = Variable<String>(state);
+    if (!nullToAbsent || due != null) {
+      map['due'] = Variable<int>(due);
+    }
+    map['interval'] = Variable<int>(interval);
+    if (!nullToAbsent || ease != null) {
+      map['ease'] = Variable<double>(ease);
+    }
+    map['step'] = Variable<int>(step);
+    map['lapses'] = Variable<int>(lapses);
+    map['review_count'] = Variable<int>(reviewCount);
+    if (!nullToAbsent || lastEventId != null) {
+      map['last_event_id'] = Variable<i2.Uint8List>(lastEventId);
+    }
+    return map;
+  }
+
+  SchedulingStatesCompanion toCompanion(bool nullToAbsent) {
+    return SchedulingStatesCompanion(
+      studyCardId: Value(studyCardId),
+      state: Value(state),
+      due: due == null && nullToAbsent ? const Value.absent() : Value(due),
+      interval: Value(interval),
+      ease: ease == null && nullToAbsent ? const Value.absent() : Value(ease),
+      step: Value(step),
+      lapses: Value(lapses),
+      reviewCount: Value(reviewCount),
+      lastEventId: lastEventId == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastEventId),
+    );
+  }
+
+  factory SchedulingStatesData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return SchedulingStatesData(
+      studyCardId: serializer.fromJson<i2.Uint8List>(json['studyCardId']),
+      state: serializer.fromJson<String>(json['state']),
+      due: serializer.fromJson<int?>(json['due']),
+      interval: serializer.fromJson<int>(json['interval']),
+      ease: serializer.fromJson<double?>(json['ease']),
+      step: serializer.fromJson<int>(json['step']),
+      lapses: serializer.fromJson<int>(json['lapses']),
+      reviewCount: serializer.fromJson<int>(json['reviewCount']),
+      lastEventId: serializer.fromJson<i2.Uint8List?>(json['lastEventId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'studyCardId': serializer.toJson<i2.Uint8List>(studyCardId),
+      'state': serializer.toJson<String>(state),
+      'due': serializer.toJson<int?>(due),
+      'interval': serializer.toJson<int>(interval),
+      'ease': serializer.toJson<double?>(ease),
+      'step': serializer.toJson<int>(step),
+      'lapses': serializer.toJson<int>(lapses),
+      'reviewCount': serializer.toJson<int>(reviewCount),
+      'lastEventId': serializer.toJson<i2.Uint8List?>(lastEventId),
+    };
+  }
+
+  SchedulingStatesData copyWith({
+    i2.Uint8List? studyCardId,
+    String? state,
+    Value<int?> due = const Value.absent(),
+    int? interval,
+    Value<double?> ease = const Value.absent(),
+    int? step,
+    int? lapses,
+    int? reviewCount,
+    Value<i2.Uint8List?> lastEventId = const Value.absent(),
+  }) => SchedulingStatesData(
+    studyCardId: studyCardId ?? this.studyCardId,
+    state: state ?? this.state,
+    due: due.present ? due.value : this.due,
+    interval: interval ?? this.interval,
+    ease: ease.present ? ease.value : this.ease,
+    step: step ?? this.step,
+    lapses: lapses ?? this.lapses,
+    reviewCount: reviewCount ?? this.reviewCount,
+    lastEventId: lastEventId.present ? lastEventId.value : this.lastEventId,
+  );
+  SchedulingStatesData copyWithCompanion(SchedulingStatesCompanion data) {
+    return SchedulingStatesData(
+      studyCardId: data.studyCardId.present
+          ? data.studyCardId.value
+          : this.studyCardId,
+      state: data.state.present ? data.state.value : this.state,
+      due: data.due.present ? data.due.value : this.due,
+      interval: data.interval.present ? data.interval.value : this.interval,
+      ease: data.ease.present ? data.ease.value : this.ease,
+      step: data.step.present ? data.step.value : this.step,
+      lapses: data.lapses.present ? data.lapses.value : this.lapses,
+      reviewCount: data.reviewCount.present
+          ? data.reviewCount.value
+          : this.reviewCount,
+      lastEventId: data.lastEventId.present
+          ? data.lastEventId.value
+          : this.lastEventId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SchedulingStatesData(')
+          ..write('studyCardId: $studyCardId, ')
+          ..write('state: $state, ')
+          ..write('due: $due, ')
+          ..write('interval: $interval, ')
+          ..write('ease: $ease, ')
+          ..write('step: $step, ')
+          ..write('lapses: $lapses, ')
+          ..write('reviewCount: $reviewCount, ')
+          ..write('lastEventId: $lastEventId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    $driftBlobEquality.hash(studyCardId),
+    state,
+    due,
+    interval,
+    ease,
+    step,
+    lapses,
+    reviewCount,
+    $driftBlobEquality.hash(lastEventId),
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is SchedulingStatesData &&
+          $driftBlobEquality.equals(other.studyCardId, this.studyCardId) &&
+          other.state == this.state &&
+          other.due == this.due &&
+          other.interval == this.interval &&
+          other.ease == this.ease &&
+          other.step == this.step &&
+          other.lapses == this.lapses &&
+          other.reviewCount == this.reviewCount &&
+          $driftBlobEquality.equals(other.lastEventId, this.lastEventId));
+}
+
+class SchedulingStatesCompanion extends UpdateCompanion<SchedulingStatesData> {
+  final Value<i2.Uint8List> studyCardId;
+  final Value<String> state;
+  final Value<int?> due;
+  final Value<int> interval;
+  final Value<double?> ease;
+  final Value<int> step;
+  final Value<int> lapses;
+  final Value<int> reviewCount;
+  final Value<i2.Uint8List?> lastEventId;
+  final Value<int> rowid;
+  const SchedulingStatesCompanion({
+    this.studyCardId = const Value.absent(),
+    this.state = const Value.absent(),
+    this.due = const Value.absent(),
+    this.interval = const Value.absent(),
+    this.ease = const Value.absent(),
+    this.step = const Value.absent(),
+    this.lapses = const Value.absent(),
+    this.reviewCount = const Value.absent(),
+    this.lastEventId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  SchedulingStatesCompanion.insert({
+    required i2.Uint8List studyCardId,
+    required String state,
+    this.due = const Value.absent(),
+    required int interval,
+    this.ease = const Value.absent(),
+    required int step,
+    required int lapses,
+    required int reviewCount,
+    this.lastEventId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : studyCardId = Value(studyCardId),
+       state = Value(state),
+       interval = Value(interval),
+       step = Value(step),
+       lapses = Value(lapses),
+       reviewCount = Value(reviewCount);
+  static Insertable<SchedulingStatesData> custom({
+    Expression<i2.Uint8List>? studyCardId,
+    Expression<String>? state,
+    Expression<int>? due,
+    Expression<int>? interval,
+    Expression<double>? ease,
+    Expression<int>? step,
+    Expression<int>? lapses,
+    Expression<int>? reviewCount,
+    Expression<i2.Uint8List>? lastEventId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (studyCardId != null) 'study_card_id': studyCardId,
+      if (state != null) 'state': state,
+      if (due != null) 'due': due,
+      if (interval != null) 'interval': interval,
+      if (ease != null) 'ease': ease,
+      if (step != null) 'step': step,
+      if (lapses != null) 'lapses': lapses,
+      if (reviewCount != null) 'review_count': reviewCount,
+      if (lastEventId != null) 'last_event_id': lastEventId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  SchedulingStatesCompanion copyWith({
+    Value<i2.Uint8List>? studyCardId,
+    Value<String>? state,
+    Value<int?>? due,
+    Value<int>? interval,
+    Value<double?>? ease,
+    Value<int>? step,
+    Value<int>? lapses,
+    Value<int>? reviewCount,
+    Value<i2.Uint8List?>? lastEventId,
+    Value<int>? rowid,
+  }) {
+    return SchedulingStatesCompanion(
+      studyCardId: studyCardId ?? this.studyCardId,
+      state: state ?? this.state,
+      due: due ?? this.due,
+      interval: interval ?? this.interval,
+      ease: ease ?? this.ease,
+      step: step ?? this.step,
+      lapses: lapses ?? this.lapses,
+      reviewCount: reviewCount ?? this.reviewCount,
+      lastEventId: lastEventId ?? this.lastEventId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (studyCardId.present) {
+      map['study_card_id'] = Variable<i2.Uint8List>(studyCardId.value);
+    }
+    if (state.present) {
+      map['state'] = Variable<String>(state.value);
+    }
+    if (due.present) {
+      map['due'] = Variable<int>(due.value);
+    }
+    if (interval.present) {
+      map['interval'] = Variable<int>(interval.value);
+    }
+    if (ease.present) {
+      map['ease'] = Variable<double>(ease.value);
+    }
+    if (step.present) {
+      map['step'] = Variable<int>(step.value);
+    }
+    if (lapses.present) {
+      map['lapses'] = Variable<int>(lapses.value);
+    }
+    if (reviewCount.present) {
+      map['review_count'] = Variable<int>(reviewCount.value);
+    }
+    if (lastEventId.present) {
+      map['last_event_id'] = Variable<i2.Uint8List>(lastEventId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('SchedulingStatesCompanion(')
+          ..write('studyCardId: $studyCardId, ')
+          ..write('state: $state, ')
+          ..write('due: $due, ')
+          ..write('interval: $interval, ')
+          ..write('ease: $ease, ')
+          ..write('step: $step, ')
+          ..write('lapses: $lapses, ')
+          ..write('reviewCount: $reviewCount, ')
+          ..write('lastEventId: $lastEventId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class DatabaseAtV2 extends GeneratedDatabase {
   DatabaseAtV2(QueryExecutor e) : super(e);
   late final Collections collections = Collections(this);
@@ -5564,6 +5564,57 @@ class DatabaseAtV2 extends GeneratedDatabase {
     'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
     'media_assets_collection_immutable',
   );
+  late final Trigger collectionsHlcChanges = Trigger(
+    'CREATE TRIGGER collections_hlc_changes BEFORE UPDATE ON collections WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'collections_hlc_changes',
+  );
+  late final Trigger decksHlcChanges = Trigger(
+    'CREATE TRIGGER decks_hlc_changes BEFORE UPDATE ON decks WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'decks_hlc_changes',
+  );
+  late final Trigger tagsHlcChanges = Trigger(
+    'CREATE TRIGGER tags_hlc_changes BEFORE UPDATE ON tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'tags_hlc_changes',
+  );
+  late final Trigger noteTypesHlcChanges = Trigger(
+    'CREATE TRIGGER note_types_hlc_changes BEFORE UPDATE ON note_types WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_types_hlc_changes',
+  );
+  late final FieldDefinitions fieldDefinitions = FieldDefinitions(this);
+  late final Trigger fieldDefinitionsHlcChanges = Trigger(
+    'CREATE TRIGGER field_definitions_hlc_changes BEFORE UPDATE ON field_definitions WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'field_definitions_hlc_changes',
+  );
+  late final Trigger studyCardTemplatesHlcChanges = Trigger(
+    'CREATE TRIGGER study_card_templates_hlc_changes BEFORE UPDATE ON study_card_templates WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'study_card_templates_hlc_changes',
+  );
+  late final Trigger notesHlcChanges = Trigger(
+    'CREATE TRIGGER notes_hlc_changes BEFORE UPDATE ON notes WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'notes_hlc_changes',
+  );
+  late final NoteFields noteFields = NoteFields(this);
+  late final Trigger noteFieldsHlcChanges = Trigger(
+    'CREATE TRIGGER note_fields_hlc_changes BEFORE UPDATE ON note_fields WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_fields_hlc_changes',
+  );
+  late final Trigger noteTagsHlcChanges = Trigger(
+    'CREATE TRIGGER note_tags_hlc_changes BEFORE UPDATE ON note_tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_tags_hlc_changes',
+  );
+  late final Trigger studyCardsHlcChanges = Trigger(
+    'CREATE TRIGGER study_cards_hlc_changes BEFORE UPDATE ON study_cards WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'study_cards_hlc_changes',
+  );
+  late final Trigger mediaAssetsHlcChanges = Trigger(
+    'CREATE TRIGGER media_assets_hlc_changes BEFORE UPDATE ON media_assets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'media_assets_hlc_changes',
+  );
+  late final ReviewEvents reviewEvents = ReviewEvents(this);
+  late final Trigger reviewEventsAppendOnly = Trigger(
+    'CREATE TRIGGER review_events_append_only BEFORE UPDATE ON review_events BEGIN SELECT RAISE (ABORT, \'review events are append-only\');END',
+    'review_events_append_only',
+  );
   late final Device device = Device(this);
   late final Outbox outbox = Outbox(this);
   late final Index outboxHlc = Index(
@@ -5582,7 +5633,6 @@ class DatabaseAtV2 extends GeneratedDatabase {
     'study_cards_hlc',
     'CREATE INDEX study_cards_hlc ON study_cards (hlc)',
   );
-  late final ReviewEvents reviewEvents = ReviewEvents(this);
   late final SchedulingStates schedulingStates = SchedulingStates(this);
   late final Index reviewEventsCard = Index(
     'review_events_card',
@@ -5600,7 +5650,6 @@ class DatabaseAtV2 extends GeneratedDatabase {
     'scheduling_states_due',
     'CREATE INDEX scheduling_states_due ON scheduling_states (state, due)',
   );
-  late final FieldDefinitions fieldDefinitions = FieldDefinitions(this);
   late final Index noteTypesCollection = Index(
     'note_types_collection',
     'CREATE INDEX note_types_collection ON note_types (collection_id)',
@@ -5625,7 +5674,6 @@ class DatabaseAtV2 extends GeneratedDatabase {
     'study_card_templates_hlc',
     'CREATE INDEX study_card_templates_hlc ON study_card_templates (hlc)',
   );
-  late final NoteFields noteFields = NoteFields(this);
   late final Index notesNoteType = Index(
     'notes_note_type',
     'CREATE INDEX notes_note_type ON notes (collection_id, note_type_id)',
@@ -5695,26 +5743,38 @@ class DatabaseAtV2 extends GeneratedDatabase {
     studyCardsCollectionImmutable,
     mediaAssets,
     mediaAssetsCollectionImmutable,
+    collectionsHlcChanges,
+    decksHlcChanges,
+    tagsHlcChanges,
+    noteTypesHlcChanges,
+    fieldDefinitions,
+    fieldDefinitionsHlcChanges,
+    studyCardTemplatesHlcChanges,
+    notesHlcChanges,
+    noteFields,
+    noteFieldsHlcChanges,
+    noteTagsHlcChanges,
+    studyCardsHlcChanges,
+    mediaAssetsHlcChanges,
+    reviewEvents,
+    reviewEventsAppendOnly,
     device,
     outbox,
     outboxHlc,
     studyCardsDeck,
     studyCardsTemplate,
     studyCardsHlc,
-    reviewEvents,
     schedulingStates,
     reviewEventsCard,
     reviewEventsAt,
     reviewEventsHlc,
     schedulingStatesDue,
-    fieldDefinitions,
     noteTypesCollection,
     noteTypesHlc,
     fieldDefinitionsNoteType,
     fieldDefinitionsHlc,
     studyCardTemplatesNoteType,
     studyCardTemplatesHlc,
-    noteFields,
     notesNoteType,
     notesHlc,
     noteFieldsField,
@@ -5802,10 +5862,31 @@ class DatabaseAtV2 extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'study_cards',
-        limitUpdateKind: UpdateKind.delete,
+        'collections',
+        limitUpdateKind: UpdateKind.update,
       ),
-      result: [TableUpdate('scheduling_states', kind: UpdateKind.delete)],
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'decks',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'tags',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'note_types',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -5813,6 +5894,27 @@ class DatabaseAtV2 extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('field_definitions', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'field_definitions',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'study_card_templates',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'notes',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -5827,6 +5929,48 @@ class DatabaseAtV2 extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.delete,
       ),
       result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'note_fields',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'note_tags',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'study_cards',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'media_assets',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'review_events',
+        limitUpdateKind: UpdateKind.update,
+      ),
+      result: [],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'study_cards',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('scheduling_states', kind: UpdateKind.delete)],
     ),
   ]);
   @override

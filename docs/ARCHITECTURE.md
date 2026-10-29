@@ -68,7 +68,7 @@ Decided in Phase 1. See [ROADMAP.md](ROADMAP.md#phase-1--domain-models-and-persi
 - **Deletion:** tombstones; rows are not hard-deleted while sync may still reference them. Every synced row has an `hlc` (its last change) and a `deleted` flag; reads skip tombstones. Removing tombstones for good is part of Phase 8.
 - **Merge granularity:** per-field last-writer-wins on notes, per-entity on other entities. Each note field value is its own row with its own timestamp, and an update only stamps the values that changed.
 - **Outbox:** every local change is recorded for later sync. The outbox holds one entry per changed entity (table, key, timestamp); later changes to the same entity overwrite its entry. Sync reads the entity's current row, which may be a tombstone, when pushing.
-- **Recording:** repositories stamp each write with one new timestamp and record every row carrying it in the outbox, in the same transaction.
+- **Recording:** repositories stamp each write with one new timestamp and record every row carrying it in the outbox, in the same transaction. Triggers reject an update of a synced row that does not change its `hlc`, and any update of a review event, so no change escapes the outbox.
 - **Not synced:** scheduling state, which each device rebuilds from the synced review events.
 
 ## Review history and scheduling
