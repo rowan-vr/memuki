@@ -137,6 +137,7 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Note type scope | Per collection; reuse elsewhere by copying | Decided |
 | Deck nesting | Nested; each deck has an optional parent deck in the same collection | Decided |
 | Browser storage feasibility | Viable on OPFS; IndexedDB as fallback. See [spike results](spikes/browser-storage.md) | Verified |
+| Cross-collection integrity | Composite foreign keys on `(collection_id, id)`; `collection_id` is immutable, moving is a copy | Decided |
 
 ### Acceptance Criteria
 
@@ -602,6 +603,7 @@ Third-party dictionary databases are not synced. Each device installs packages i
 |---|---|---|
 | Conflict policy per entity type | Builds on Phase 1 merge granularity | Open |
 | Conditions for manual conflict resolution | — | Open |
+| Parent cycles from concurrent moves | Two devices can each move a deck or tag under the other. After a merge, a cycle is broken deterministically: the node in the cycle whose parent change has the highest HLC becomes a root | Proposed |
 
 ### Test scenarios
 

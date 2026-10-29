@@ -18,6 +18,7 @@ analyzer:
     - "**/*.g.dart"
     - "**/*.freezed.dart"
     - lib/l10n/generated/**
+    - test/storage/generated_migrations/**
 
 linter:
   rules:

@@ -4,3 +4,9 @@ targets:
       go_router_builder:
         options:
           duplicate_route_paths: error
+      drift_dev:
+        options:
+          databases:
+            memuki: lib/storage/database.dart
+          schema_dir: drift_schemas/
+          test_dir: test/storage/generated_migrations/
