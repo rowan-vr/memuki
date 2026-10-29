@@ -33,35 +33,41 @@ void main() {
     });
   });
 
-  group('CardId.derive', () {
+  group('StudyCardId.derive', () {
     final note = NoteId.parse('018f4a2b-1c3d-7e4f-8a5b-6c7d8e9f0a1b');
     final template = CardTemplateId.parse(
       '018f4a2b-1c3d-7e4f-8a5b-6c7d8e9f0a1c',
     );
 
     test('is deterministic', () {
-      expect(CardId.derive(note, template), CardId.derive(note, template));
+      expect(
+        StudyCardId.derive(note, template),
+        StudyCardId.derive(note, template),
+      );
     });
 
     test('is a known value', () {
       // Fixed so the derivation cannot change without breaking card identity.
       expect(
-        CardId.derive(note, template).value,
+        StudyCardId.derive(note, template).value,
         'f335dcff-cbaf-8de0-b24e-d6b8f5a59f32',
       );
     });
 
     test('differs per template and per note', () {
       final other = CardTemplateId.generate();
-      expect(CardId.derive(note, template), isNot(CardId.derive(note, other)));
       expect(
-        CardId.derive(note, template),
-        isNot(CardId.derive(NoteId.generate(), template)),
+        StudyCardId.derive(note, template),
+        isNot(StudyCardId.derive(note, other)),
+      );
+      expect(
+        StudyCardId.derive(note, template),
+        isNot(StudyCardId.derive(NoteId.generate(), template)),
       );
     });
 
     test('is a UUIDv8 with the RFC 9562 variant', () {
-      final id = CardId.derive(note, template).value;
+      final id = StudyCardId.derive(note, template).value;
       expect(
         id,
         matches(RegExp(r'^[0-9a-f]{8}-[0-9a-f]{4}-8[0-9a-f]{3}-[89ab]')),

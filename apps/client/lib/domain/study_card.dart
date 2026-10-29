@@ -16,5 +16,5 @@ abstract class StudyCard with _$StudyCard {
     required DeckId deckId,
   }) = _StudyCard;
 
-  CardId get id => CardId.derive(noteId, templateId);
+  StudyCardId get id => StudyCardId.derive(noteId, templateId);
 }

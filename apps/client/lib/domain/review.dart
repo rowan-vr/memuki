@@ -58,7 +58,7 @@ abstract class ReviewEvent with _$ReviewEvent {
 
   factory ReviewEvent({
     required ReviewEventId id,
-    required CardId cardId,
+    required StudyCardId cardId,
     required ReviewEventKind kind,
     required DateTime at,
     Grade? grade,
@@ -72,7 +72,7 @@ abstract class ReviewEvent with _$ReviewEvent {
   }) = _ReviewEvent;
 }
 
-enum CardState { newCard, learning, review, relearning, burned }
+enum StudyCardState { newCard, learning, review, relearning, burned }
 
 /// A card's current scheduling state: a cache that can be rebuilt by
 /// replaying the card's review events. Its exact contents are refined with the
@@ -87,8 +87,8 @@ abstract class SchedulingState with _$SchedulingState {
   }
 
   factory SchedulingState({
-    required CardId cardId,
-    required CardState state,
+    required StudyCardId cardId,
+    required StudyCardState state,
 
     /// Null for new and burned cards.
     DateTime? due,

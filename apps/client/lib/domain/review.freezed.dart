@@ -15,7 +15,7 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$ReviewEvent {
 
- ReviewEventId get id; CardId get cardId; ReviewEventKind get kind; DateTime get at; Grade? get grade; Duration? get responseTime; DateTime? get dueBefore; DateTime? get dueAfter; ReviewEventId? get undoneEventId; String get schedulerId; int get schedulerVersion; int get configVersion;
+ ReviewEventId get id; StudyCardId get cardId; ReviewEventKind get kind; DateTime get at; Grade? get grade; Duration? get responseTime; DateTime? get dueBefore; DateTime? get dueAfter; ReviewEventId? get undoneEventId; String get schedulerId; int get schedulerVersion; int get configVersion;
 /// Create a copy of ReviewEvent
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -51,7 +51,7 @@ abstract mixin class $ReviewEventCopyWith<$Res>  {
   factory $ReviewEventCopyWith(ReviewEvent value, $Res Function(ReviewEvent) _then) = _$ReviewEventCopyWithImpl;
 @useResult
 $Res call({
- ReviewEventId id, CardId cardId, ReviewEventKind kind, DateTime at, Grade? grade, Duration? responseTime, DateTime? dueBefore, DateTime? dueAfter, ReviewEventId? undoneEventId, String schedulerId, int schedulerVersion, int configVersion
+ ReviewEventId id, StudyCardId cardId, ReviewEventKind kind, DateTime at, Grade? grade, Duration? responseTime, DateTime? dueBefore, DateTime? dueAfter, ReviewEventId? undoneEventId, String schedulerId, int schedulerVersion, int configVersion
 });
 
 
@@ -72,7 +72,7 @@ class _$ReviewEventCopyWithImpl<$Res>
   return _then(ReviewEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as ReviewEventId,cardId: null == cardId ? _self.cardId : cardId // ignore: cast_nullable_to_non_nullable
-as CardId,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as StudyCardId,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as ReviewEventKind,at: null == at ? _self.at : at // ignore: cast_nullable_to_non_nullable
 as DateTime,grade: freezed == grade ? _self.grade : grade // ignore: cast_nullable_to_non_nullable
 as Grade?,responseTime: freezed == responseTime ? _self.responseTime : responseTime // ignore: cast_nullable_to_non_nullable
@@ -167,7 +167,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ReviewEventId id,  CardId cardId,  ReviewEventKind kind,  DateTime at,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  int configVersion)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( ReviewEventId id,  StudyCardId cardId,  ReviewEventKind kind,  DateTime at,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  int configVersion)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _ReviewEvent() when $default != null:
 return $default(_that.id,_that.cardId,_that.kind,_that.at,_that.grade,_that.responseTime,_that.dueBefore,_that.dueAfter,_that.undoneEventId,_that.schedulerId,_that.schedulerVersion,_that.configVersion);case _:
@@ -188,7 +188,7 @@ return $default(_that.id,_that.cardId,_that.kind,_that.at,_that.grade,_that.resp
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ReviewEventId id,  CardId cardId,  ReviewEventKind kind,  DateTime at,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  int configVersion)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( ReviewEventId id,  StudyCardId cardId,  ReviewEventKind kind,  DateTime at,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  int configVersion)  $default,) {final _that = this;
 switch (_that) {
 case _ReviewEvent():
 return $default(_that.id,_that.cardId,_that.kind,_that.at,_that.grade,_that.responseTime,_that.dueBefore,_that.dueAfter,_that.undoneEventId,_that.schedulerId,_that.schedulerVersion,_that.configVersion);case _:
@@ -208,7 +208,7 @@ return $default(_that.id,_that.cardId,_that.kind,_that.at,_that.grade,_that.resp
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ReviewEventId id,  CardId cardId,  ReviewEventKind kind,  DateTime at,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  int configVersion)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( ReviewEventId id,  StudyCardId cardId,  ReviewEventKind kind,  DateTime at,  Grade? grade,  Duration? responseTime,  DateTime? dueBefore,  DateTime? dueAfter,  ReviewEventId? undoneEventId,  String schedulerId,  int schedulerVersion,  int configVersion)?  $default,) {final _that = this;
 switch (_that) {
 case _ReviewEvent() when $default != null:
 return $default(_that.id,_that.cardId,_that.kind,_that.at,_that.grade,_that.responseTime,_that.dueBefore,_that.dueAfter,_that.undoneEventId,_that.schedulerId,_that.schedulerVersion,_that.configVersion);case _:
@@ -227,7 +227,7 @@ class _ReviewEvent extends ReviewEvent {
   
 
 @override final  ReviewEventId id;
-@override final  CardId cardId;
+@override final  StudyCardId cardId;
 @override final  ReviewEventKind kind;
 @override final  DateTime at;
 @override final  Grade? grade;
@@ -271,7 +271,7 @@ abstract mixin class _$ReviewEventCopyWith<$Res> implements $ReviewEventCopyWith
   factory _$ReviewEventCopyWith(_ReviewEvent value, $Res Function(_ReviewEvent) _then) = __$ReviewEventCopyWithImpl;
 @override @useResult
 $Res call({
- ReviewEventId id, CardId cardId, ReviewEventKind kind, DateTime at, Grade? grade, Duration? responseTime, DateTime? dueBefore, DateTime? dueAfter, ReviewEventId? undoneEventId, String schedulerId, int schedulerVersion, int configVersion
+ ReviewEventId id, StudyCardId cardId, ReviewEventKind kind, DateTime at, Grade? grade, Duration? responseTime, DateTime? dueBefore, DateTime? dueAfter, ReviewEventId? undoneEventId, String schedulerId, int schedulerVersion, int configVersion
 });
 
 
@@ -292,7 +292,7 @@ class __$ReviewEventCopyWithImpl<$Res>
   return _then(_ReviewEvent(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as ReviewEventId,cardId: null == cardId ? _self.cardId : cardId // ignore: cast_nullable_to_non_nullable
-as CardId,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
+as StudyCardId,kind: null == kind ? _self.kind : kind // ignore: cast_nullable_to_non_nullable
 as ReviewEventKind,at: null == at ? _self.at : at // ignore: cast_nullable_to_non_nullable
 as DateTime,grade: freezed == grade ? _self.grade : grade // ignore: cast_nullable_to_non_nullable
 as Grade?,responseTime: freezed == responseTime ? _self.responseTime : responseTime // ignore: cast_nullable_to_non_nullable
@@ -312,7 +312,7 @@ as int,
 /// @nodoc
 mixin _$SchedulingState {
 
- CardId get cardId; CardState get state;/// Null for new and burned cards.
+ StudyCardId get cardId; StudyCardState get state;/// Null for new and burned cards.
  DateTime? get due; Duration get interval;/// SM-2-style ease multiplier; null until the card graduates.
  double? get ease;/// Index into the learning or relearning steps.
  int get step; int get lapses; int get reviewCount;/// The last event this state was computed from, or null for a new card.
@@ -352,7 +352,7 @@ abstract mixin class $SchedulingStateCopyWith<$Res>  {
   factory $SchedulingStateCopyWith(SchedulingState value, $Res Function(SchedulingState) _then) = _$SchedulingStateCopyWithImpl;
 @useResult
 $Res call({
- CardId cardId, CardState state, DateTime? due, Duration interval, double? ease, int step, int lapses, int reviewCount, ReviewEventId? lastEventId
+ StudyCardId cardId, StudyCardState state, DateTime? due, Duration interval, double? ease, int step, int lapses, int reviewCount, ReviewEventId? lastEventId
 });
 
 
@@ -372,8 +372,8 @@ class _$SchedulingStateCopyWithImpl<$Res>
 @pragma('vm:prefer-inline') @override $Res call({Object? cardId = null,Object? state = null,Object? due = freezed,Object? interval = null,Object? ease = freezed,Object? step = null,Object? lapses = null,Object? reviewCount = null,Object? lastEventId = freezed,}) {
   return _then(SchedulingState(
 cardId: null == cardId ? _self.cardId : cardId // ignore: cast_nullable_to_non_nullable
-as CardId,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
-as CardState,due: freezed == due ? _self.due : due // ignore: cast_nullable_to_non_nullable
+as StudyCardId,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
+as StudyCardState,due: freezed == due ? _self.due : due // ignore: cast_nullable_to_non_nullable
 as DateTime?,interval: null == interval ? _self.interval : interval // ignore: cast_nullable_to_non_nullable
 as Duration,ease: freezed == ease ? _self.ease : ease // ignore: cast_nullable_to_non_nullable
 as double?,step: null == step ? _self.step : step // ignore: cast_nullable_to_non_nullable
@@ -465,7 +465,7 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( CardId cardId,  CardState state,  DateTime? due,  Duration interval,  double? ease,  int step,  int lapses,  int reviewCount,  ReviewEventId? lastEventId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( StudyCardId cardId,  StudyCardState state,  DateTime? due,  Duration interval,  double? ease,  int step,  int lapses,  int reviewCount,  ReviewEventId? lastEventId)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _SchedulingState() when $default != null:
 return $default(_that.cardId,_that.state,_that.due,_that.interval,_that.ease,_that.step,_that.lapses,_that.reviewCount,_that.lastEventId);case _:
@@ -486,7 +486,7 @@ return $default(_that.cardId,_that.state,_that.due,_that.interval,_that.ease,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( CardId cardId,  CardState state,  DateTime? due,  Duration interval,  double? ease,  int step,  int lapses,  int reviewCount,  ReviewEventId? lastEventId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( StudyCardId cardId,  StudyCardState state,  DateTime? due,  Duration interval,  double? ease,  int step,  int lapses,  int reviewCount,  ReviewEventId? lastEventId)  $default,) {final _that = this;
 switch (_that) {
 case _SchedulingState():
 return $default(_that.cardId,_that.state,_that.due,_that.interval,_that.ease,_that.step,_that.lapses,_that.reviewCount,_that.lastEventId);case _:
@@ -506,7 +506,7 @@ return $default(_that.cardId,_that.state,_that.due,_that.interval,_that.ease,_th
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( CardId cardId,  CardState state,  DateTime? due,  Duration interval,  double? ease,  int step,  int lapses,  int reviewCount,  ReviewEventId? lastEventId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( StudyCardId cardId,  StudyCardState state,  DateTime? due,  Duration interval,  double? ease,  int step,  int lapses,  int reviewCount,  ReviewEventId? lastEventId)?  $default,) {final _that = this;
 switch (_that) {
 case _SchedulingState() when $default != null:
 return $default(_that.cardId,_that.state,_that.due,_that.interval,_that.ease,_that.step,_that.lapses,_that.reviewCount,_that.lastEventId);case _:
@@ -524,8 +524,8 @@ class _SchedulingState extends SchedulingState {
    _SchedulingState({required this.cardId, required this.state, this.due, this.interval = Duration.zero, this.ease, this.step = 0, this.lapses = 0, this.reviewCount = 0, this.lastEventId}): super._();
   
 
-@override final  CardId cardId;
-@override final  CardState state;
+@override final  StudyCardId cardId;
+@override final  StudyCardState state;
 /// Null for new and burned cards.
 @override final  DateTime? due;
 @override@JsonKey() final  Duration interval;
@@ -570,7 +570,7 @@ abstract mixin class _$SchedulingStateCopyWith<$Res> implements $SchedulingState
   factory _$SchedulingStateCopyWith(_SchedulingState value, $Res Function(_SchedulingState) _then) = __$SchedulingStateCopyWithImpl;
 @override @useResult
 $Res call({
- CardId cardId, CardState state, DateTime? due, Duration interval, double? ease, int step, int lapses, int reviewCount, ReviewEventId? lastEventId
+ StudyCardId cardId, StudyCardState state, DateTime? due, Duration interval, double? ease, int step, int lapses, int reviewCount, ReviewEventId? lastEventId
 });
 
 
@@ -590,8 +590,8 @@ class __$SchedulingStateCopyWithImpl<$Res>
 @override @pragma('vm:prefer-inline') $Res call({Object? cardId = null,Object? state = null,Object? due = freezed,Object? interval = null,Object? ease = freezed,Object? step = null,Object? lapses = null,Object? reviewCount = null,Object? lastEventId = freezed,}) {
   return _then(_SchedulingState(
 cardId: null == cardId ? _self.cardId : cardId // ignore: cast_nullable_to_non_nullable
-as CardId,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
-as CardState,due: freezed == due ? _self.due : due // ignore: cast_nullable_to_non_nullable
+as StudyCardId,state: null == state ? _self.state : state // ignore: cast_nullable_to_non_nullable
+as StudyCardState,due: freezed == due ? _self.due : due // ignore: cast_nullable_to_non_nullable
 as DateTime?,interval: null == interval ? _self.interval : interval // ignore: cast_nullable_to_non_nullable
 as Duration,ease: freezed == ease ? _self.ease : ease // ignore: cast_nullable_to_non_nullable
 as double?,step: null == step ? _self.step : step // ignore: cast_nullable_to_non_nullable

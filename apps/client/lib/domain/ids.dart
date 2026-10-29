@@ -72,8 +72,8 @@ extension type const ReviewEventId._(String value) implements Object {
 ///
 /// The derived ID is a UUIDv8 (RFC 9562) built from the first 16 bytes of
 /// SHA-256 over both IDs' bytes.
-extension type const CardId._(String value) implements Object {
-  factory CardId.derive(NoteId note, CardTemplateId template) {
+extension type const StudyCardId._(String value) implements Object {
+  factory StudyCardId.derive(NoteId note, CardTemplateId template) {
     final digest = sha256.convert([
       ...Uuid.parse(note.value),
       ...Uuid.parse(template.value),
@@ -81,10 +81,10 @@ extension type const CardId._(String value) implements Object {
     final bytes = Uint8List.fromList(digest.bytes.sublist(0, 16));
     bytes[6] = (bytes[6] & 0x0f) | 0x80; // version 8
     bytes[8] = (bytes[8] & 0x3f) | 0x80; // RFC 9562 variant
-    return CardId._(Uuid.unparse(bytes));
+    return StudyCardId._(Uuid.unparse(bytes));
   }
 
-  CardId.parse(String value) : this._(_parse(value));
+  StudyCardId.parse(String value) : this._(_parse(value));
 }
 
 /// SHA-256 of a media file's contents, as 64 lowercase hex characters.

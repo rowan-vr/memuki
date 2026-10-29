@@ -146,7 +146,7 @@ void main() {
         templateId: CardTemplateId.generate(),
         deckId: DeckId.generate(),
       );
-      expect(card.id, CardId.derive(card.noteId, card.templateId));
+      expect(card.id, StudyCardId.derive(card.noteId, card.templateId));
       expect(card.copyWith(deckId: DeckId.generate()).id, card.id);
     });
   });
@@ -166,7 +166,10 @@ void main() {
   });
 
   group('ReviewEvent', () {
-    final cardId = CardId.derive(NoteId.generate(), CardTemplateId.generate());
+    final cardId = StudyCardId.derive(
+      NoteId.generate(),
+      CardTemplateId.generate(),
+    );
     final at = DateTime.utc(2026, 10, 29, 9);
 
     ReviewEvent event({
@@ -224,10 +227,16 @@ void main() {
   });
 
   group('SchedulingState', () {
-    final cardId = CardId.derive(NoteId.generate(), CardTemplateId.generate());
+    final cardId = StudyCardId.derive(
+      NoteId.generate(),
+      CardTemplateId.generate(),
+    );
 
     test('defaults describe a new card', () {
-      final state = SchedulingState(cardId: cardId, state: CardState.newCard);
+      final state = SchedulingState(
+        cardId: cardId,
+        state: StudyCardState.newCard,
+      );
       expect(state.due, isNull);
       expect(state.interval, Duration.zero);
       expect(state.reviewCount, 0);
@@ -237,7 +246,7 @@ void main() {
       expect(
         () => SchedulingState(
           cardId: cardId,
-          state: CardState.review,
+          state: StudyCardState.review,
           lapses: -1,
         ),
         throwsArgumentError,
@@ -245,7 +254,7 @@ void main() {
       expect(
         () => SchedulingState(
           cardId: cardId,
-          state: CardState.review,
+          state: StudyCardState.review,
           due: DateTime(2026, 11),
         ),
         throwsArgumentError,
