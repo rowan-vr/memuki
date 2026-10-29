@@ -57,6 +57,16 @@ void main() {
     });
   });
 
+  test('are read and watched', () async {
+    final tags = repos.tags.watchTags(japanese.id).map((ts) => ts.length);
+    expect(tags, emitsInOrder([0, 1]));
+    await pumpEventQueue();
+    final tag = await japanese.addTag('grammar');
+    expect(await repos.tags.tag(tag.id), tag);
+    await repos.tags.deleteTag(tag.id);
+    expect(await repos.tags.tag(tag.id), isNull);
+  });
+
   test('cannot move below themselves', () async {
     final a = await japanese.addTag('a');
     final b = await japanese.addTag('b', parentId: a.id);

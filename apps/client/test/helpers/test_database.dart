@@ -7,12 +7,9 @@ import 'package:memuki/domain/note.dart';
 import 'package:memuki/domain/note_type.dart';
 import 'package:memuki/domain/study_card.dart';
 import 'package:memuki/storage/database.dart';
-import 'package:memuki/storage/repositories/collection_repository.dart';
-import 'package:memuki/storage/repositories/note_repository.dart';
-import 'package:memuki/storage/repositories/note_type_repository.dart';
-import 'package:memuki/storage/repositories/review_repository.dart';
-import 'package:memuki/storage/repositories/study_card_repository.dart';
-import 'package:memuki/storage/repositories/tag_repository.dart';
+import 'package:memuki/storage/repositories/repositories.dart';
+
+export 'package:memuki/storage/repositories/repositories.dart';
 
 /// An in-memory database, closed after the test.
 MemukiDatabase openTestDatabase() {
@@ -23,24 +20,8 @@ MemukiDatabase openTestDatabase() {
   return db;
 }
 
-/// All repositories over one database.
-class Repositories {
-  Repositories(this.db)
-    : collections = CollectionRepository(db),
-      tags = TagRepository(db),
-      noteTypes = NoteTypeRepository(db),
-      notes = NoteRepository(db),
-      cards = StudyCardRepository(db),
-      reviews = ReviewRepository(db);
-
-  final MemukiDatabase db;
-  final CollectionRepository collections;
-  final TagRepository tags;
-  final NoteTypeRepository noteTypes;
-  final NoteRepository notes;
-  final StudyCardRepository cards;
-  final ReviewRepository reviews;
-
+/// Test helpers on the repositories.
+extension SeedCollection on Repositories {
   /// Creates a collection with a "Basic" note type (fields Front and Back,
   /// one template) and a root deck.
   Future<SeededCollection> seedCollection({String name = 'Japanese'}) async {

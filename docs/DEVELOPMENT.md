@@ -124,6 +124,42 @@ xdg-open coverage/html/index.html
 
 - Find widgets by type or by their English text; tests run with the English locale.
 
+### Database tests
+
+- `test/helpers/test_database.dart`: `openTestDatabase()` gives an in-memory database, and `Repositories(db).seedCollection()` a small collection for focused tests.
+- `lib/dev/collection_generator.dart`: `GeneratedCollection.generate(seed: ...)` builds a whole collection (deck and tag trees, notes, cards, review history, scheduling state, media) from a seed. The same seed always gives the same entities. The developer tool uses it too.
+- `test/helpers/fixtures.dart`: `openFixtureDatabase()` fixes the clock and HLC node, so a generated collection also gives the same rows and timestamps and a failure can be rerun from its seed. `dumpTables(db)` returns every row of every table for before/after comparisons.
+- `test/storage/rollback_test.dart` makes every repository write fail at its last step and checks that the database is unchanged. **A new write method must be added to its `_writes` list**, or it is not checked.
+- `test/storage/persistence_test.dart` writes a generated collection to a database file and media folder, reopens both, and checks that everything reads back the same.
+
+## Developer tool
+
+`tool/memuki.dart` inspects and edits data without the app, through the same repositories, so changes are timestamped and reach the outbox like the app's own. It works on the app's database (`~/.local/share/net.memuki.memuki/memuki.sqlite` on Linux) unless `--db` points elsewhere. Close the app while editing: it does not notice changes made by other programs.
+
+```bash
+cd apps/client
+fvm dart run tool/memuki.dart help                   # All commands
+fvm dart run tool/memuki.dart generate --seed 1      # A generated collection to play with
+fvm dart run tool/memuki.dart info                   # Schema, clock, visible/deleted/hidden rows
+fvm dart run tool/memuki.dart tree                   # Decks, tags, and note types
+fvm dart run tool/memuki.dart show <id or name>      # Any entity, including hidden ones
+```
+
+| Group | Commands |
+|---|---|
+| Inspect | `info`, `collections`, `tree`, `notes`, `cards`, `show`, `outbox`, `check` |
+| Generate | `generate` |
+| Edit | `collection`, `deck`, `tag`, `notetype`, `note`, `card` (each with `add`, `rename`, `move`, `delete`, … as fitting), `review`, `media` |
+| Raw | `sql "<query>"` (read-only), `reset --yes` (moves the database and media into a backup folder) |
+
+Entities can be named by full ID, the start or end of their ID (lists show the last 8 characters), or their name. To run it from anywhere, add a function to `~/.bashrc` (with the path to your checkout):
+
+```bash
+memuki() { (cd ~/Programming/memuki/apps/client && fvm dart run tool/memuki.dart "$@"); }
+```
+
+The storage code has no Flutter imports so that it runs here; only `lib/storage/open_database.dart` and `lib/storage/providers.dart` use Flutter.
+
 ## Code generation
 
 Some Dart code is generated from other files:

@@ -79,7 +79,7 @@ Anki remains the primary study tool until Milestone D. Collections imported befo
 
 ## Phase 1 — Domain Models and Persistence
 
-**Status:** In progress
+**Status:** Done
 
 **Goal:** A durable, sync-ready local data layer.
 

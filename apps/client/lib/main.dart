@@ -10,9 +10,9 @@ import 'app.dart';
 import 'core/error_handling.dart';
 import 'core/logging.dart';
 import 'presentation/startup/startup_error_app.dart';
-import 'storage/database.dart';
 import 'storage/database_exceptions.dart';
 import 'storage/media/io_media_store.dart';
+import 'storage/open_database.dart';
 import 'storage/providers.dart';
 
 final _log = Logger('memuki.startup');
@@ -23,7 +23,7 @@ Future<void> main() async {
 
   // Opening creates or upgrades the schema, so a database that cannot be used
   // is reported before the app starts.
-  final database = MemukiDatabase.open();
+  final database = openAppDatabase();
   final IoMediaStore media;
   try {
     await database.ensureOpen();
