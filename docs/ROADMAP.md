@@ -1,6 +1,6 @@
 # Memuki — Development Roadmap
 
-> **Last updated:** 2026-10-28
+> **Last updated:** 2026-10-29
 > **Scope:** 8 milestones, 21 phases (0–19, with Phase 5 split into 5a and 5b)
 > **Sequence:** Linux → Sync → Mobile → Web → Advanced Mining → Extensions → Education
 
@@ -214,6 +214,16 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 
 ### Implementation
 
+Design system (built first; card rendering and editors depend on it):
+
+- Visual direction: colour palette, type scale, iconography, and motion.
+- Component tokens beyond Phase 0 spacing: corner radii, elevation, and surfaces.
+- Card typography: Japanese text, furigana, audio controls, and the styling of each field role.
+- Core components shared by editors and the study screen.
+- A component catalogue screen for reviewing tokens and components in both themes and at large text scales.
+
+Notes and templates:
+
 - Create, edit, and delete note types.
 - Configurable fields with validation.
 - Plain text, restricted rich text (including furigana/ruby), and media references.
@@ -242,6 +252,7 @@ Initial templates:
 | Decision | Status |
 |---|---|
 | Native Flutter rendering from Memuki templates; templates define structure, the design system defines styling; no user HTML/CSS/JS | Decided |
+| Visual direction (palette, type scale, iconography, motion) | Open |
 | Rich-text field storage format (representation of the restricted subset, including furigana) | Open |
 | Template model representation | Open |
 
@@ -251,6 +262,7 @@ Initial templates:
 - One note can generate several independently scheduled cards.
 - Templates can be modified without resetting unrelated review progress.
 - All standard templates render correctly in light and dark themes and at large text scales.
+- Card and editor styling comes from design system tokens and components, with no per-template styling.
 - Existing notes remain valid after compatible template changes.
 - Card generation is covered by automated tests.
 
@@ -294,6 +306,12 @@ Statistics:
 - Daily activity and streaks.
 - Review-history inspection.
 
+Visual polish:
+
+- Review screen, deck overview, browser, and statistics brought in line with the design system.
+- Designed empty, loading, and error states.
+- Transitions and feedback animations that respect reduced-motion settings.
+
 Quality:
 
 - Accessible focus navigation.
@@ -315,6 +333,7 @@ Quality:
 - Review cards and persist scheduling results.
 - Restart the application and continue correctly.
 - Browse, search, and edit existing notes.
+- Study and management screens use design system components and have designed empty, loading, and error states.
 - Baseline performance metrics are recorded against the reference collection.
 - No server or external account is needed.
 
