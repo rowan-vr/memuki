@@ -6,9 +6,9 @@ import '../converters.dart';
 import '../database.dart';
 import '../sync/change_recorder.dart';
 import '../sync/hlc.dart';
-import 'cascades.dart';
 import 'repository_exceptions.dart';
 import 'tree_queries.dart';
+import 'visibility.dart';
 import 'watch_tables.dart';
 
 /// Notes with their field values, and the tags attached to them.
@@ -31,18 +31,17 @@ class NoteRepository {
   Future<List<Note>> notes(CollectionId collectionId) =>
       _query((n) => n.collectionId.equalsValue(collectionId));
 
-  Stream<List<Note>> watchNotes(CollectionId collectionId) =>
-      watchTables(_db, [_db.notes, _db.noteFields], () => notes(collectionId));
+  Stream<List<Note>> watchNotes(CollectionId collectionId) => watchTables(_db, [
+    _db.visibleNotes,
+    _db.visibleNoteFields,
+  ], () => notes(collectionId));
 
   /// Notes tagged with [tagId] or a tag below it, oldest first.
   Future<List<Note>> notesWithTag(TagId tagId) async {
     final tagIds = (await _tagTree.subtree(tagId)).toList();
-    final tagged = _db.selectOnly(_db.noteTags)
-      ..addColumns([_db.noteTags.noteId])
-      ..where(
-        _db.noteTags.tagId.isInValues(tagIds) &
-            _db.noteTags.deleted.equals(false),
-      );
+    final tagged = _db.selectOnly(_db.visibleNoteTags)
+      ..addColumns([_db.visibleNoteTags.noteId])
+      ..where(_db.visibleNoteTags.tagId.isInValues(tagIds));
     return _query((n) => n.id.isInQuery(tagged));
   }
 
@@ -99,6 +98,7 @@ class NoteRepository {
           (f) =>
               f.noteId.equalsValue(note.id) &
               f.deleted.equals(false) &
+              _db.isVisibleFieldDefinition(f.fieldId) &
               f.fieldId.isInValues(note.fields.keys).not(),
         ))
         .write(
@@ -110,10 +110,10 @@ class NoteRepository {
     }, hlc);
   });
 
-  /// Deletes a note with its cards. Review history is kept.
+  /// Deletes a note. Its cards are hidden with it; their review history is
+  /// kept.
   Future<void> deleteNote(NoteId id) => _changes.write((hlc) async {
     if (await _noteRow(id) == null) throw _notFound(id);
-    await tombstoneCardsWhere(_db, hlc, (c) => c.noteId.equalsValue(id));
     await (_db.update(_db.notes)..where((n) => n.id.equalsValue(id))).write(
       NotesCompanion(deleted: const Value(true), hlc: Value(hlc)),
     );
@@ -122,11 +122,9 @@ class NoteRepository {
   // Tags
 
   Future<Set<TagId>> tagIds(NoteId noteId) async {
-    final rows =
-        await (_db.select(_db.noteTags)..where(
-              (t) => t.noteId.equalsValue(noteId) & t.deleted.equals(false),
-            ))
-            .get();
+    final rows = await (_db.select(
+      _db.visibleNoteTags,
+    )..where((t) => t.noteId.equalsValue(noteId))).get();
     return {for (final r in rows) r.tagId};
   }
 
@@ -139,7 +137,7 @@ class NoteRepository {
     if (note == null) throw _notFound(noteId);
     final tag =
         await (_db.select(_db.tags)
-              ..where((t) => t.id.equalsValue(tagId) & t.deleted.equals(false)))
+              ..where((t) => t.id.equalsValue(tagId) & _db.isVisibleTag(t.id)))
             .getSingleOrNull();
     if (tag == null) throw EntityNotFoundException('Tag $tagId does not exist');
     if (tag.collectionId != note.collectionId) {
@@ -177,14 +175,15 @@ class NoteRepository {
 
   Future<NoteRow?> _noteRow(NoteId id) =>
       (_db.select(_db.notes)
-            ..where((n) => n.id.equalsValue(id) & n.deleted.equals(false)))
+            ..where((n) => n.id.equalsValue(id) & _db.isVisibleNote(n.id)))
           .getSingleOrNull();
 
   Future<void> _requireNoteType(Note note) async {
     final noteType =
         await (_db.select(_db.noteTypes)..where(
               (t) =>
-                  t.id.equalsValue(note.noteTypeId) & t.deleted.equals(false),
+                  t.id.equalsValue(note.noteTypeId) &
+                  _db.isVisibleNoteType(t.id),
             ))
             .getSingleOrNull();
     if (noteType == null) {
@@ -201,7 +200,7 @@ class NoteRepository {
         await (_db.select(_db.fieldDefinitions)..where(
               (f) =>
                   f.noteTypeId.equalsValue(note.noteTypeId) &
-                  f.deleted.equals(false),
+                  _db.isVisibleFieldDefinition(f.id),
             ))
             .get();
     final known = {for (final f in fields) f.id};
@@ -215,11 +214,9 @@ class NoteRepository {
   }
 
   Future<Map<FieldDefinitionId, String>> _liveFields(NoteId noteId) async {
-    final rows =
-        await (_db.select(_db.noteFields)..where(
-              (f) => f.noteId.equalsValue(noteId) & f.deleted.equals(false),
-            ))
-            .get();
+    final rows = await (_db.select(
+      _db.visibleNoteFields,
+    )..where((f) => f.noteId.equalsValue(noteId))).get();
     return {for (final f in rows) f.fieldId: f.value};
   }
 
@@ -247,22 +244,18 @@ class NoteRepository {
   ) async {
     final rows =
         await (_db.select(_db.notes)
-              ..where((n) => filter(n) & n.deleted.equals(false))
+              ..where((n) => filter(n) & _db.isVisibleNote(n.id))
               ..orderBy([(n) => OrderingTerm(expression: n.id)]))
             .get();
     if (rows.isEmpty) return const [];
     final fieldRows =
-        await (_db.select(_db.noteFields).join([
+        await (_db.select(_db.visibleNoteFields).join([
               innerJoin(
                 _db.notes,
-                _db.notes.id.equalsExp(_db.noteFields.noteId),
+                _db.notes.id.equalsExp(_db.visibleNoteFields.noteId),
               ),
-            ])..where(
-              filter(_db.notes) &
-                  _db.notes.deleted.equals(false) &
-                  _db.noteFields.deleted.equals(false),
-            ))
-            .map((r) => r.readTable(_db.noteFields))
+            ])..where(filter(_db.notes)))
+            .map((r) => r.readTable(_db.visibleNoteFields))
             .get();
 
     final fields = <NoteId, Map<FieldDefinitionId, String>>{};

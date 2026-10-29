@@ -5,6 +5,7 @@ import '../../domain/review.dart';
 import '../database.dart';
 import '../sync/change_recorder.dart';
 import 'repository_exceptions.dart';
+import 'visibility.dart';
 
 /// The append-only review history. Events are never changed or removed;
 /// an undo is a new event.
@@ -31,7 +32,7 @@ class ReviewRepository {
     final card =
         await (_db.select(_db.studyCards)..where(
               (c) =>
-                  c.id.equalsValue(event.studyCardId) & c.deleted.equals(false),
+                  c.id.equalsValue(event.studyCardId) & _db.isVisibleCard(c.id),
             ))
             .getSingleOrNull();
     if (card == null) {

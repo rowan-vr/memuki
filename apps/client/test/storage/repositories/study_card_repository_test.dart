@@ -58,6 +58,21 @@ void main() {
     );
   });
 
+  test('watching a deck emits when a deck above it is deleted', () async {
+    final child = await japanese.addDeck('Child', parentId: japanese.deck.id);
+    final (_, card) = await japanese.addNote('猫', deckId: child.id);
+    final cards = repos.cards.watchCardsInDeck(child.id);
+    expect(
+      cards,
+      emitsInOrder([
+        [card],
+        isEmpty,
+      ]),
+    );
+    await pumpEventQueue();
+    await repos.collections.deleteDeck(japanese.deck.id);
+  });
+
   test('scheduling state is saved and replaced', () async {
     final (_, card) = await japanese.addNote('猫');
     final event = ReviewEvent(

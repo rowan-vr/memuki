@@ -7,6 +7,7 @@ import '../database.dart';
 import '../sync/change_recorder.dart';
 import 'repository_exceptions.dart';
 import 'tree_queries.dart';
+import 'visibility.dart';
 
 /// Tags of a collection. Tags are attached to notes through
 /// `NoteRepository`.
@@ -41,7 +42,8 @@ class TagRepository {
     final collection =
         await (_db.select(_db.collections)..where(
               (c) =>
-                  c.id.equalsValue(tag.collectionId) & c.deleted.equals(false),
+                  c.id.equalsValue(tag.collectionId) &
+                  _db.isVisibleCollection(c.id),
             ))
             .getSingleOrNull();
     if (collection == null) {
@@ -93,21 +95,18 @@ class TagRepository {
     );
   });
 
-  /// Deletes a tag with the tags below it, and removes them from all notes.
+  /// Deletes a tag. The tags below it are hidden with it, and all of them
+  /// disappear from notes.
   Future<void> deleteTag(TagId id) => _changes.write((hlc) async {
     if (await _tagRow(id) == null) throw _tagNotFound(id);
-    final tagIds = (await _tagTree.subtree(id)).toList();
-    await (_db.update(_db.noteTags)
-          ..where((n) => n.tagId.isInValues(tagIds) & n.deleted.equals(false)))
-        .write(NoteTagsCompanion(deleted: const Value(true), hlc: Value(hlc)));
-    await (_db.update(_db.tags)..where((t) => t.id.isInValues(tagIds))).write(
+    await (_db.update(_db.tags)..where((t) => t.id.equalsValue(id))).write(
       TagsCompanion(deleted: const Value(true), hlc: Value(hlc)),
     );
   });
 
   Future<TagRow?> _tagRow(TagId id) =>
       (_db.select(_db.tags)
-            ..where((t) => t.id.equalsValue(id) & t.deleted.equals(false)))
+            ..where((t) => t.id.equalsValue(id) & _db.isVisibleTag(t.id)))
           .getSingleOrNull();
 
   Future<void> _requireParent(CollectionId collectionId, TagId parentId) async {
@@ -131,7 +130,7 @@ class TagRepository {
                       ? t.parentId.isNull()
                       : t.parentId.equalsValue(parentId)) &
                   t.id.equalsValue(tag.id).not() &
-                  t.deleted.equals(false),
+                  _db.isVisibleTag(t.id),
             ))
             .get();
     final name = tag.name.toLowerCase();
@@ -146,7 +145,7 @@ class TagRepository {
     CollectionId collectionId,
   ) => _db.select(_db.tags)
     ..where(
-      (t) => t.collectionId.equalsValue(collectionId) & t.deleted.equals(false),
+      (t) => t.collectionId.equalsValue(collectionId) & _db.isVisibleTag(t.id),
     )
     ..orderBy([(t) => OrderingTerm(expression: t.name)]);
 }

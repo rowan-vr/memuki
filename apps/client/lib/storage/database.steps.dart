@@ -13,42 +13,32 @@ final class Schema2 extends i0.VersionedSchema {
   @override
   late final List<i1.DatabaseSchemaEntity> entities = [
     collections,
+    visibleCollections,
     decks,
-    decksCollectionImmutable,
+    visibleDecks,
     tags,
-    tagsCollectionImmutable,
+    visibleTags,
     noteTypes,
-    noteTypesCollectionImmutable,
-    notes,
-    notesCollectionImmutable,
-    noteTags,
-    noteTagsCollectionImmutable,
-    studyCardTemplates,
-    studyCards,
-    studyCardsCollectionImmutable,
-    mediaAssets,
-    mediaAssetsCollectionImmutable,
-    collectionsHlcChanges,
-    decksHlcChanges,
-    tagsHlcChanges,
-    noteTypesHlcChanges,
+    visibleNoteTypes,
     fieldDefinitions,
-    fieldDefinitionsHlcChanges,
-    studyCardTemplatesHlcChanges,
-    notesHlcChanges,
+    visibleFieldDefinitions,
+    studyCardTemplates,
+    visibleStudyCardTemplates,
+    notes,
+    studyCards,
+    visibleStudyCards,
+    visibleNotes,
     noteFields,
-    noteFieldsHlcChanges,
-    noteTagsHlcChanges,
-    studyCardsHlcChanges,
-    mediaAssetsHlcChanges,
-    reviewEvents,
-    reviewEventsAppendOnly,
+    visibleNoteFields,
+    noteTags,
+    visibleNoteTags,
     device,
     outbox,
     outboxHlc,
     studyCardsDeck,
     studyCardsTemplate,
     studyCardsHlc,
+    reviewEvents,
     schedulingStates,
     reviewEventsCard,
     reviewEventsAt,
@@ -68,10 +58,30 @@ final class Schema2 extends i0.VersionedSchema {
     tagsHlc,
     noteTagsTag,
     noteTagsHlc,
+    mediaAssets,
     mediaAssetsHlc,
     collectionsHlc,
     decksParent,
     decksHlc,
+    decksCollectionImmutable,
+    tagsCollectionImmutable,
+    noteTypesCollectionImmutable,
+    notesCollectionImmutable,
+    noteTagsCollectionImmutable,
+    studyCardsCollectionImmutable,
+    mediaAssetsCollectionImmutable,
+    collectionsHlcChanges,
+    decksHlcChanges,
+    tagsHlcChanges,
+    noteTypesHlcChanges,
+    fieldDefinitionsHlcChanges,
+    studyCardTemplatesHlcChanges,
+    notesHlcChanges,
+    noteFieldsHlcChanges,
+    noteTagsHlcChanges,
+    studyCardsHlcChanges,
+    mediaAssetsHlcChanges,
+    reviewEventsAppendOnly,
   ];
   late final Shape0 collections = Shape0(
     source: i0.VersionedTable(
@@ -84,7 +94,16 @@ final class Schema2 extends i0.VersionedSchema {
     ),
     alias: null,
   );
-  late final Shape1 decks = Shape1(
+  late final Shape1 visibleCollections = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_collections',
+      createViewStmt: 'CREATE VIEW visible_collections AS SELECT id FROM collections WHERE deleted = 0;',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape2 decks = Shape2(
     source: i0.VersionedTable(
       entityName: 'decks',
       withoutRowId: false,
@@ -98,19 +117,24 @@ final class Schema2 extends i0.VersionedSchema {
         _column_0,
         _column_1,
         _column_2,
-        _column_4,
         _column_5,
+        _column_6,
         _column_3,
       ],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  final i1.Trigger decksCollectionImmutable = i1.Trigger(
-    'CREATE TRIGGER decks_collection_immutable BEFORE UPDATE OF collection_id ON decks WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'decks_collection_immutable',
+  late final Shape1 visibleDecks = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_decks',
+      createViewStmt: 'CREATE VIEW visible_decks AS WITH RECURSIVE visible (id) AS (SELECT id FROM decks WHERE parent_id IS NULL AND deleted = 0 AND collection_id IN (SELECT id FROM visible_collections) UNION SELECT d.id FROM decks AS d JOIN visible AS v ON d.parent_id = v.id WHERE d.deleted = 0) SELECT id FROM visible;',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
   );
-  late final Shape1 tags = Shape1(
+  late final Shape2 tags = Shape2(
     source: i0.VersionedTable(
       entityName: 'tags',
       withoutRowId: false,
@@ -124,34 +148,99 @@ final class Schema2 extends i0.VersionedSchema {
         _column_0,
         _column_1,
         _column_2,
-        _column_4,
         _column_5,
+        _column_6,
         _column_3,
       ],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  final i1.Trigger tagsCollectionImmutable = i1.Trigger(
-    'CREATE TRIGGER tags_collection_immutable BEFORE UPDATE OF collection_id ON tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'tags_collection_immutable',
+  late final Shape1 visibleTags = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_tags',
+      createViewStmt: 'CREATE VIEW visible_tags AS WITH RECURSIVE visible (id) AS (SELECT id FROM tags WHERE parent_id IS NULL AND deleted = 0 AND collection_id IN (SELECT id FROM visible_collections) UNION SELECT t.id FROM tags AS t JOIN visible AS v ON t.parent_id = v.id WHERE t.deleted = 0) SELECT id FROM visible;',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
   );
-  late final Shape2 noteTypes = Shape2(
+  late final Shape3 noteTypes = Shape3(
     source: i0.VersionedTable(
       entityName: 'note_types',
       withoutRowId: false,
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(id)', 'UNIQUE(collection_id, id)'],
-      columns: [_column_0, _column_1, _column_2, _column_4, _column_3],
+      columns: [_column_0, _column_1, _column_2, _column_5, _column_3],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  final i1.Trigger noteTypesCollectionImmutable = i1.Trigger(
-    'CREATE TRIGGER note_types_collection_immutable BEFORE UPDATE OF collection_id ON note_types WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'note_types_collection_immutable',
+  late final Shape1 visibleNoteTypes = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_note_types',
+      createViewStmt: 'CREATE VIEW visible_note_types AS SELECT id FROM note_types WHERE deleted = 0 AND collection_id IN (SELECT id FROM visible_collections);',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
   );
-  late final Shape3 notes = Shape3(
+  late final Shape4 fieldDefinitions = Shape4(
+    source: i0.VersionedTable(
+      entityName: 'field_definitions',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_7,
+        _column_8,
+        _column_3,
+        _column_9,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 visibleFieldDefinitions = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_field_definitions',
+      createViewStmt: 'CREATE VIEW visible_field_definitions AS SELECT id FROM field_definitions WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types);',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape5 studyCardTemplates = Shape5(
+    source: i0.VersionedTable(
+      entityName: 'study_card_templates',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_2,
+        _column_7,
+        _column_8,
+        _column_3,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape1 visibleStudyCardTemplates = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_study_card_templates',
+      createViewStmt: 'CREATE VIEW visible_study_card_templates AS SELECT id FROM study_card_templates WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types);',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape6 notes = Shape6(
     source: i0.VersionedTable(
       entityName: 'notes',
       withoutRowId: false,
@@ -166,57 +255,16 @@ final class Schema2 extends i0.VersionedSchema {
         _column_0,
         _column_1,
         _column_2,
-        _column_4,
-        _column_6,
-        _column_7,
-        _column_8,
-      ],
-      attachedDatabase: database,
-    ),
-    alias: null,
-  );
-  final i1.Trigger notesCollectionImmutable = i1.Trigger(
-    'CREATE TRIGGER notes_collection_immutable BEFORE UPDATE OF collection_id ON notes WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'notes_collection_immutable',
-  );
-  late final Shape4 noteTags = Shape4(
-    source: i0.VersionedTable(
-      entityName: 'note_tags',
-      withoutRowId: false,
-      isStrict: false,
-      tableConstraints: [
-        'PRIMARY KEY(note_id, tag_id)',
-        'FOREIGN KEY(collection_id, note_id)REFERENCES notes(collection_id, id)ON DELETE CASCADE',
-        'FOREIGN KEY(collection_id, tag_id)REFERENCES tags(collection_id, id)ON DELETE CASCADE',
-      ],
-      columns: [_column_0, _column_1, _column_4, _column_9, _column_10],
-      attachedDatabase: database,
-    ),
-    alias: null,
-  );
-  final i1.Trigger noteTagsCollectionImmutable = i1.Trigger(
-    'CREATE TRIGGER note_tags_collection_immutable BEFORE UPDATE OF collection_id ON note_tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'note_tags_collection_immutable',
-  );
-  late final Shape5 studyCardTemplates = Shape5(
-    source: i0.VersionedTable(
-      entityName: 'study_card_templates',
-      withoutRowId: false,
-      isStrict: false,
-      tableConstraints: ['PRIMARY KEY(id)'],
-      columns: [
-        _column_0,
-        _column_1,
-        _column_2,
+        _column_5,
+        _column_10,
         _column_11,
         _column_12,
-        _column_3,
       ],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  late final Shape6 studyCards = Shape6(
+  late final Shape7 studyCards = Shape7(
     source: i0.VersionedTable(
       entityName: 'study_cards',
       withoutRowId: false,
@@ -231,163 +279,95 @@ final class Schema2 extends i0.VersionedSchema {
         _column_0,
         _column_1,
         _column_2,
-        _column_4,
-        _column_9,
+        _column_5,
         _column_13,
         _column_14,
-      ],
-      attachedDatabase: database,
-    ),
-    alias: null,
-  );
-  final i1.Trigger studyCardsCollectionImmutable = i1.Trigger(
-    'CREATE TRIGGER study_cards_collection_immutable BEFORE UPDATE OF collection_id ON study_cards WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'study_cards_collection_immutable',
-  );
-  late final Shape7 mediaAssets = Shape7(
-    source: i0.VersionedTable(
-      entityName: 'media_assets',
-      withoutRowId: false,
-      isStrict: false,
-      tableConstraints: ['PRIMARY KEY(collection_id, hash)'],
-      columns: [
-        _column_0,
-        _column_1,
-        _column_4,
         _column_15,
-        _column_16,
-        _column_17,
-        _column_18,
       ],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  final i1.Trigger mediaAssetsCollectionImmutable = i1.Trigger(
-    'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'media_assets_collection_immutable',
-  );
-  final i1.Trigger collectionsHlcChanges = i1.Trigger(
-    'CREATE TRIGGER collections_hlc_changes BEFORE UPDATE ON collections WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'collections_hlc_changes',
-  );
-  final i1.Trigger decksHlcChanges = i1.Trigger(
-    'CREATE TRIGGER decks_hlc_changes BEFORE UPDATE ON decks WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'decks_hlc_changes',
-  );
-  final i1.Trigger tagsHlcChanges = i1.Trigger(
-    'CREATE TRIGGER tags_hlc_changes BEFORE UPDATE ON tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'tags_hlc_changes',
-  );
-  final i1.Trigger noteTypesHlcChanges = i1.Trigger(
-    'CREATE TRIGGER note_types_hlc_changes BEFORE UPDATE ON note_types WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'note_types_hlc_changes',
-  );
-  late final Shape8 fieldDefinitions = Shape8(
-    source: i0.VersionedTable(
-      entityName: 'field_definitions',
-      withoutRowId: false,
-      isStrict: false,
-      tableConstraints: ['PRIMARY KEY(id)'],
-      columns: [
-        _column_0,
-        _column_1,
-        _column_2,
-        _column_11,
-        _column_12,
-        _column_3,
-        _column_19,
-      ],
+  late final Shape1 visibleStudyCards = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_study_cards',
+      createViewStmt: 'CREATE VIEW visible_study_cards AS SELECT id FROM study_cards WHERE deleted = 0 AND note_id IN (SELECT id FROM notes WHERE deleted = 0) AND deck_id IN (SELECT id FROM visible_decks) AND template_id IN (SELECT id FROM visible_study_card_templates);',
+      columns: [_column_4],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  final i1.Trigger fieldDefinitionsHlcChanges = i1.Trigger(
-    'CREATE TRIGGER field_definitions_hlc_changes BEFORE UPDATE ON field_definitions WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'field_definitions_hlc_changes',
+  late final Shape1 visibleNotes = Shape1(
+    source: i0.VersionedView(
+      entityName: 'visible_notes',
+      createViewStmt: 'CREATE VIEW visible_notes AS SELECT id FROM notes WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types) AND(id IN (SELECT note_id FROM study_cards WHERE id IN (SELECT id FROM visible_study_cards)) OR id NOT IN (SELECT note_id FROM study_cards));',
+      columns: [_column_4],
+      attachedDatabase: database,
+    ),
+    alias: null,
   );
-  final i1.Trigger studyCardTemplatesHlcChanges = i1.Trigger(
-    'CREATE TRIGGER study_card_templates_hlc_changes BEFORE UPDATE ON study_card_templates WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'study_card_templates_hlc_changes',
-  );
-  final i1.Trigger notesHlcChanges = i1.Trigger(
-    'CREATE TRIGGER notes_hlc_changes BEFORE UPDATE ON notes WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'notes_hlc_changes',
-  );
-  late final Shape9 noteFields = Shape9(
+  late final Shape8 noteFields = Shape8(
     source: i0.VersionedTable(
       entityName: 'note_fields',
       withoutRowId: false,
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(note_id, field_id)'],
-      columns: [_column_0, _column_1, _column_20, _column_21, _column_22],
+      columns: [_column_0, _column_1, _column_16, _column_17, _column_18],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  final i1.Trigger noteFieldsHlcChanges = i1.Trigger(
-    'CREATE TRIGGER note_fields_hlc_changes BEFORE UPDATE ON note_fields WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'note_fields_hlc_changes',
+  late final Shape9 visibleNoteFields = Shape9(
+    source: i0.VersionedView(
+      entityName: 'visible_note_fields',
+      createViewStmt: 'CREATE VIEW visible_note_fields AS SELECT note_id, field_id, value FROM note_fields WHERE deleted = 0 AND note_id IN (SELECT id FROM visible_notes) AND field_id IN (SELECT id FROM visible_field_definitions);',
+      columns: [_column_19, _column_20, _column_21],
+      attachedDatabase: database,
+    ),
+    alias: null,
   );
-  final i1.Trigger noteTagsHlcChanges = i1.Trigger(
-    'CREATE TRIGGER note_tags_hlc_changes BEFORE UPDATE ON note_tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'note_tags_hlc_changes',
-  );
-  final i1.Trigger studyCardsHlcChanges = i1.Trigger(
-    'CREATE TRIGGER study_cards_hlc_changes BEFORE UPDATE ON study_cards WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'study_cards_hlc_changes',
-  );
-  final i1.Trigger mediaAssetsHlcChanges = i1.Trigger(
-    'CREATE TRIGGER media_assets_hlc_changes BEFORE UPDATE ON media_assets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'media_assets_hlc_changes',
-  );
-  late final Shape10 reviewEvents = Shape10(
+  late final Shape10 noteTags = Shape10(
     source: i0.VersionedTable(
-      entityName: 'review_events',
+      entityName: 'note_tags',
       withoutRowId: false,
       isStrict: false,
-      tableConstraints: ['PRIMARY KEY(id)'],
-      columns: [
-        _column_2,
-        _column_23,
-        _column_24,
-        _column_25,
-        _column_26,
-        _column_27,
-        _column_28,
-        _column_29,
-        _column_30,
-        _column_31,
-        _column_32,
-        _column_33,
-        _column_0,
+      tableConstraints: [
+        'PRIMARY KEY(note_id, tag_id)',
+        'FOREIGN KEY(collection_id, note_id)REFERENCES notes(collection_id, id)ON DELETE CASCADE',
+        'FOREIGN KEY(collection_id, tag_id)REFERENCES tags(collection_id, id)ON DELETE CASCADE',
       ],
+      columns: [_column_0, _column_1, _column_5, _column_13, _column_22],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  final i1.Trigger reviewEventsAppendOnly = i1.Trigger(
-    'CREATE TRIGGER review_events_append_only BEFORE UPDATE ON review_events BEGIN SELECT RAISE (ABORT, \'review events are append-only\');END',
-    'review_events_append_only',
+  late final Shape11 visibleNoteTags = Shape11(
+    source: i0.VersionedView(
+      entityName: 'visible_note_tags',
+      createViewStmt: 'CREATE VIEW visible_note_tags AS SELECT note_id, tag_id FROM note_tags WHERE deleted = 0 AND note_id IN (SELECT id FROM visible_notes) AND tag_id IN (SELECT id FROM visible_tags);',
+      columns: [_column_19, _column_23],
+      attachedDatabase: database,
+    ),
+    alias: null,
   );
-  late final Shape11 device = Shape11(
+  late final Shape12 device = Shape12(
     source: i0.VersionedTable(
       entityName: 'device',
       withoutRowId: false,
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(id)'],
-      columns: [_column_34, _column_35, _column_36],
+      columns: [_column_24, _column_25, _column_26],
       attachedDatabase: database,
     ),
     alias: null,
   );
-  late final Shape12 outbox = Shape12(
+  late final Shape13 outbox = Shape13(
     source: i0.VersionedTable(
       entityName: 'outbox',
       withoutRowId: false,
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(entity_table, entity_key)'],
-      columns: [_column_37, _column_38, _column_39, _column_0],
+      columns: [_column_27, _column_28, _column_29, _column_0],
       attachedDatabase: database,
     ),
     alias: null,
@@ -408,14 +388,38 @@ final class Schema2 extends i0.VersionedSchema {
     'study_cards_hlc',
     'CREATE INDEX study_cards_hlc ON study_cards (hlc)',
   );
-  late final Shape13 schedulingStates = Shape13(
+  late final Shape14 reviewEvents = Shape14(
+    source: i0.VersionedTable(
+      entityName: 'review_events',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(id)'],
+      columns: [
+        _column_2,
+        _column_30,
+        _column_31,
+        _column_32,
+        _column_33,
+        _column_34,
+        _column_35,
+        _column_36,
+        _column_37,
+        _column_38,
+        _column_39,
+        _column_40,
+        _column_0,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
+  late final Shape15 schedulingStates = Shape15(
     source: i0.VersionedTable(
       entityName: 'scheduling_states',
       withoutRowId: false,
       isStrict: false,
       tableConstraints: ['PRIMARY KEY(study_card_id)'],
       columns: [
-        _column_40,
         _column_41,
         _column_42,
         _column_43,
@@ -424,6 +428,7 @@ final class Schema2 extends i0.VersionedSchema {
         _column_46,
         _column_47,
         _column_48,
+        _column_49,
       ],
       attachedDatabase: database,
     ),
@@ -501,6 +506,25 @@ final class Schema2 extends i0.VersionedSchema {
     'note_tags_hlc',
     'CREATE INDEX note_tags_hlc ON note_tags (hlc)',
   );
+  late final Shape16 mediaAssets = Shape16(
+    source: i0.VersionedTable(
+      entityName: 'media_assets',
+      withoutRowId: false,
+      isStrict: false,
+      tableConstraints: ['PRIMARY KEY(collection_id, hash)'],
+      columns: [
+        _column_0,
+        _column_1,
+        _column_5,
+        _column_50,
+        _column_51,
+        _column_52,
+        _column_53,
+      ],
+      attachedDatabase: database,
+    ),
+    alias: null,
+  );
   final i1.Index mediaAssetsHlc = i1.Index(
     'media_assets_hlc',
     'CREATE INDEX media_assets_hlc ON media_assets (hlc)',
@@ -516,6 +540,82 @@ final class Schema2 extends i0.VersionedSchema {
   final i1.Index decksHlc = i1.Index(
     'decks_hlc',
     'CREATE INDEX decks_hlc ON decks (hlc)',
+  );
+  final i1.Trigger decksCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER decks_collection_immutable BEFORE UPDATE OF collection_id ON decks WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'decks_collection_immutable',
+  );
+  final i1.Trigger tagsCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER tags_collection_immutable BEFORE UPDATE OF collection_id ON tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'tags_collection_immutable',
+  );
+  final i1.Trigger noteTypesCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER note_types_collection_immutable BEFORE UPDATE OF collection_id ON note_types WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'note_types_collection_immutable',
+  );
+  final i1.Trigger notesCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER notes_collection_immutable BEFORE UPDATE OF collection_id ON notes WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'notes_collection_immutable',
+  );
+  final i1.Trigger noteTagsCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER note_tags_collection_immutable BEFORE UPDATE OF collection_id ON note_tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'note_tags_collection_immutable',
+  );
+  final i1.Trigger studyCardsCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER study_cards_collection_immutable BEFORE UPDATE OF collection_id ON study_cards WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'study_cards_collection_immutable',
+  );
+  final i1.Trigger mediaAssetsCollectionImmutable = i1.Trigger(
+    'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'media_assets_collection_immutable',
+  );
+  final i1.Trigger collectionsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER collections_hlc_changes BEFORE UPDATE ON collections WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'collections_hlc_changes',
+  );
+  final i1.Trigger decksHlcChanges = i1.Trigger(
+    'CREATE TRIGGER decks_hlc_changes BEFORE UPDATE ON decks WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'decks_hlc_changes',
+  );
+  final i1.Trigger tagsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER tags_hlc_changes BEFORE UPDATE ON tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'tags_hlc_changes',
+  );
+  final i1.Trigger noteTypesHlcChanges = i1.Trigger(
+    'CREATE TRIGGER note_types_hlc_changes BEFORE UPDATE ON note_types WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_types_hlc_changes',
+  );
+  final i1.Trigger fieldDefinitionsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER field_definitions_hlc_changes BEFORE UPDATE ON field_definitions WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'field_definitions_hlc_changes',
+  );
+  final i1.Trigger studyCardTemplatesHlcChanges = i1.Trigger(
+    'CREATE TRIGGER study_card_templates_hlc_changes BEFORE UPDATE ON study_card_templates WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'study_card_templates_hlc_changes',
+  );
+  final i1.Trigger notesHlcChanges = i1.Trigger(
+    'CREATE TRIGGER notes_hlc_changes BEFORE UPDATE ON notes WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'notes_hlc_changes',
+  );
+  final i1.Trigger noteFieldsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER note_fields_hlc_changes BEFORE UPDATE ON note_fields WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_fields_hlc_changes',
+  );
+  final i1.Trigger noteTagsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER note_tags_hlc_changes BEFORE UPDATE ON note_tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_tags_hlc_changes',
+  );
+  final i1.Trigger studyCardsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER study_cards_hlc_changes BEFORE UPDATE ON study_cards WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'study_cards_hlc_changes',
+  );
+  final i1.Trigger mediaAssetsHlcChanges = i1.Trigger(
+    'CREATE TRIGGER media_assets_hlc_changes BEFORE UPDATE ON media_assets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'media_assets_hlc_changes',
+  );
+  final i1.Trigger reviewEventsAppendOnly = i1.Trigger(
+    'CREATE TRIGGER review_events_append_only BEFORE UPDATE ON review_events BEGIN SELECT RAISE (ABORT, \'review events are append-only\');END',
+    'review_events_append_only',
   );
 }
 
@@ -565,8 +665,22 @@ i1.GeneratedColumn<String> _column_3(String aliasedName) =>
       $customConstraints: 'NOT NULL',
     );
 
-class Shape1 extends i0.VersionedTable {
+class Shape1 extends i0.VersionedView {
   Shape1({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<i2.Uint8List> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<i2.Uint8List>;
+}
+
+i1.GeneratedColumn<i2.Uint8List> _column_4(String aliasedName) =>
+    i1.GeneratedColumn<i2.Uint8List>(
+      'id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.blob,
+    );
+
+class Shape2 extends i0.VersionedTable {
+  Shape2({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get hlc =>
       columnsByName['hlc']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get deleted =>
@@ -581,7 +695,7 @@ class Shape1 extends i0.VersionedTable {
       columnsByName['name']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<i2.Uint8List> _column_4(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_5(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'collection_id',
       aliasedName,
@@ -589,7 +703,7 @@ i1.GeneratedColumn<i2.Uint8List> _column_4(String aliasedName) =>
       type: i1.DriftSqlType.blob,
       $customConstraints: 'NOT NULL REFERENCES collections(id)',
     );
-i1.GeneratedColumn<i2.Uint8List> _column_5(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_6(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'parent_id',
       aliasedName,
@@ -598,8 +712,8 @@ i1.GeneratedColumn<i2.Uint8List> _column_5(String aliasedName) =>
       $customConstraints: 'NULL',
     );
 
-class Shape2 extends i0.VersionedTable {
-  Shape2({required super.source, required super.alias}) : super.aliased();
+class Shape3 extends i0.VersionedTable {
+  Shape3({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get hlc =>
       columnsByName['hlc']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get deleted =>
@@ -612,77 +726,46 @@ class Shape2 extends i0.VersionedTable {
       columnsByName['name']! as i1.GeneratedColumn<String>;
 }
 
-class Shape3 extends i0.VersionedTable {
-  Shape3({required super.source, required super.alias}) : super.aliased();
-  i1.GeneratedColumn<String> get hlc =>
-      columnsByName['hlc']! as i1.GeneratedColumn<String>;
-  i1.GeneratedColumn<int> get deleted =>
-      columnsByName['deleted']! as i1.GeneratedColumn<int>;
-  i1.GeneratedColumn<i2.Uint8List> get id =>
-      columnsByName['id']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<i2.Uint8List> get collectionId =>
-      columnsByName['collection_id']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<i2.Uint8List> get noteTypeId =>
-      columnsByName['note_type_id']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<String> get sourceKind =>
-      columnsByName['source_kind']! as i1.GeneratedColumn<String>;
-  i1.GeneratedColumn<String> get sourceReference =>
-      columnsByName['source_reference']! as i1.GeneratedColumn<String>;
-}
-
-i1.GeneratedColumn<i2.Uint8List> _column_6(String aliasedName) =>
-    i1.GeneratedColumn<i2.Uint8List>(
-      'note_type_id',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.blob,
-      $customConstraints: 'NOT NULL',
-    );
-i1.GeneratedColumn<String> _column_7(String aliasedName) =>
-    i1.GeneratedColumn<String>(
-      'source_kind',
-      aliasedName,
-      true,
-      type: i1.DriftSqlType.string,
-      $customConstraints: 'NULL',
-    );
-i1.GeneratedColumn<String> _column_8(String aliasedName) =>
-    i1.GeneratedColumn<String>(
-      'source_reference',
-      aliasedName,
-      true,
-      type: i1.DriftSqlType.string,
-      $customConstraints: 'NULL',
-    );
-
 class Shape4 extends i0.VersionedTable {
   Shape4({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get hlc =>
       columnsByName['hlc']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get deleted =>
       columnsByName['deleted']! as i1.GeneratedColumn<int>;
-  i1.GeneratedColumn<i2.Uint8List> get collectionId =>
-      columnsByName['collection_id']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<i2.Uint8List> get noteId =>
-      columnsByName['note_id']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<i2.Uint8List> get tagId =>
-      columnsByName['tag_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get noteTypeId =>
+      columnsByName['note_type_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<int> get position =>
+      columnsByName['position']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get name =>
+      columnsByName['name']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get type =>
+      columnsByName['type']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<i2.Uint8List> _column_9(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_7(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
-      'note_id',
+      'note_type_id',
       aliasedName,
       false,
       type: i1.DriftSqlType.blob,
+      $customConstraints: 'NOT NULL REFERENCES note_types(id)ON DELETE CASCADE',
+    );
+i1.GeneratedColumn<int> _column_8(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'position',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<i2.Uint8List> _column_10(String aliasedName) =>
-    i1.GeneratedColumn<i2.Uint8List>(
-      'tag_id',
+i1.GeneratedColumn<String> _column_9(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'type',
       aliasedName,
       false,
-      type: i1.DriftSqlType.blob,
+      type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
 
@@ -702,25 +785,51 @@ class Shape5 extends i0.VersionedTable {
       columnsByName['name']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<i2.Uint8List> _column_11(String aliasedName) =>
+class Shape6 extends i0.VersionedTable {
+  Shape6({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get hlc =>
+      columnsByName['hlc']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get deleted =>
+      columnsByName['deleted']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<i2.Uint8List> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get collectionId =>
+      columnsByName['collection_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get noteTypeId =>
+      columnsByName['note_type_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<String> get sourceKind =>
+      columnsByName['source_kind']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get sourceReference =>
+      columnsByName['source_reference']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<i2.Uint8List> _column_10(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'note_type_id',
       aliasedName,
       false,
       type: i1.DriftSqlType.blob,
-      $customConstraints: 'NOT NULL REFERENCES note_types(id)ON DELETE CASCADE',
-    );
-i1.GeneratedColumn<int> _column_12(String aliasedName) =>
-    i1.GeneratedColumn<int>(
-      'position',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL',
     );
+i1.GeneratedColumn<String> _column_11(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'source_kind',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NULL',
+    );
+i1.GeneratedColumn<String> _column_12(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'source_reference',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NULL',
+    );
 
-class Shape6 extends i0.VersionedTable {
-  Shape6({required super.source, required super.alias}) : super.aliased();
+class Shape7 extends i0.VersionedTable {
+  Shape7({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get hlc =>
       columnsByName['hlc']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get deleted =>
@@ -739,13 +848,21 @@ class Shape6 extends i0.VersionedTable {
 
 i1.GeneratedColumn<i2.Uint8List> _column_13(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
+      'note_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.blob,
+      $customConstraints: 'NOT NULL',
+    );
+i1.GeneratedColumn<i2.Uint8List> _column_14(String aliasedName) =>
+    i1.GeneratedColumn<i2.Uint8List>(
       'template_id',
       aliasedName,
       false,
       type: i1.DriftSqlType.blob,
       $customConstraints: 'NOT NULL REFERENCES study_card_templates(id)',
     );
-i1.GeneratedColumn<i2.Uint8List> _column_14(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_15(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'deck_id',
       aliasedName,
@@ -754,86 +871,8 @@ i1.GeneratedColumn<i2.Uint8List> _column_14(String aliasedName) =>
       $customConstraints: 'NOT NULL',
     );
 
-class Shape7 extends i0.VersionedTable {
-  Shape7({required super.source, required super.alias}) : super.aliased();
-  i1.GeneratedColumn<String> get hlc =>
-      columnsByName['hlc']! as i1.GeneratedColumn<String>;
-  i1.GeneratedColumn<int> get deleted =>
-      columnsByName['deleted']! as i1.GeneratedColumn<int>;
-  i1.GeneratedColumn<i2.Uint8List> get collectionId =>
-      columnsByName['collection_id']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<i2.Uint8List> get hash =>
-      columnsByName['hash']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<String> get mimeType =>
-      columnsByName['mime_type']! as i1.GeneratedColumn<String>;
-  i1.GeneratedColumn<int> get sizeBytes =>
-      columnsByName['size_bytes']! as i1.GeneratedColumn<int>;
-  i1.GeneratedColumn<String> get originalName =>
-      columnsByName['original_name']! as i1.GeneratedColumn<String>;
-}
-
-i1.GeneratedColumn<i2.Uint8List> _column_15(String aliasedName) =>
-    i1.GeneratedColumn<i2.Uint8List>(
-      'hash',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.blob,
-      $customConstraints: 'NOT NULL',
-    );
-i1.GeneratedColumn<String> _column_16(String aliasedName) =>
-    i1.GeneratedColumn<String>(
-      'mime_type',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.string,
-      $customConstraints: 'NOT NULL',
-    );
-i1.GeneratedColumn<int> _column_17(String aliasedName) =>
-    i1.GeneratedColumn<int>(
-      'size_bytes',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.int,
-      $customConstraints: 'NOT NULL',
-    );
-i1.GeneratedColumn<String> _column_18(String aliasedName) =>
-    i1.GeneratedColumn<String>(
-      'original_name',
-      aliasedName,
-      true,
-      type: i1.DriftSqlType.string,
-      $customConstraints: 'NULL',
-    );
-
 class Shape8 extends i0.VersionedTable {
   Shape8({required super.source, required super.alias}) : super.aliased();
-  i1.GeneratedColumn<String> get hlc =>
-      columnsByName['hlc']! as i1.GeneratedColumn<String>;
-  i1.GeneratedColumn<int> get deleted =>
-      columnsByName['deleted']! as i1.GeneratedColumn<int>;
-  i1.GeneratedColumn<i2.Uint8List> get id =>
-      columnsByName['id']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<i2.Uint8List> get noteTypeId =>
-      columnsByName['note_type_id']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<int> get position =>
-      columnsByName['position']! as i1.GeneratedColumn<int>;
-  i1.GeneratedColumn<String> get name =>
-      columnsByName['name']! as i1.GeneratedColumn<String>;
-  i1.GeneratedColumn<String> get type =>
-      columnsByName['type']! as i1.GeneratedColumn<String>;
-}
-
-i1.GeneratedColumn<String> _column_19(String aliasedName) =>
-    i1.GeneratedColumn<String>(
-      'type',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.string,
-      $customConstraints: 'NOT NULL',
-    );
-
-class Shape9 extends i0.VersionedTable {
-  Shape9({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<String> get hlc =>
       columnsByName['hlc']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<int> get deleted =>
@@ -846,7 +885,7 @@ class Shape9 extends i0.VersionedTable {
       columnsByName['value']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<i2.Uint8List> _column_20(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_16(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'note_id',
       aliasedName,
@@ -854,7 +893,7 @@ i1.GeneratedColumn<i2.Uint8List> _column_20(String aliasedName) =>
       type: i1.DriftSqlType.blob,
       $customConstraints: 'NOT NULL REFERENCES notes(id)ON DELETE CASCADE',
     );
-i1.GeneratedColumn<i2.Uint8List> _column_21(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_17(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'field_id',
       aliasedName,
@@ -863,7 +902,7 @@ i1.GeneratedColumn<i2.Uint8List> _column_21(String aliasedName) =>
       $customConstraints:
           'NOT NULL REFERENCES field_definitions(id)ON DELETE CASCADE',
     );
-i1.GeneratedColumn<String> _column_22(String aliasedName) =>
+i1.GeneratedColumn<String> _column_18(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'value',
       aliasedName,
@@ -872,8 +911,151 @@ i1.GeneratedColumn<String> _column_22(String aliasedName) =>
       $customConstraints: 'NOT NULL',
     );
 
+class Shape9 extends i0.VersionedView {
+  Shape9({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<i2.Uint8List> get noteId =>
+      columnsByName['note_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get fieldId =>
+      columnsByName['field_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<String> get value =>
+      columnsByName['value']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<i2.Uint8List> _column_19(String aliasedName) =>
+    i1.GeneratedColumn<i2.Uint8List>(
+      'note_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.blob,
+    );
+i1.GeneratedColumn<i2.Uint8List> _column_20(String aliasedName) =>
+    i1.GeneratedColumn<i2.Uint8List>(
+      'field_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.blob,
+    );
+i1.GeneratedColumn<String> _column_21(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'value',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+    );
+
 class Shape10 extends i0.VersionedTable {
   Shape10({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get hlc =>
+      columnsByName['hlc']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get deleted =>
+      columnsByName['deleted']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<i2.Uint8List> get collectionId =>
+      columnsByName['collection_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get noteId =>
+      columnsByName['note_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get tagId =>
+      columnsByName['tag_id']! as i1.GeneratedColumn<i2.Uint8List>;
+}
+
+i1.GeneratedColumn<i2.Uint8List> _column_22(String aliasedName) =>
+    i1.GeneratedColumn<i2.Uint8List>(
+      'tag_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.blob,
+      $customConstraints: 'NOT NULL',
+    );
+
+class Shape11 extends i0.VersionedView {
+  Shape11({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<i2.Uint8List> get noteId =>
+      columnsByName['note_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get tagId =>
+      columnsByName['tag_id']! as i1.GeneratedColumn<i2.Uint8List>;
+}
+
+i1.GeneratedColumn<i2.Uint8List> _column_23(String aliasedName) =>
+    i1.GeneratedColumn<i2.Uint8List>(
+      'tag_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.blob,
+    );
+
+class Shape12 extends i0.VersionedTable {
+  Shape12({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<int> get id =>
+      columnsByName['id']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get node =>
+      columnsByName['node']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<String> get lastHlc =>
+      columnsByName['last_hlc']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<int> _column_24(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NOT NULL',
+    );
+i1.GeneratedColumn<String> _column_25(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'node',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL',
+    );
+i1.GeneratedColumn<String> _column_26(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'last_hlc',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NULL',
+    );
+
+class Shape13 extends i0.VersionedTable {
+  Shape13({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<i2.Uint8List> get collectionId =>
+      columnsByName['collection_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<String> get entityTable =>
+      columnsByName['entity_table']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<i2.Uint8List> get entityKey =>
+      columnsByName['entity_key']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<String> get hlc =>
+      columnsByName['hlc']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<i2.Uint8List> _column_27(String aliasedName) =>
+    i1.GeneratedColumn<i2.Uint8List>(
+      'collection_id',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.blob,
+      $customConstraints: 'NOT NULL',
+    );
+i1.GeneratedColumn<String> _column_28(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'entity_table',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL',
+    );
+i1.GeneratedColumn<i2.Uint8List> _column_29(String aliasedName) =>
+    i1.GeneratedColumn<i2.Uint8List>(
+      'entity_key',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.blob,
+      $customConstraints: 'NOT NULL',
+    );
+
+class Shape14 extends i0.VersionedTable {
+  Shape14({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<i2.Uint8List> get id =>
       columnsByName['id']! as i1.GeneratedColumn<i2.Uint8List>;
   i1.GeneratedColumn<i2.Uint8List> get studyCardId =>
@@ -902,7 +1084,7 @@ class Shape10 extends i0.VersionedTable {
       columnsByName['hlc']! as i1.GeneratedColumn<String>;
 }
 
-i1.GeneratedColumn<i2.Uint8List> _column_23(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_30(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'study_card_id',
       aliasedName,
@@ -910,7 +1092,7 @@ i1.GeneratedColumn<i2.Uint8List> _column_23(String aliasedName) =>
       type: i1.DriftSqlType.blob,
       $customConstraints: 'NOT NULL REFERENCES study_cards(id)',
     );
-i1.GeneratedColumn<String> _column_24(String aliasedName) =>
+i1.GeneratedColumn<String> _column_31(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'kind',
       aliasedName,
@@ -918,7 +1100,7 @@ i1.GeneratedColumn<String> _column_24(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<int> _column_25(String aliasedName) =>
+i1.GeneratedColumn<int> _column_32(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'at',
       aliasedName,
@@ -926,7 +1108,7 @@ i1.GeneratedColumn<int> _column_25(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<String> _column_26(String aliasedName) =>
+i1.GeneratedColumn<String> _column_33(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'grade',
       aliasedName,
@@ -934,7 +1116,7 @@ i1.GeneratedColumn<String> _column_26(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NULL',
     );
-i1.GeneratedColumn<int> _column_27(String aliasedName) =>
+i1.GeneratedColumn<int> _column_34(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'response_time',
       aliasedName,
@@ -942,7 +1124,7 @@ i1.GeneratedColumn<int> _column_27(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NULL',
     );
-i1.GeneratedColumn<int> _column_28(String aliasedName) =>
+i1.GeneratedColumn<int> _column_35(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'due_before',
       aliasedName,
@@ -950,7 +1132,7 @@ i1.GeneratedColumn<int> _column_28(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NULL',
     );
-i1.GeneratedColumn<int> _column_29(String aliasedName) =>
+i1.GeneratedColumn<int> _column_36(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'due_after',
       aliasedName,
@@ -958,7 +1140,7 @@ i1.GeneratedColumn<int> _column_29(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NULL',
     );
-i1.GeneratedColumn<i2.Uint8List> _column_30(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_37(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'undone_event_id',
       aliasedName,
@@ -966,7 +1148,7 @@ i1.GeneratedColumn<i2.Uint8List> _column_30(String aliasedName) =>
       type: i1.DriftSqlType.blob,
       $customConstraints: 'NULL REFERENCES review_events(id)',
     );
-i1.GeneratedColumn<String> _column_31(String aliasedName) =>
+i1.GeneratedColumn<String> _column_38(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'scheduler_id',
       aliasedName,
@@ -974,7 +1156,7 @@ i1.GeneratedColumn<String> _column_31(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<int> _column_32(String aliasedName) =>
+i1.GeneratedColumn<int> _column_39(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'scheduler_version',
       aliasedName,
@@ -982,7 +1164,7 @@ i1.GeneratedColumn<int> _column_32(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<int> _column_33(String aliasedName) =>
+i1.GeneratedColumn<int> _column_40(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'config_version',
       aliasedName,
@@ -991,80 +1173,8 @@ i1.GeneratedColumn<int> _column_33(String aliasedName) =>
       $customConstraints: 'NOT NULL',
     );
 
-class Shape11 extends i0.VersionedTable {
-  Shape11({required super.source, required super.alias}) : super.aliased();
-  i1.GeneratedColumn<int> get id =>
-      columnsByName['id']! as i1.GeneratedColumn<int>;
-  i1.GeneratedColumn<String> get node =>
-      columnsByName['node']! as i1.GeneratedColumn<String>;
-  i1.GeneratedColumn<String> get lastHlc =>
-      columnsByName['last_hlc']! as i1.GeneratedColumn<String>;
-}
-
-i1.GeneratedColumn<int> _column_34(String aliasedName) =>
-    i1.GeneratedColumn<int>(
-      'id',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.int,
-      $customConstraints: 'NOT NULL',
-    );
-i1.GeneratedColumn<String> _column_35(String aliasedName) =>
-    i1.GeneratedColumn<String>(
-      'node',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.string,
-      $customConstraints: 'NOT NULL',
-    );
-i1.GeneratedColumn<String> _column_36(String aliasedName) =>
-    i1.GeneratedColumn<String>(
-      'last_hlc',
-      aliasedName,
-      true,
-      type: i1.DriftSqlType.string,
-      $customConstraints: 'NULL',
-    );
-
-class Shape12 extends i0.VersionedTable {
-  Shape12({required super.source, required super.alias}) : super.aliased();
-  i1.GeneratedColumn<i2.Uint8List> get collectionId =>
-      columnsByName['collection_id']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<String> get entityTable =>
-      columnsByName['entity_table']! as i1.GeneratedColumn<String>;
-  i1.GeneratedColumn<i2.Uint8List> get entityKey =>
-      columnsByName['entity_key']! as i1.GeneratedColumn<i2.Uint8List>;
-  i1.GeneratedColumn<String> get hlc =>
-      columnsByName['hlc']! as i1.GeneratedColumn<String>;
-}
-
-i1.GeneratedColumn<i2.Uint8List> _column_37(String aliasedName) =>
-    i1.GeneratedColumn<i2.Uint8List>(
-      'collection_id',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.blob,
-      $customConstraints: 'NOT NULL',
-    );
-i1.GeneratedColumn<String> _column_38(String aliasedName) =>
-    i1.GeneratedColumn<String>(
-      'entity_table',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.string,
-      $customConstraints: 'NOT NULL',
-    );
-i1.GeneratedColumn<i2.Uint8List> _column_39(String aliasedName) =>
-    i1.GeneratedColumn<i2.Uint8List>(
-      'entity_key',
-      aliasedName,
-      false,
-      type: i1.DriftSqlType.blob,
-      $customConstraints: 'NOT NULL',
-    );
-
-class Shape13 extends i0.VersionedTable {
-  Shape13({required super.source, required super.alias}) : super.aliased();
+class Shape15 extends i0.VersionedTable {
+  Shape15({required super.source, required super.alias}) : super.aliased();
   i1.GeneratedColumn<i2.Uint8List> get studyCardId =>
       columnsByName['study_card_id']! as i1.GeneratedColumn<i2.Uint8List>;
   i1.GeneratedColumn<String> get state =>
@@ -1085,7 +1195,7 @@ class Shape13 extends i0.VersionedTable {
       columnsByName['last_event_id']! as i1.GeneratedColumn<i2.Uint8List>;
 }
 
-i1.GeneratedColumn<i2.Uint8List> _column_40(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_41(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'study_card_id',
       aliasedName,
@@ -1094,7 +1204,7 @@ i1.GeneratedColumn<i2.Uint8List> _column_40(String aliasedName) =>
       $customConstraints:
           'NOT NULL REFERENCES study_cards(id)ON DELETE CASCADE',
     );
-i1.GeneratedColumn<String> _column_41(String aliasedName) =>
+i1.GeneratedColumn<String> _column_42(String aliasedName) =>
     i1.GeneratedColumn<String>(
       'state',
       aliasedName,
@@ -1102,7 +1212,7 @@ i1.GeneratedColumn<String> _column_41(String aliasedName) =>
       type: i1.DriftSqlType.string,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<int> _column_42(String aliasedName) =>
+i1.GeneratedColumn<int> _column_43(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'due',
       aliasedName,
@@ -1110,7 +1220,7 @@ i1.GeneratedColumn<int> _column_42(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NULL',
     );
-i1.GeneratedColumn<int> _column_43(String aliasedName) =>
+i1.GeneratedColumn<int> _column_44(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'interval',
       aliasedName,
@@ -1118,7 +1228,7 @@ i1.GeneratedColumn<int> _column_43(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<double> _column_44(String aliasedName) =>
+i1.GeneratedColumn<double> _column_45(String aliasedName) =>
     i1.GeneratedColumn<double>(
       'ease',
       aliasedName,
@@ -1126,7 +1236,7 @@ i1.GeneratedColumn<double> _column_44(String aliasedName) =>
       type: i1.DriftSqlType.double,
       $customConstraints: 'NULL',
     );
-i1.GeneratedColumn<int> _column_45(String aliasedName) =>
+i1.GeneratedColumn<int> _column_46(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'step',
       aliasedName,
@@ -1134,7 +1244,7 @@ i1.GeneratedColumn<int> _column_45(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<int> _column_46(String aliasedName) =>
+i1.GeneratedColumn<int> _column_47(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'lapses',
       aliasedName,
@@ -1142,7 +1252,7 @@ i1.GeneratedColumn<int> _column_46(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<int> _column_47(String aliasedName) =>
+i1.GeneratedColumn<int> _column_48(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'review_count',
       aliasedName,
@@ -1150,13 +1260,64 @@ i1.GeneratedColumn<int> _column_47(String aliasedName) =>
       type: i1.DriftSqlType.int,
       $customConstraints: 'NOT NULL',
     );
-i1.GeneratedColumn<i2.Uint8List> _column_48(String aliasedName) =>
+i1.GeneratedColumn<i2.Uint8List> _column_49(String aliasedName) =>
     i1.GeneratedColumn<i2.Uint8List>(
       'last_event_id',
       aliasedName,
       true,
       type: i1.DriftSqlType.blob,
       $customConstraints: 'NULL REFERENCES review_events(id)',
+    );
+
+class Shape16 extends i0.VersionedTable {
+  Shape16({required super.source, required super.alias}) : super.aliased();
+  i1.GeneratedColumn<String> get hlc =>
+      columnsByName['hlc']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get deleted =>
+      columnsByName['deleted']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<i2.Uint8List> get collectionId =>
+      columnsByName['collection_id']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<i2.Uint8List> get hash =>
+      columnsByName['hash']! as i1.GeneratedColumn<i2.Uint8List>;
+  i1.GeneratedColumn<String> get mimeType =>
+      columnsByName['mime_type']! as i1.GeneratedColumn<String>;
+  i1.GeneratedColumn<int> get sizeBytes =>
+      columnsByName['size_bytes']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get originalName =>
+      columnsByName['original_name']! as i1.GeneratedColumn<String>;
+}
+
+i1.GeneratedColumn<i2.Uint8List> _column_50(String aliasedName) =>
+    i1.GeneratedColumn<i2.Uint8List>(
+      'hash',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.blob,
+      $customConstraints: 'NOT NULL',
+    );
+i1.GeneratedColumn<String> _column_51(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'mime_type',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL',
+    );
+i1.GeneratedColumn<int> _column_52(String aliasedName) =>
+    i1.GeneratedColumn<int>(
+      'size_bytes',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.int,
+      $customConstraints: 'NOT NULL',
+    );
+i1.GeneratedColumn<String> _column_53(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'original_name',
+      aliasedName,
+      true,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NULL',
     );
 i0.MigrationStepWithVersion migrationSteps({
   required Future<void> Function(i1.Migrator m, Schema2 schema) from1To2,

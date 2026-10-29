@@ -272,6 +272,87 @@ class CollectionsCompanion extends UpdateCompanion<CollectionsData> {
   }
 }
 
+class VisibleCollection extends DataClass {
+  final i2.Uint8List id;
+  const VisibleCollection({required this.id});
+  factory VisibleCollection.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleCollection(id: serializer.fromJson<i2.Uint8List>(json['id']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<i2.Uint8List>(id)};
+  }
+
+  VisibleCollection copyWith({i2.Uint8List? id}) =>
+      VisibleCollection(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleCollection(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $driftBlobEquality.hash(id);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleCollection &&
+          $driftBlobEquality.equals(other.id, this.id));
+}
+
+class VisibleCollections extends ViewInfo<VisibleCollections, VisibleCollection>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final DatabaseAtV2 attachedDatabase;
+  VisibleCollections(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_collections';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_collections AS SELECT id FROM collections WHERE deleted = 0',
+  };
+  @override
+  VisibleCollections get asDslTable => this;
+  @override
+  VisibleCollection map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleCollection(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
+    );
+  }
+
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+  );
+  @override
+  VisibleCollections createAlias(String alias) {
+    return VisibleCollections(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {'collections'};
+}
+
 class Decks extends Table with TableInfo<Decks, DecksData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -634,6 +715,85 @@ class DecksCompanion extends UpdateCompanion<DecksData> {
           ..write(')'))
         .toString();
   }
+}
+
+class VisibleDeck extends DataClass {
+  final i2.Uint8List id;
+  const VisibleDeck({required this.id});
+  factory VisibleDeck.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleDeck(id: serializer.fromJson<i2.Uint8List>(json['id']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<i2.Uint8List>(id)};
+  }
+
+  VisibleDeck copyWith({i2.Uint8List? id}) => VisibleDeck(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleDeck(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $driftBlobEquality.hash(id);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleDeck && $driftBlobEquality.equals(other.id, this.id));
+}
+
+class VisibleDecks extends ViewInfo<VisibleDecks, VisibleDeck>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final DatabaseAtV2 attachedDatabase;
+  VisibleDecks(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_decks';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_decks AS WITH RECURSIVE visible (id) AS (SELECT id FROM decks WHERE parent_id IS NULL AND deleted = 0 AND collection_id IN (SELECT id FROM visible_collections) UNION SELECT d.id FROM decks AS d JOIN visible AS v ON d.parent_id = v.id WHERE d.deleted = 0) SELECT id FROM visible',
+  };
+  @override
+  VisibleDecks get asDslTable => this;
+  @override
+  VisibleDeck map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleDeck(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
+    );
+  }
+
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+  );
+  @override
+  VisibleDecks createAlias(String alias) {
+    return VisibleDecks(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {'decks', 'collections'};
 }
 
 class Tags extends Table with TableInfo<Tags, TagsData> {
@@ -1000,6 +1160,85 @@ class TagsCompanion extends UpdateCompanion<TagsData> {
   }
 }
 
+class VisibleTag extends DataClass {
+  final i2.Uint8List id;
+  const VisibleTag({required this.id});
+  factory VisibleTag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleTag(id: serializer.fromJson<i2.Uint8List>(json['id']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<i2.Uint8List>(id)};
+  }
+
+  VisibleTag copyWith({i2.Uint8List? id}) => VisibleTag(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleTag(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $driftBlobEquality.hash(id);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleTag && $driftBlobEquality.equals(other.id, this.id));
+}
+
+class VisibleTags extends ViewInfo<VisibleTags, VisibleTag>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final DatabaseAtV2 attachedDatabase;
+  VisibleTags(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_tags';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_tags AS WITH RECURSIVE visible (id) AS (SELECT id FROM tags WHERE parent_id IS NULL AND deleted = 0 AND collection_id IN (SELECT id FROM visible_collections) UNION SELECT t.id FROM tags AS t JOIN visible AS v ON t.parent_id = v.id WHERE t.deleted = 0) SELECT id FROM visible',
+  };
+  @override
+  VisibleTags get asDslTable => this;
+  @override
+  VisibleTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleTag(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
+    );
+  }
+
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+  );
+  @override
+  VisibleTags createAlias(String alias) {
+    return VisibleTags(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {'tags', 'collections'};
+}
+
 class NoteTypes extends Table with TableInfo<NoteTypes, NoteTypesData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -1314,6 +1553,1014 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypesData> {
           ..write(')'))
         .toString();
   }
+}
+
+class VisibleNoteType extends DataClass {
+  final i2.Uint8List id;
+  const VisibleNoteType({required this.id});
+  factory VisibleNoteType.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleNoteType(id: serializer.fromJson<i2.Uint8List>(json['id']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<i2.Uint8List>(id)};
+  }
+
+  VisibleNoteType copyWith({i2.Uint8List? id}) =>
+      VisibleNoteType(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleNoteType(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $driftBlobEquality.hash(id);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleNoteType &&
+          $driftBlobEquality.equals(other.id, this.id));
+}
+
+class VisibleNoteTypes extends ViewInfo<VisibleNoteTypes, VisibleNoteType>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final DatabaseAtV2 attachedDatabase;
+  VisibleNoteTypes(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_note_types';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_note_types AS SELECT id FROM note_types WHERE deleted = 0 AND collection_id IN (SELECT id FROM visible_collections)',
+  };
+  @override
+  VisibleNoteTypes get asDslTable => this;
+  @override
+  VisibleNoteType map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleNoteType(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
+    );
+  }
+
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+  );
+  @override
+  VisibleNoteTypes createAlias(String alias) {
+    return VisibleNoteTypes(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {'note_types', 'collections'};
+}
+
+class FieldDefinitions extends Table
+    with TableInfo<FieldDefinitions, FieldDefinitionsData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  FieldDefinitions(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
+    'hlc',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> deleted = GeneratedColumn<int>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (deleted IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<i2.Uint8List> noteTypeId =
+      GeneratedColumn<i2.Uint8List>(
+        'note_type_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL REFERENCES note_types(id)ON DELETE CASCADE',
+      );
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> type = GeneratedColumn<String>(
+    'type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    noteTypeId,
+    position,
+    name,
+    type,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_definitions';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FieldDefinitionsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldDefinitionsData(
+      hlc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hlc'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deleted'],
+      )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
+      noteTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}note_type_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      type: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}type'],
+      )!,
+    );
+  }
+
+  @override
+  FieldDefinitions createAlias(String alias) {
+    return FieldDefinitions(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class FieldDefinitionsData extends DataClass
+    implements Insertable<FieldDefinitionsData> {
+  final String hlc;
+  final int deleted;
+  final i2.Uint8List id;
+  final i2.Uint8List noteTypeId;
+  final int position;
+  final String name;
+  final String type;
+  const FieldDefinitionsData({
+    required this.hlc,
+    required this.deleted,
+    required this.id,
+    required this.noteTypeId,
+    required this.position,
+    required this.name,
+    required this.type,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['hlc'] = Variable<String>(hlc);
+    map['deleted'] = Variable<int>(deleted);
+    map['id'] = Variable<i2.Uint8List>(id);
+    map['note_type_id'] = Variable<i2.Uint8List>(noteTypeId);
+    map['position'] = Variable<int>(position);
+    map['name'] = Variable<String>(name);
+    map['type'] = Variable<String>(type);
+    return map;
+  }
+
+  FieldDefinitionsCompanion toCompanion(bool nullToAbsent) {
+    return FieldDefinitionsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      id: Value(id),
+      noteTypeId: Value(noteTypeId),
+      position: Value(position),
+      name: Value(name),
+      type: Value(type),
+    );
+  }
+
+  factory FieldDefinitionsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldDefinitionsData(
+      hlc: serializer.fromJson<String>(json['hlc']),
+      deleted: serializer.fromJson<int>(json['deleted']),
+      id: serializer.fromJson<i2.Uint8List>(json['id']),
+      noteTypeId: serializer.fromJson<i2.Uint8List>(json['noteTypeId']),
+      position: serializer.fromJson<int>(json['position']),
+      name: serializer.fromJson<String>(json['name']),
+      type: serializer.fromJson<String>(json['type']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'hlc': serializer.toJson<String>(hlc),
+      'deleted': serializer.toJson<int>(deleted),
+      'id': serializer.toJson<i2.Uint8List>(id),
+      'noteTypeId': serializer.toJson<i2.Uint8List>(noteTypeId),
+      'position': serializer.toJson<int>(position),
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String>(type),
+    };
+  }
+
+  FieldDefinitionsData copyWith({
+    String? hlc,
+    int? deleted,
+    i2.Uint8List? id,
+    i2.Uint8List? noteTypeId,
+    int? position,
+    String? name,
+    String? type,
+  }) => FieldDefinitionsData(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    id: id ?? this.id,
+    noteTypeId: noteTypeId ?? this.noteTypeId,
+    position: position ?? this.position,
+    name: name ?? this.name,
+    type: type ?? this.type,
+  );
+  FieldDefinitionsData copyWithCompanion(FieldDefinitionsCompanion data) {
+    return FieldDefinitionsData(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      id: data.id.present ? data.id.value : this.id,
+      noteTypeId: data.noteTypeId.present
+          ? data.noteTypeId.value
+          : this.noteTypeId,
+      position: data.position.present ? data.position.value : this.position,
+      name: data.name.present ? data.name.value : this.name,
+      type: data.type.present ? data.type.value : this.type,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldDefinitionsData(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('id: $id, ')
+          ..write('noteTypeId: $noteTypeId, ')
+          ..write('position: $position, ')
+          ..write('name: $name, ')
+          ..write('type: $type')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    hlc,
+    deleted,
+    $driftBlobEquality.hash(id),
+    $driftBlobEquality.hash(noteTypeId),
+    position,
+    name,
+    type,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldDefinitionsData &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
+          $driftBlobEquality.equals(other.id, this.id) &&
+          $driftBlobEquality.equals(other.noteTypeId, this.noteTypeId) &&
+          other.position == this.position &&
+          other.name == this.name &&
+          other.type == this.type);
+}
+
+class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionsData> {
+  final Value<String> hlc;
+  final Value<int> deleted;
+  final Value<i2.Uint8List> id;
+  final Value<i2.Uint8List> noteTypeId;
+  final Value<int> position;
+  final Value<String> name;
+  final Value<String> type;
+  final Value<int> rowid;
+  const FieldDefinitionsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.id = const Value.absent(),
+    this.noteTypeId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.name = const Value.absent(),
+    this.type = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldDefinitionsCompanion.insert({
+    required String hlc,
+    this.deleted = const Value.absent(),
+    required i2.Uint8List id,
+    required i2.Uint8List noteTypeId,
+    required int position,
+    required String name,
+    required String type,
+    this.rowid = const Value.absent(),
+  }) : hlc = Value(hlc),
+       id = Value(id),
+       noteTypeId = Value(noteTypeId),
+       position = Value(position),
+       name = Value(name),
+       type = Value(type);
+  static Insertable<FieldDefinitionsData> custom({
+    Expression<String>? hlc,
+    Expression<int>? deleted,
+    Expression<i2.Uint8List>? id,
+    Expression<i2.Uint8List>? noteTypeId,
+    Expression<int>? position,
+    Expression<String>? name,
+    Expression<String>? type,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
+      if (id != null) 'id': id,
+      if (noteTypeId != null) 'note_type_id': noteTypeId,
+      if (position != null) 'position': position,
+      if (name != null) 'name': name,
+      if (type != null) 'type': type,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldDefinitionsCompanion copyWith({
+    Value<String>? hlc,
+    Value<int>? deleted,
+    Value<i2.Uint8List>? id,
+    Value<i2.Uint8List>? noteTypeId,
+    Value<int>? position,
+    Value<String>? name,
+    Value<String>? type,
+    Value<int>? rowid,
+  }) {
+    return FieldDefinitionsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
+      id: id ?? this.id,
+      noteTypeId: noteTypeId ?? this.noteTypeId,
+      position: position ?? this.position,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(hlc.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<int>(deleted.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<i2.Uint8List>(id.value);
+    }
+    if (noteTypeId.present) {
+      map['note_type_id'] = Variable<i2.Uint8List>(noteTypeId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(type.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldDefinitionsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('id: $id, ')
+          ..write('noteTypeId: $noteTypeId, ')
+          ..write('position: $position, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class VisibleFieldDefinition extends DataClass {
+  final i2.Uint8List id;
+  const VisibleFieldDefinition({required this.id});
+  factory VisibleFieldDefinition.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleFieldDefinition(
+      id: serializer.fromJson<i2.Uint8List>(json['id']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<i2.Uint8List>(id)};
+  }
+
+  VisibleFieldDefinition copyWith({i2.Uint8List? id}) =>
+      VisibleFieldDefinition(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleFieldDefinition(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $driftBlobEquality.hash(id);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleFieldDefinition &&
+          $driftBlobEquality.equals(other.id, this.id));
+}
+
+class VisibleFieldDefinitions
+    extends ViewInfo<VisibleFieldDefinitions, VisibleFieldDefinition>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final DatabaseAtV2 attachedDatabase;
+  VisibleFieldDefinitions(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_field_definitions';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_field_definitions AS SELECT id FROM field_definitions WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types)',
+  };
+  @override
+  VisibleFieldDefinitions get asDslTable => this;
+  @override
+  VisibleFieldDefinition map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleFieldDefinition(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
+    );
+  }
+
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+  );
+  @override
+  VisibleFieldDefinitions createAlias(String alias) {
+    return VisibleFieldDefinitions(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'field_definitions',
+    'note_types',
+    'collections',
+  };
+}
+
+class StudyCardTemplates extends Table
+    with TableInfo<StudyCardTemplates, StudyCardTemplatesData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  StudyCardTemplates(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
+    'hlc',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> deleted = GeneratedColumn<int>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (deleted IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<i2.Uint8List> noteTypeId =
+      GeneratedColumn<i2.Uint8List>(
+        'note_type_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints:
+            'NOT NULL REFERENCES note_types(id)ON DELETE CASCADE',
+      );
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    noteTypeId,
+    position,
+    name,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'study_card_templates';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StudyCardTemplatesData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StudyCardTemplatesData(
+      hlc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hlc'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deleted'],
+      )!,
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
+      noteTypeId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}note_type_id'],
+      )!,
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+    );
+  }
+
+  @override
+  StudyCardTemplates createAlias(String alias) {
+    return StudyCardTemplates(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class StudyCardTemplatesData extends DataClass
+    implements Insertable<StudyCardTemplatesData> {
+  final String hlc;
+  final int deleted;
+  final i2.Uint8List id;
+  final i2.Uint8List noteTypeId;
+  final int position;
+  final String name;
+  const StudyCardTemplatesData({
+    required this.hlc,
+    required this.deleted,
+    required this.id,
+    required this.noteTypeId,
+    required this.position,
+    required this.name,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['hlc'] = Variable<String>(hlc);
+    map['deleted'] = Variable<int>(deleted);
+    map['id'] = Variable<i2.Uint8List>(id);
+    map['note_type_id'] = Variable<i2.Uint8List>(noteTypeId);
+    map['position'] = Variable<int>(position);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  StudyCardTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return StudyCardTemplatesCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      id: Value(id),
+      noteTypeId: Value(noteTypeId),
+      position: Value(position),
+      name: Value(name),
+    );
+  }
+
+  factory StudyCardTemplatesData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StudyCardTemplatesData(
+      hlc: serializer.fromJson<String>(json['hlc']),
+      deleted: serializer.fromJson<int>(json['deleted']),
+      id: serializer.fromJson<i2.Uint8List>(json['id']),
+      noteTypeId: serializer.fromJson<i2.Uint8List>(json['noteTypeId']),
+      position: serializer.fromJson<int>(json['position']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'hlc': serializer.toJson<String>(hlc),
+      'deleted': serializer.toJson<int>(deleted),
+      'id': serializer.toJson<i2.Uint8List>(id),
+      'noteTypeId': serializer.toJson<i2.Uint8List>(noteTypeId),
+      'position': serializer.toJson<int>(position),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  StudyCardTemplatesData copyWith({
+    String? hlc,
+    int? deleted,
+    i2.Uint8List? id,
+    i2.Uint8List? noteTypeId,
+    int? position,
+    String? name,
+  }) => StudyCardTemplatesData(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    id: id ?? this.id,
+    noteTypeId: noteTypeId ?? this.noteTypeId,
+    position: position ?? this.position,
+    name: name ?? this.name,
+  );
+  StudyCardTemplatesData copyWithCompanion(StudyCardTemplatesCompanion data) {
+    return StudyCardTemplatesData(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      id: data.id.present ? data.id.value : this.id,
+      noteTypeId: data.noteTypeId.present
+          ? data.noteTypeId.value
+          : this.noteTypeId,
+      position: data.position.present ? data.position.value : this.position,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StudyCardTemplatesData(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('id: $id, ')
+          ..write('noteTypeId: $noteTypeId, ')
+          ..write('position: $position, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    hlc,
+    deleted,
+    $driftBlobEquality.hash(id),
+    $driftBlobEquality.hash(noteTypeId),
+    position,
+    name,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StudyCardTemplatesData &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
+          $driftBlobEquality.equals(other.id, this.id) &&
+          $driftBlobEquality.equals(other.noteTypeId, this.noteTypeId) &&
+          other.position == this.position &&
+          other.name == this.name);
+}
+
+class StudyCardTemplatesCompanion
+    extends UpdateCompanion<StudyCardTemplatesData> {
+  final Value<String> hlc;
+  final Value<int> deleted;
+  final Value<i2.Uint8List> id;
+  final Value<i2.Uint8List> noteTypeId;
+  final Value<int> position;
+  final Value<String> name;
+  final Value<int> rowid;
+  const StudyCardTemplatesCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.id = const Value.absent(),
+    this.noteTypeId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.name = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StudyCardTemplatesCompanion.insert({
+    required String hlc,
+    this.deleted = const Value.absent(),
+    required i2.Uint8List id,
+    required i2.Uint8List noteTypeId,
+    required int position,
+    required String name,
+    this.rowid = const Value.absent(),
+  }) : hlc = Value(hlc),
+       id = Value(id),
+       noteTypeId = Value(noteTypeId),
+       position = Value(position),
+       name = Value(name);
+  static Insertable<StudyCardTemplatesData> custom({
+    Expression<String>? hlc,
+    Expression<int>? deleted,
+    Expression<i2.Uint8List>? id,
+    Expression<i2.Uint8List>? noteTypeId,
+    Expression<int>? position,
+    Expression<String>? name,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
+      if (id != null) 'id': id,
+      if (noteTypeId != null) 'note_type_id': noteTypeId,
+      if (position != null) 'position': position,
+      if (name != null) 'name': name,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StudyCardTemplatesCompanion copyWith({
+    Value<String>? hlc,
+    Value<int>? deleted,
+    Value<i2.Uint8List>? id,
+    Value<i2.Uint8List>? noteTypeId,
+    Value<int>? position,
+    Value<String>? name,
+    Value<int>? rowid,
+  }) {
+    return StudyCardTemplatesCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
+      id: id ?? this.id,
+      noteTypeId: noteTypeId ?? this.noteTypeId,
+      position: position ?? this.position,
+      name: name ?? this.name,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(hlc.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<int>(deleted.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<i2.Uint8List>(id.value);
+    }
+    if (noteTypeId.present) {
+      map['note_type_id'] = Variable<i2.Uint8List>(noteTypeId.value);
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StudyCardTemplatesCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('id: $id, ')
+          ..write('noteTypeId: $noteTypeId, ')
+          ..write('position: $position, ')
+          ..write('name: $name, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class VisibleStudyCardTemplate extends DataClass {
+  final i2.Uint8List id;
+  const VisibleStudyCardTemplate({required this.id});
+  factory VisibleStudyCardTemplate.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleStudyCardTemplate(
+      id: serializer.fromJson<i2.Uint8List>(json['id']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<i2.Uint8List>(id)};
+  }
+
+  VisibleStudyCardTemplate copyWith({i2.Uint8List? id}) =>
+      VisibleStudyCardTemplate(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleStudyCardTemplate(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => $driftBlobEquality.hash(id);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleStudyCardTemplate &&
+          $driftBlobEquality.equals(other.id, this.id));
+}
+
+class VisibleStudyCardTemplates
+    extends ViewInfo<VisibleStudyCardTemplates, VisibleStudyCardTemplate>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final DatabaseAtV2 attachedDatabase;
+  VisibleStudyCardTemplates(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_study_card_templates';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_study_card_templates AS SELECT id FROM study_card_templates WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types)',
+  };
+  @override
+  VisibleStudyCardTemplates get asDslTable => this;
+  @override
+  VisibleStudyCardTemplate map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleStudyCardTemplate(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
+    );
+  }
+
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+  );
+  @override
+  VisibleStudyCardTemplates createAlias(String alias) {
+    return VisibleStudyCardTemplates(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'study_card_templates',
+    'note_types',
+    'collections',
+  };
 }
 
 class Notes extends Table with TableInfo<Notes, NotesData> {
@@ -1729,683 +2976,6 @@ class NotesCompanion extends UpdateCompanion<NotesData> {
   }
 }
 
-class NoteTags extends Table with TableInfo<NoteTags, NoteTagsData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  NoteTags(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
-    'hlc',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> deleted = GeneratedColumn<int>(
-    'deleted',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (deleted IN (0, 1))',
-    defaultValue: const CustomExpression('0'),
-  );
-  late final GeneratedColumn<i2.Uint8List> collectionId =
-      GeneratedColumn<i2.Uint8List>(
-        'collection_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL REFERENCES collections(id)',
-      );
-  late final GeneratedColumn<i2.Uint8List> noteId =
-      GeneratedColumn<i2.Uint8List>(
-        'note_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL',
-      );
-  late final GeneratedColumn<i2.Uint8List> tagId =
-      GeneratedColumn<i2.Uint8List>(
-        'tag_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL',
-      );
-  @override
-  List<GeneratedColumn> get $columns => [
-    hlc,
-    deleted,
-    collectionId,
-    noteId,
-    tagId,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'note_tags';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {noteId, tagId};
-  @override
-  NoteTagsData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return NoteTagsData(
-      hlc: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}hlc'],
-      )!,
-      deleted: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}deleted'],
-      )!,
-      collectionId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}collection_id'],
-      )!,
-      noteId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}note_id'],
-      )!,
-      tagId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}tag_id'],
-      )!,
-    );
-  }
-
-  @override
-  NoteTags createAlias(String alias) {
-    return NoteTags(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const [
-    'PRIMARY KEY(note_id, tag_id)',
-    'FOREIGN KEY(collection_id, note_id)REFERENCES notes(collection_id, id)ON DELETE CASCADE',
-    'FOREIGN KEY(collection_id, tag_id)REFERENCES tags(collection_id, id)ON DELETE CASCADE',
-  ];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class NoteTagsData extends DataClass implements Insertable<NoteTagsData> {
-  final String hlc;
-  final int deleted;
-  final i2.Uint8List collectionId;
-  final i2.Uint8List noteId;
-  final i2.Uint8List tagId;
-  const NoteTagsData({
-    required this.hlc,
-    required this.deleted,
-    required this.collectionId,
-    required this.noteId,
-    required this.tagId,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['hlc'] = Variable<String>(hlc);
-    map['deleted'] = Variable<int>(deleted);
-    map['collection_id'] = Variable<i2.Uint8List>(collectionId);
-    map['note_id'] = Variable<i2.Uint8List>(noteId);
-    map['tag_id'] = Variable<i2.Uint8List>(tagId);
-    return map;
-  }
-
-  NoteTagsCompanion toCompanion(bool nullToAbsent) {
-    return NoteTagsCompanion(
-      hlc: Value(hlc),
-      deleted: Value(deleted),
-      collectionId: Value(collectionId),
-      noteId: Value(noteId),
-      tagId: Value(tagId),
-    );
-  }
-
-  factory NoteTagsData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return NoteTagsData(
-      hlc: serializer.fromJson<String>(json['hlc']),
-      deleted: serializer.fromJson<int>(json['deleted']),
-      collectionId: serializer.fromJson<i2.Uint8List>(json['collectionId']),
-      noteId: serializer.fromJson<i2.Uint8List>(json['noteId']),
-      tagId: serializer.fromJson<i2.Uint8List>(json['tagId']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'hlc': serializer.toJson<String>(hlc),
-      'deleted': serializer.toJson<int>(deleted),
-      'collectionId': serializer.toJson<i2.Uint8List>(collectionId),
-      'noteId': serializer.toJson<i2.Uint8List>(noteId),
-      'tagId': serializer.toJson<i2.Uint8List>(tagId),
-    };
-  }
-
-  NoteTagsData copyWith({
-    String? hlc,
-    int? deleted,
-    i2.Uint8List? collectionId,
-    i2.Uint8List? noteId,
-    i2.Uint8List? tagId,
-  }) => NoteTagsData(
-    hlc: hlc ?? this.hlc,
-    deleted: deleted ?? this.deleted,
-    collectionId: collectionId ?? this.collectionId,
-    noteId: noteId ?? this.noteId,
-    tagId: tagId ?? this.tagId,
-  );
-  NoteTagsData copyWithCompanion(NoteTagsCompanion data) {
-    return NoteTagsData(
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-      deleted: data.deleted.present ? data.deleted.value : this.deleted,
-      collectionId: data.collectionId.present
-          ? data.collectionId.value
-          : this.collectionId,
-      noteId: data.noteId.present ? data.noteId.value : this.noteId,
-      tagId: data.tagId.present ? data.tagId.value : this.tagId,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('NoteTagsData(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('collectionId: $collectionId, ')
-          ..write('noteId: $noteId, ')
-          ..write('tagId: $tagId')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    hlc,
-    deleted,
-    $driftBlobEquality.hash(collectionId),
-    $driftBlobEquality.hash(noteId),
-    $driftBlobEquality.hash(tagId),
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is NoteTagsData &&
-          other.hlc == this.hlc &&
-          other.deleted == this.deleted &&
-          $driftBlobEquality.equals(other.collectionId, this.collectionId) &&
-          $driftBlobEquality.equals(other.noteId, this.noteId) &&
-          $driftBlobEquality.equals(other.tagId, this.tagId));
-}
-
-class NoteTagsCompanion extends UpdateCompanion<NoteTagsData> {
-  final Value<String> hlc;
-  final Value<int> deleted;
-  final Value<i2.Uint8List> collectionId;
-  final Value<i2.Uint8List> noteId;
-  final Value<i2.Uint8List> tagId;
-  final Value<int> rowid;
-  const NoteTagsCompanion({
-    this.hlc = const Value.absent(),
-    this.deleted = const Value.absent(),
-    this.collectionId = const Value.absent(),
-    this.noteId = const Value.absent(),
-    this.tagId = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  NoteTagsCompanion.insert({
-    required String hlc,
-    this.deleted = const Value.absent(),
-    required i2.Uint8List collectionId,
-    required i2.Uint8List noteId,
-    required i2.Uint8List tagId,
-    this.rowid = const Value.absent(),
-  }) : hlc = Value(hlc),
-       collectionId = Value(collectionId),
-       noteId = Value(noteId),
-       tagId = Value(tagId);
-  static Insertable<NoteTagsData> custom({
-    Expression<String>? hlc,
-    Expression<int>? deleted,
-    Expression<i2.Uint8List>? collectionId,
-    Expression<i2.Uint8List>? noteId,
-    Expression<i2.Uint8List>? tagId,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (hlc != null) 'hlc': hlc,
-      if (deleted != null) 'deleted': deleted,
-      if (collectionId != null) 'collection_id': collectionId,
-      if (noteId != null) 'note_id': noteId,
-      if (tagId != null) 'tag_id': tagId,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  NoteTagsCompanion copyWith({
-    Value<String>? hlc,
-    Value<int>? deleted,
-    Value<i2.Uint8List>? collectionId,
-    Value<i2.Uint8List>? noteId,
-    Value<i2.Uint8List>? tagId,
-    Value<int>? rowid,
-  }) {
-    return NoteTagsCompanion(
-      hlc: hlc ?? this.hlc,
-      deleted: deleted ?? this.deleted,
-      collectionId: collectionId ?? this.collectionId,
-      noteId: noteId ?? this.noteId,
-      tagId: tagId ?? this.tagId,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(hlc.value);
-    }
-    if (deleted.present) {
-      map['deleted'] = Variable<int>(deleted.value);
-    }
-    if (collectionId.present) {
-      map['collection_id'] = Variable<i2.Uint8List>(collectionId.value);
-    }
-    if (noteId.present) {
-      map['note_id'] = Variable<i2.Uint8List>(noteId.value);
-    }
-    if (tagId.present) {
-      map['tag_id'] = Variable<i2.Uint8List>(tagId.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('NoteTagsCompanion(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('collectionId: $collectionId, ')
-          ..write('noteId: $noteId, ')
-          ..write('tagId: $tagId, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class StudyCardTemplates extends Table
-    with TableInfo<StudyCardTemplates, StudyCardTemplatesData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  StudyCardTemplates(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
-    'hlc',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> deleted = GeneratedColumn<int>(
-    'deleted',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (deleted IN (0, 1))',
-    defaultValue: const CustomExpression('0'),
-  );
-  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<i2.Uint8List> noteTypeId =
-      GeneratedColumn<i2.Uint8List>(
-        'note_type_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints:
-            'NOT NULL REFERENCES note_types(id)ON DELETE CASCADE',
-      );
-  late final GeneratedColumn<int> position = GeneratedColumn<int>(
-    'position',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    hlc,
-    deleted,
-    id,
-    noteTypeId,
-    position,
-    name,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'study_card_templates';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  StudyCardTemplatesData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return StudyCardTemplatesData(
-      hlc: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}hlc'],
-      )!,
-      deleted: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}deleted'],
-      )!,
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}id'],
-      )!,
-      noteTypeId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}note_type_id'],
-      )!,
-      position: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}position'],
-      )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-    );
-  }
-
-  @override
-  StudyCardTemplates createAlias(String alias) {
-    return StudyCardTemplates(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class StudyCardTemplatesData extends DataClass
-    implements Insertable<StudyCardTemplatesData> {
-  final String hlc;
-  final int deleted;
-  final i2.Uint8List id;
-  final i2.Uint8List noteTypeId;
-  final int position;
-  final String name;
-  const StudyCardTemplatesData({
-    required this.hlc,
-    required this.deleted,
-    required this.id,
-    required this.noteTypeId,
-    required this.position,
-    required this.name,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['hlc'] = Variable<String>(hlc);
-    map['deleted'] = Variable<int>(deleted);
-    map['id'] = Variable<i2.Uint8List>(id);
-    map['note_type_id'] = Variable<i2.Uint8List>(noteTypeId);
-    map['position'] = Variable<int>(position);
-    map['name'] = Variable<String>(name);
-    return map;
-  }
-
-  StudyCardTemplatesCompanion toCompanion(bool nullToAbsent) {
-    return StudyCardTemplatesCompanion(
-      hlc: Value(hlc),
-      deleted: Value(deleted),
-      id: Value(id),
-      noteTypeId: Value(noteTypeId),
-      position: Value(position),
-      name: Value(name),
-    );
-  }
-
-  factory StudyCardTemplatesData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return StudyCardTemplatesData(
-      hlc: serializer.fromJson<String>(json['hlc']),
-      deleted: serializer.fromJson<int>(json['deleted']),
-      id: serializer.fromJson<i2.Uint8List>(json['id']),
-      noteTypeId: serializer.fromJson<i2.Uint8List>(json['noteTypeId']),
-      position: serializer.fromJson<int>(json['position']),
-      name: serializer.fromJson<String>(json['name']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'hlc': serializer.toJson<String>(hlc),
-      'deleted': serializer.toJson<int>(deleted),
-      'id': serializer.toJson<i2.Uint8List>(id),
-      'noteTypeId': serializer.toJson<i2.Uint8List>(noteTypeId),
-      'position': serializer.toJson<int>(position),
-      'name': serializer.toJson<String>(name),
-    };
-  }
-
-  StudyCardTemplatesData copyWith({
-    String? hlc,
-    int? deleted,
-    i2.Uint8List? id,
-    i2.Uint8List? noteTypeId,
-    int? position,
-    String? name,
-  }) => StudyCardTemplatesData(
-    hlc: hlc ?? this.hlc,
-    deleted: deleted ?? this.deleted,
-    id: id ?? this.id,
-    noteTypeId: noteTypeId ?? this.noteTypeId,
-    position: position ?? this.position,
-    name: name ?? this.name,
-  );
-  StudyCardTemplatesData copyWithCompanion(StudyCardTemplatesCompanion data) {
-    return StudyCardTemplatesData(
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-      deleted: data.deleted.present ? data.deleted.value : this.deleted,
-      id: data.id.present ? data.id.value : this.id,
-      noteTypeId: data.noteTypeId.present
-          ? data.noteTypeId.value
-          : this.noteTypeId,
-      position: data.position.present ? data.position.value : this.position,
-      name: data.name.present ? data.name.value : this.name,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('StudyCardTemplatesData(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('id: $id, ')
-          ..write('noteTypeId: $noteTypeId, ')
-          ..write('position: $position, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    hlc,
-    deleted,
-    $driftBlobEquality.hash(id),
-    $driftBlobEquality.hash(noteTypeId),
-    position,
-    name,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is StudyCardTemplatesData &&
-          other.hlc == this.hlc &&
-          other.deleted == this.deleted &&
-          $driftBlobEquality.equals(other.id, this.id) &&
-          $driftBlobEquality.equals(other.noteTypeId, this.noteTypeId) &&
-          other.position == this.position &&
-          other.name == this.name);
-}
-
-class StudyCardTemplatesCompanion
-    extends UpdateCompanion<StudyCardTemplatesData> {
-  final Value<String> hlc;
-  final Value<int> deleted;
-  final Value<i2.Uint8List> id;
-  final Value<i2.Uint8List> noteTypeId;
-  final Value<int> position;
-  final Value<String> name;
-  final Value<int> rowid;
-  const StudyCardTemplatesCompanion({
-    this.hlc = const Value.absent(),
-    this.deleted = const Value.absent(),
-    this.id = const Value.absent(),
-    this.noteTypeId = const Value.absent(),
-    this.position = const Value.absent(),
-    this.name = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  StudyCardTemplatesCompanion.insert({
-    required String hlc,
-    this.deleted = const Value.absent(),
-    required i2.Uint8List id,
-    required i2.Uint8List noteTypeId,
-    required int position,
-    required String name,
-    this.rowid = const Value.absent(),
-  }) : hlc = Value(hlc),
-       id = Value(id),
-       noteTypeId = Value(noteTypeId),
-       position = Value(position),
-       name = Value(name);
-  static Insertable<StudyCardTemplatesData> custom({
-    Expression<String>? hlc,
-    Expression<int>? deleted,
-    Expression<i2.Uint8List>? id,
-    Expression<i2.Uint8List>? noteTypeId,
-    Expression<int>? position,
-    Expression<String>? name,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (hlc != null) 'hlc': hlc,
-      if (deleted != null) 'deleted': deleted,
-      if (id != null) 'id': id,
-      if (noteTypeId != null) 'note_type_id': noteTypeId,
-      if (position != null) 'position': position,
-      if (name != null) 'name': name,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  StudyCardTemplatesCompanion copyWith({
-    Value<String>? hlc,
-    Value<int>? deleted,
-    Value<i2.Uint8List>? id,
-    Value<i2.Uint8List>? noteTypeId,
-    Value<int>? position,
-    Value<String>? name,
-    Value<int>? rowid,
-  }) {
-    return StudyCardTemplatesCompanion(
-      hlc: hlc ?? this.hlc,
-      deleted: deleted ?? this.deleted,
-      id: id ?? this.id,
-      noteTypeId: noteTypeId ?? this.noteTypeId,
-      position: position ?? this.position,
-      name: name ?? this.name,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(hlc.value);
-    }
-    if (deleted.present) {
-      map['deleted'] = Variable<int>(deleted.value);
-    }
-    if (id.present) {
-      map['id'] = Variable<i2.Uint8List>(id.value);
-    }
-    if (noteTypeId.present) {
-      map['note_type_id'] = Variable<i2.Uint8List>(noteTypeId.value);
-    }
-    if (position.present) {
-      map['position'] = Variable<int>(position.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('StudyCardTemplatesCompanion(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('id: $id, ')
-          ..write('noteTypeId: $noteTypeId, ')
-          ..write('position: $position, ')
-          ..write('name: $name, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class StudyCards extends Table with TableInfo<StudyCards, StudyCardsData> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -2809,792 +3379,178 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardsData> {
   }
 }
 
-class MediaAssets extends Table with TableInfo<MediaAssets, MediaAssetsData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  MediaAssets(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
-    'hlc',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> deleted = GeneratedColumn<int>(
-    'deleted',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (deleted IN (0, 1))',
-    defaultValue: const CustomExpression('0'),
-  );
-  late final GeneratedColumn<i2.Uint8List> collectionId =
-      GeneratedColumn<i2.Uint8List>(
-        'collection_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL REFERENCES collections(id)',
-      );
-  late final GeneratedColumn<i2.Uint8List> hash = GeneratedColumn<i2.Uint8List>(
-    'hash',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
-    'mime_type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
-    'size_bytes',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> originalName = GeneratedColumn<String>(
-    'original_name',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    hlc,
-    deleted,
-    collectionId,
-    hash,
-    mimeType,
-    sizeBytes,
-    originalName,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'media_assets';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {collectionId, hash};
-  @override
-  MediaAssetsData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MediaAssetsData(
-      hlc: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}hlc'],
-      )!,
-      deleted: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}deleted'],
-      )!,
-      collectionId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}collection_id'],
-      )!,
-      hash: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}hash'],
-      )!,
-      mimeType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}mime_type'],
-      )!,
-      sizeBytes: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}size_bytes'],
-      )!,
-      originalName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}original_name'],
-      ),
-    );
-  }
-
-  @override
-  MediaAssets createAlias(String alias) {
-    return MediaAssets(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const [
-    'PRIMARY KEY(collection_id, hash)',
-  ];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class MediaAssetsData extends DataClass implements Insertable<MediaAssetsData> {
-  final String hlc;
-  final int deleted;
-  final i2.Uint8List collectionId;
-  final i2.Uint8List hash;
-  final String mimeType;
-  final int sizeBytes;
-  final String? originalName;
-  const MediaAssetsData({
-    required this.hlc,
-    required this.deleted,
-    required this.collectionId,
-    required this.hash,
-    required this.mimeType,
-    required this.sizeBytes,
-    this.originalName,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['hlc'] = Variable<String>(hlc);
-    map['deleted'] = Variable<int>(deleted);
-    map['collection_id'] = Variable<i2.Uint8List>(collectionId);
-    map['hash'] = Variable<i2.Uint8List>(hash);
-    map['mime_type'] = Variable<String>(mimeType);
-    map['size_bytes'] = Variable<int>(sizeBytes);
-    if (!nullToAbsent || originalName != null) {
-      map['original_name'] = Variable<String>(originalName);
-    }
-    return map;
-  }
-
-  MediaAssetsCompanion toCompanion(bool nullToAbsent) {
-    return MediaAssetsCompanion(
-      hlc: Value(hlc),
-      deleted: Value(deleted),
-      collectionId: Value(collectionId),
-      hash: Value(hash),
-      mimeType: Value(mimeType),
-      sizeBytes: Value(sizeBytes),
-      originalName: originalName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(originalName),
-    );
-  }
-
-  factory MediaAssetsData.fromJson(
+class VisibleStudyCard extends DataClass {
+  final i2.Uint8List id;
+  const VisibleStudyCard({required this.id});
+  factory VisibleStudyCard.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return MediaAssetsData(
-      hlc: serializer.fromJson<String>(json['hlc']),
-      deleted: serializer.fromJson<int>(json['deleted']),
-      collectionId: serializer.fromJson<i2.Uint8List>(json['collectionId']),
-      hash: serializer.fromJson<i2.Uint8List>(json['hash']),
-      mimeType: serializer.fromJson<String>(json['mimeType']),
-      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
-      originalName: serializer.fromJson<String?>(json['originalName']),
-    );
+    return VisibleStudyCard(id: serializer.fromJson<i2.Uint8List>(json['id']));
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'hlc': serializer.toJson<String>(hlc),
-      'deleted': serializer.toJson<int>(deleted),
-      'collectionId': serializer.toJson<i2.Uint8List>(collectionId),
-      'hash': serializer.toJson<i2.Uint8List>(hash),
-      'mimeType': serializer.toJson<String>(mimeType),
-      'sizeBytes': serializer.toJson<int>(sizeBytes),
-      'originalName': serializer.toJson<String?>(originalName),
-    };
+    return <String, dynamic>{'id': serializer.toJson<i2.Uint8List>(id)};
   }
 
-  MediaAssetsData copyWith({
-    String? hlc,
-    int? deleted,
-    i2.Uint8List? collectionId,
-    i2.Uint8List? hash,
-    String? mimeType,
-    int? sizeBytes,
-    Value<String?> originalName = const Value.absent(),
-  }) => MediaAssetsData(
-    hlc: hlc ?? this.hlc,
-    deleted: deleted ?? this.deleted,
-    collectionId: collectionId ?? this.collectionId,
-    hash: hash ?? this.hash,
-    mimeType: mimeType ?? this.mimeType,
-    sizeBytes: sizeBytes ?? this.sizeBytes,
-    originalName: originalName.present ? originalName.value : this.originalName,
-  );
-  MediaAssetsData copyWithCompanion(MediaAssetsCompanion data) {
-    return MediaAssetsData(
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-      deleted: data.deleted.present ? data.deleted.value : this.deleted,
-      collectionId: data.collectionId.present
-          ? data.collectionId.value
-          : this.collectionId,
-      hash: data.hash.present ? data.hash.value : this.hash,
-      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
-      sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
-      originalName: data.originalName.present
-          ? data.originalName.value
-          : this.originalName,
-    );
-  }
-
+  VisibleStudyCard copyWith({i2.Uint8List? id}) =>
+      VisibleStudyCard(id: id ?? this.id);
   @override
   String toString() {
-    return (StringBuffer('MediaAssetsData(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('collectionId: $collectionId, ')
-          ..write('hash: $hash, ')
-          ..write('mimeType: $mimeType, ')
-          ..write('sizeBytes: $sizeBytes, ')
-          ..write('originalName: $originalName')
+    return (StringBuffer('VisibleStudyCard(')
+          ..write('id: $id')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    hlc,
-    deleted,
-    $driftBlobEquality.hash(collectionId),
-    $driftBlobEquality.hash(hash),
-    mimeType,
-    sizeBytes,
-    originalName,
-  );
+  int get hashCode => $driftBlobEquality.hash(id);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is MediaAssetsData &&
-          other.hlc == this.hlc &&
-          other.deleted == this.deleted &&
-          $driftBlobEquality.equals(other.collectionId, this.collectionId) &&
-          $driftBlobEquality.equals(other.hash, this.hash) &&
-          other.mimeType == this.mimeType &&
-          other.sizeBytes == this.sizeBytes &&
-          other.originalName == this.originalName);
+      (other is VisibleStudyCard &&
+          $driftBlobEquality.equals(other.id, this.id));
 }
 
-class MediaAssetsCompanion extends UpdateCompanion<MediaAssetsData> {
-  final Value<String> hlc;
-  final Value<int> deleted;
-  final Value<i2.Uint8List> collectionId;
-  final Value<i2.Uint8List> hash;
-  final Value<String> mimeType;
-  final Value<int> sizeBytes;
-  final Value<String?> originalName;
-  final Value<int> rowid;
-  const MediaAssetsCompanion({
-    this.hlc = const Value.absent(),
-    this.deleted = const Value.absent(),
-    this.collectionId = const Value.absent(),
-    this.hash = const Value.absent(),
-    this.mimeType = const Value.absent(),
-    this.sizeBytes = const Value.absent(),
-    this.originalName = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  MediaAssetsCompanion.insert({
-    required String hlc,
-    this.deleted = const Value.absent(),
-    required i2.Uint8List collectionId,
-    required i2.Uint8List hash,
-    required String mimeType,
-    required int sizeBytes,
-    this.originalName = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : hlc = Value(hlc),
-       collectionId = Value(collectionId),
-       hash = Value(hash),
-       mimeType = Value(mimeType),
-       sizeBytes = Value(sizeBytes);
-  static Insertable<MediaAssetsData> custom({
-    Expression<String>? hlc,
-    Expression<int>? deleted,
-    Expression<i2.Uint8List>? collectionId,
-    Expression<i2.Uint8List>? hash,
-    Expression<String>? mimeType,
-    Expression<int>? sizeBytes,
-    Expression<String>? originalName,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (hlc != null) 'hlc': hlc,
-      if (deleted != null) 'deleted': deleted,
-      if (collectionId != null) 'collection_id': collectionId,
-      if (hash != null) 'hash': hash,
-      if (mimeType != null) 'mime_type': mimeType,
-      if (sizeBytes != null) 'size_bytes': sizeBytes,
-      if (originalName != null) 'original_name': originalName,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  MediaAssetsCompanion copyWith({
-    Value<String>? hlc,
-    Value<int>? deleted,
-    Value<i2.Uint8List>? collectionId,
-    Value<i2.Uint8List>? hash,
-    Value<String>? mimeType,
-    Value<int>? sizeBytes,
-    Value<String?>? originalName,
-    Value<int>? rowid,
-  }) {
-    return MediaAssetsCompanion(
-      hlc: hlc ?? this.hlc,
-      deleted: deleted ?? this.deleted,
-      collectionId: collectionId ?? this.collectionId,
-      hash: hash ?? this.hash,
-      mimeType: mimeType ?? this.mimeType,
-      sizeBytes: sizeBytes ?? this.sizeBytes,
-      originalName: originalName ?? this.originalName,
-      rowid: rowid ?? this.rowid,
+class VisibleStudyCards extends ViewInfo<VisibleStudyCards, VisibleStudyCard>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final DatabaseAtV2 attachedDatabase;
+  VisibleStudyCards(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_study_cards';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_study_cards AS SELECT id FROM study_cards WHERE deleted = 0 AND note_id IN (SELECT id FROM notes WHERE deleted = 0) AND deck_id IN (SELECT id FROM visible_decks) AND template_id IN (SELECT id FROM visible_study_card_templates)',
+  };
+  @override
+  VisibleStudyCards get asDslTable => this;
+  @override
+  VisibleStudyCard map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleStudyCard(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
     );
   }
 
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(hlc.value);
-    }
-    if (deleted.present) {
-      map['deleted'] = Variable<int>(deleted.value);
-    }
-    if (collectionId.present) {
-      map['collection_id'] = Variable<i2.Uint8List>(collectionId.value);
-    }
-    if (hash.present) {
-      map['hash'] = Variable<i2.Uint8List>(hash.value);
-    }
-    if (mimeType.present) {
-      map['mime_type'] = Variable<String>(mimeType.value);
-    }
-    if (sizeBytes.present) {
-      map['size_bytes'] = Variable<int>(sizeBytes.value);
-    }
-    if (originalName.present) {
-      map['original_name'] = Variable<String>(originalName.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('MediaAssetsCompanion(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('collectionId: $collectionId, ')
-          ..write('hash: $hash, ')
-          ..write('mimeType: $mimeType, ')
-          ..write('sizeBytes: $sizeBytes, ')
-          ..write('originalName: $originalName, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class FieldDefinitions extends Table
-    with TableInfo<FieldDefinitions, FieldDefinitionsData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  FieldDefinitions(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
-    'hlc',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<int> deleted = GeneratedColumn<int>(
-    'deleted',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (deleted IN (0, 1))',
-    defaultValue: const CustomExpression('0'),
-  );
   late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
     'id',
     aliasedName,
     false,
     type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<i2.Uint8List> noteTypeId =
-      GeneratedColumn<i2.Uint8List>(
-        'note_type_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints:
-            'NOT NULL REFERENCES note_types(id)ON DELETE CASCADE',
-      );
-  late final GeneratedColumn<int> position = GeneratedColumn<int>(
-    'position',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> type = GeneratedColumn<String>(
-    'type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
   );
   @override
-  List<GeneratedColumn> get $columns => [
-    hlc,
-    deleted,
-    id,
-    noteTypeId,
-    position,
-    name,
-    type,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'field_definitions';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  FieldDefinitionsData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return FieldDefinitionsData(
-      hlc: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}hlc'],
-      )!,
-      deleted: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}deleted'],
-      )!,
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}id'],
-      )!,
-      noteTypeId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}note_type_id'],
-      )!,
-      position: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}position'],
-      )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      type: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}type'],
-      )!,
-    );
+  VisibleStudyCards createAlias(String alias) {
+    return VisibleStudyCards(attachedDatabase, alias);
   }
 
   @override
-  FieldDefinitions createAlias(String alias) {
-    return FieldDefinitions(attachedDatabase, alias);
-  }
-
+  Query? get query => null;
   @override
-  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
-  @override
-  bool get dontWriteConstraints => true;
+  Set<String> get readTables => const {
+    'study_cards',
+    'notes',
+    'study_card_templates',
+    'note_types',
+    'collections',
+    'decks',
+  };
 }
 
-class FieldDefinitionsData extends DataClass
-    implements Insertable<FieldDefinitionsData> {
-  final String hlc;
-  final int deleted;
+class VisibleNote extends DataClass {
   final i2.Uint8List id;
-  final i2.Uint8List noteTypeId;
-  final int position;
-  final String name;
-  final String type;
-  const FieldDefinitionsData({
-    required this.hlc,
-    required this.deleted,
-    required this.id,
-    required this.noteTypeId,
-    required this.position,
-    required this.name,
-    required this.type,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['hlc'] = Variable<String>(hlc);
-    map['deleted'] = Variable<int>(deleted);
-    map['id'] = Variable<i2.Uint8List>(id);
-    map['note_type_id'] = Variable<i2.Uint8List>(noteTypeId);
-    map['position'] = Variable<int>(position);
-    map['name'] = Variable<String>(name);
-    map['type'] = Variable<String>(type);
-    return map;
-  }
-
-  FieldDefinitionsCompanion toCompanion(bool nullToAbsent) {
-    return FieldDefinitionsCompanion(
-      hlc: Value(hlc),
-      deleted: Value(deleted),
-      id: Value(id),
-      noteTypeId: Value(noteTypeId),
-      position: Value(position),
-      name: Value(name),
-      type: Value(type),
-    );
-  }
-
-  factory FieldDefinitionsData.fromJson(
+  const VisibleNote({required this.id});
+  factory VisibleNote.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return FieldDefinitionsData(
-      hlc: serializer.fromJson<String>(json['hlc']),
-      deleted: serializer.fromJson<int>(json['deleted']),
-      id: serializer.fromJson<i2.Uint8List>(json['id']),
-      noteTypeId: serializer.fromJson<i2.Uint8List>(json['noteTypeId']),
-      position: serializer.fromJson<int>(json['position']),
-      name: serializer.fromJson<String>(json['name']),
-      type: serializer.fromJson<String>(json['type']),
-    );
+    return VisibleNote(id: serializer.fromJson<i2.Uint8List>(json['id']));
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'hlc': serializer.toJson<String>(hlc),
-      'deleted': serializer.toJson<int>(deleted),
-      'id': serializer.toJson<i2.Uint8List>(id),
-      'noteTypeId': serializer.toJson<i2.Uint8List>(noteTypeId),
-      'position': serializer.toJson<int>(position),
-      'name': serializer.toJson<String>(name),
-      'type': serializer.toJson<String>(type),
-    };
+    return <String, dynamic>{'id': serializer.toJson<i2.Uint8List>(id)};
   }
 
-  FieldDefinitionsData copyWith({
-    String? hlc,
-    int? deleted,
-    i2.Uint8List? id,
-    i2.Uint8List? noteTypeId,
-    int? position,
-    String? name,
-    String? type,
-  }) => FieldDefinitionsData(
-    hlc: hlc ?? this.hlc,
-    deleted: deleted ?? this.deleted,
-    id: id ?? this.id,
-    noteTypeId: noteTypeId ?? this.noteTypeId,
-    position: position ?? this.position,
-    name: name ?? this.name,
-    type: type ?? this.type,
-  );
-  FieldDefinitionsData copyWithCompanion(FieldDefinitionsCompanion data) {
-    return FieldDefinitionsData(
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-      deleted: data.deleted.present ? data.deleted.value : this.deleted,
-      id: data.id.present ? data.id.value : this.id,
-      noteTypeId: data.noteTypeId.present
-          ? data.noteTypeId.value
-          : this.noteTypeId,
-      position: data.position.present ? data.position.value : this.position,
-      name: data.name.present ? data.name.value : this.name,
-      type: data.type.present ? data.type.value : this.type,
-    );
-  }
-
+  VisibleNote copyWith({i2.Uint8List? id}) => VisibleNote(id: id ?? this.id);
   @override
   String toString() {
-    return (StringBuffer('FieldDefinitionsData(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('id: $id, ')
-          ..write('noteTypeId: $noteTypeId, ')
-          ..write('position: $position, ')
-          ..write('name: $name, ')
-          ..write('type: $type')
+    return (StringBuffer('VisibleNote(')
+          ..write('id: $id')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    hlc,
-    deleted,
-    $driftBlobEquality.hash(id),
-    $driftBlobEquality.hash(noteTypeId),
-    position,
-    name,
-    type,
-  );
+  int get hashCode => $driftBlobEquality.hash(id);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is FieldDefinitionsData &&
-          other.hlc == this.hlc &&
-          other.deleted == this.deleted &&
-          $driftBlobEquality.equals(other.id, this.id) &&
-          $driftBlobEquality.equals(other.noteTypeId, this.noteTypeId) &&
-          other.position == this.position &&
-          other.name == this.name &&
-          other.type == this.type);
+      (other is VisibleNote && $driftBlobEquality.equals(other.id, this.id));
 }
 
-class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionsData> {
-  final Value<String> hlc;
-  final Value<int> deleted;
-  final Value<i2.Uint8List> id;
-  final Value<i2.Uint8List> noteTypeId;
-  final Value<int> position;
-  final Value<String> name;
-  final Value<String> type;
-  final Value<int> rowid;
-  const FieldDefinitionsCompanion({
-    this.hlc = const Value.absent(),
-    this.deleted = const Value.absent(),
-    this.id = const Value.absent(),
-    this.noteTypeId = const Value.absent(),
-    this.position = const Value.absent(),
-    this.name = const Value.absent(),
-    this.type = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  FieldDefinitionsCompanion.insert({
-    required String hlc,
-    this.deleted = const Value.absent(),
-    required i2.Uint8List id,
-    required i2.Uint8List noteTypeId,
-    required int position,
-    required String name,
-    required String type,
-    this.rowid = const Value.absent(),
-  }) : hlc = Value(hlc),
-       id = Value(id),
-       noteTypeId = Value(noteTypeId),
-       position = Value(position),
-       name = Value(name),
-       type = Value(type);
-  static Insertable<FieldDefinitionsData> custom({
-    Expression<String>? hlc,
-    Expression<int>? deleted,
-    Expression<i2.Uint8List>? id,
-    Expression<i2.Uint8List>? noteTypeId,
-    Expression<int>? position,
-    Expression<String>? name,
-    Expression<String>? type,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (hlc != null) 'hlc': hlc,
-      if (deleted != null) 'deleted': deleted,
-      if (id != null) 'id': id,
-      if (noteTypeId != null) 'note_type_id': noteTypeId,
-      if (position != null) 'position': position,
-      if (name != null) 'name': name,
-      if (type != null) 'type': type,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  FieldDefinitionsCompanion copyWith({
-    Value<String>? hlc,
-    Value<int>? deleted,
-    Value<i2.Uint8List>? id,
-    Value<i2.Uint8List>? noteTypeId,
-    Value<int>? position,
-    Value<String>? name,
-    Value<String>? type,
-    Value<int>? rowid,
-  }) {
-    return FieldDefinitionsCompanion(
-      hlc: hlc ?? this.hlc,
-      deleted: deleted ?? this.deleted,
-      id: id ?? this.id,
-      noteTypeId: noteTypeId ?? this.noteTypeId,
-      position: position ?? this.position,
-      name: name ?? this.name,
-      type: type ?? this.type,
-      rowid: rowid ?? this.rowid,
+class VisibleNotes extends ViewInfo<VisibleNotes, VisibleNote>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final DatabaseAtV2 attachedDatabase;
+  VisibleNotes(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_notes';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_notes AS SELECT id FROM notes WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types) AND(id IN (SELECT note_id FROM study_cards WHERE id IN (SELECT id FROM visible_study_cards)) OR id NOT IN (SELECT note_id FROM study_cards))',
+  };
+  @override
+  VisibleNotes get asDslTable => this;
+  @override
+  VisibleNote map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleNote(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}id'],
+      )!,
     );
   }
 
+  late final GeneratedColumn<i2.Uint8List> id = GeneratedColumn<i2.Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+  );
   @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(hlc.value);
-    }
-    if (deleted.present) {
-      map['deleted'] = Variable<int>(deleted.value);
-    }
-    if (id.present) {
-      map['id'] = Variable<i2.Uint8List>(id.value);
-    }
-    if (noteTypeId.present) {
-      map['note_type_id'] = Variable<i2.Uint8List>(noteTypeId.value);
-    }
-    if (position.present) {
-      map['position'] = Variable<int>(position.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (type.present) {
-      map['type'] = Variable<String>(type.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
+  VisibleNotes createAlias(String alias) {
+    return VisibleNotes(attachedDatabase, alias);
   }
 
   @override
-  String toString() {
-    return (StringBuffer('FieldDefinitionsCompanion(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('id: $id, ')
-          ..write('noteTypeId: $noteTypeId, ')
-          ..write('position: $position, ')
-          ..write('name: $name, ')
-          ..write('type: $type, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'notes',
+    'study_cards',
+    'study_card_templates',
+    'note_types',
+    'collections',
+    'decks',
+  };
 }
 
 class NoteFields extends Table with TableInfo<NoteFields, NoteFieldsData> {
@@ -3902,6 +3858,1082 @@ class NoteFieldsCompanion extends UpdateCompanion<NoteFieldsData> {
           ..write('noteId: $noteId, ')
           ..write('fieldId: $fieldId, ')
           ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class VisibleNoteField extends DataClass {
+  final i2.Uint8List noteId;
+  final i2.Uint8List fieldId;
+  final String value;
+  const VisibleNoteField({
+    required this.noteId,
+    required this.fieldId,
+    required this.value,
+  });
+  factory VisibleNoteField.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleNoteField(
+      noteId: serializer.fromJson<i2.Uint8List>(json['noteId']),
+      fieldId: serializer.fromJson<i2.Uint8List>(json['fieldId']),
+      value: serializer.fromJson<String>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'noteId': serializer.toJson<i2.Uint8List>(noteId),
+      'fieldId': serializer.toJson<i2.Uint8List>(fieldId),
+      'value': serializer.toJson<String>(value),
+    };
+  }
+
+  VisibleNoteField copyWith({
+    i2.Uint8List? noteId,
+    i2.Uint8List? fieldId,
+    String? value,
+  }) => VisibleNoteField(
+    noteId: noteId ?? this.noteId,
+    fieldId: fieldId ?? this.fieldId,
+    value: value ?? this.value,
+  );
+  @override
+  String toString() {
+    return (StringBuffer('VisibleNoteField(')
+          ..write('noteId: $noteId, ')
+          ..write('fieldId: $fieldId, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    $driftBlobEquality.hash(noteId),
+    $driftBlobEquality.hash(fieldId),
+    value,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleNoteField &&
+          $driftBlobEquality.equals(other.noteId, this.noteId) &&
+          $driftBlobEquality.equals(other.fieldId, this.fieldId) &&
+          other.value == this.value);
+}
+
+class VisibleNoteFields extends ViewInfo<VisibleNoteFields, VisibleNoteField>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final DatabaseAtV2 attachedDatabase;
+  VisibleNoteFields(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [noteId, fieldId, value];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_note_fields';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_note_fields AS SELECT note_id, field_id, value FROM note_fields WHERE deleted = 0 AND note_id IN (SELECT id FROM visible_notes) AND field_id IN (SELECT id FROM visible_field_definitions)',
+  };
+  @override
+  VisibleNoteFields get asDslTable => this;
+  @override
+  VisibleNoteField map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleNoteField(
+      noteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}note_id'],
+      )!,
+      fieldId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}field_id'],
+      )!,
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+    );
+  }
+
+  late final GeneratedColumn<i2.Uint8List> noteId =
+      GeneratedColumn<i2.Uint8List>(
+        'note_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      );
+  late final GeneratedColumn<i2.Uint8List> fieldId =
+      GeneratedColumn<i2.Uint8List>(
+        'field_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      );
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+  );
+  @override
+  VisibleNoteFields createAlias(String alias) {
+    return VisibleNoteFields(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'note_fields',
+    'field_definitions',
+    'note_types',
+    'collections',
+    'notes',
+    'study_cards',
+    'study_card_templates',
+    'decks',
+  };
+}
+
+class NoteTags extends Table with TableInfo<NoteTags, NoteTagsData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  NoteTags(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
+    'hlc',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> deleted = GeneratedColumn<int>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (deleted IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  late final GeneratedColumn<i2.Uint8List> collectionId =
+      GeneratedColumn<i2.Uint8List>(
+        'collection_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL REFERENCES collections(id)',
+      );
+  late final GeneratedColumn<i2.Uint8List> noteId =
+      GeneratedColumn<i2.Uint8List>(
+        'note_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      );
+  late final GeneratedColumn<i2.Uint8List> tagId =
+      GeneratedColumn<i2.Uint8List>(
+        'tag_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    collectionId,
+    noteId,
+    tagId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'note_tags';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {noteId, tagId};
+  @override
+  NoteTagsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NoteTagsData(
+      hlc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hlc'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deleted'],
+      )!,
+      collectionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}collection_id'],
+      )!,
+      noteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}note_id'],
+      )!,
+      tagId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}tag_id'],
+      )!,
+    );
+  }
+
+  @override
+  NoteTags createAlias(String alias) {
+    return NoteTags(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(note_id, tag_id)',
+    'FOREIGN KEY(collection_id, note_id)REFERENCES notes(collection_id, id)ON DELETE CASCADE',
+    'FOREIGN KEY(collection_id, tag_id)REFERENCES tags(collection_id, id)ON DELETE CASCADE',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class NoteTagsData extends DataClass implements Insertable<NoteTagsData> {
+  final String hlc;
+  final int deleted;
+  final i2.Uint8List collectionId;
+  final i2.Uint8List noteId;
+  final i2.Uint8List tagId;
+  const NoteTagsData({
+    required this.hlc,
+    required this.deleted,
+    required this.collectionId,
+    required this.noteId,
+    required this.tagId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['hlc'] = Variable<String>(hlc);
+    map['deleted'] = Variable<int>(deleted);
+    map['collection_id'] = Variable<i2.Uint8List>(collectionId);
+    map['note_id'] = Variable<i2.Uint8List>(noteId);
+    map['tag_id'] = Variable<i2.Uint8List>(tagId);
+    return map;
+  }
+
+  NoteTagsCompanion toCompanion(bool nullToAbsent) {
+    return NoteTagsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      collectionId: Value(collectionId),
+      noteId: Value(noteId),
+      tagId: Value(tagId),
+    );
+  }
+
+  factory NoteTagsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NoteTagsData(
+      hlc: serializer.fromJson<String>(json['hlc']),
+      deleted: serializer.fromJson<int>(json['deleted']),
+      collectionId: serializer.fromJson<i2.Uint8List>(json['collectionId']),
+      noteId: serializer.fromJson<i2.Uint8List>(json['noteId']),
+      tagId: serializer.fromJson<i2.Uint8List>(json['tagId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'hlc': serializer.toJson<String>(hlc),
+      'deleted': serializer.toJson<int>(deleted),
+      'collectionId': serializer.toJson<i2.Uint8List>(collectionId),
+      'noteId': serializer.toJson<i2.Uint8List>(noteId),
+      'tagId': serializer.toJson<i2.Uint8List>(tagId),
+    };
+  }
+
+  NoteTagsData copyWith({
+    String? hlc,
+    int? deleted,
+    i2.Uint8List? collectionId,
+    i2.Uint8List? noteId,
+    i2.Uint8List? tagId,
+  }) => NoteTagsData(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    collectionId: collectionId ?? this.collectionId,
+    noteId: noteId ?? this.noteId,
+    tagId: tagId ?? this.tagId,
+  );
+  NoteTagsData copyWithCompanion(NoteTagsCompanion data) {
+    return NoteTagsData(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      noteId: data.noteId.present ? data.noteId.value : this.noteId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NoteTagsData(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('noteId: $noteId, ')
+          ..write('tagId: $tagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    hlc,
+    deleted,
+    $driftBlobEquality.hash(collectionId),
+    $driftBlobEquality.hash(noteId),
+    $driftBlobEquality.hash(tagId),
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NoteTagsData &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
+          $driftBlobEquality.equals(other.collectionId, this.collectionId) &&
+          $driftBlobEquality.equals(other.noteId, this.noteId) &&
+          $driftBlobEquality.equals(other.tagId, this.tagId));
+}
+
+class NoteTagsCompanion extends UpdateCompanion<NoteTagsData> {
+  final Value<String> hlc;
+  final Value<int> deleted;
+  final Value<i2.Uint8List> collectionId;
+  final Value<i2.Uint8List> noteId;
+  final Value<i2.Uint8List> tagId;
+  final Value<int> rowid;
+  const NoteTagsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.collectionId = const Value.absent(),
+    this.noteId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NoteTagsCompanion.insert({
+    required String hlc,
+    this.deleted = const Value.absent(),
+    required i2.Uint8List collectionId,
+    required i2.Uint8List noteId,
+    required i2.Uint8List tagId,
+    this.rowid = const Value.absent(),
+  }) : hlc = Value(hlc),
+       collectionId = Value(collectionId),
+       noteId = Value(noteId),
+       tagId = Value(tagId);
+  static Insertable<NoteTagsData> custom({
+    Expression<String>? hlc,
+    Expression<int>? deleted,
+    Expression<i2.Uint8List>? collectionId,
+    Expression<i2.Uint8List>? noteId,
+    Expression<i2.Uint8List>? tagId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
+      if (collectionId != null) 'collection_id': collectionId,
+      if (noteId != null) 'note_id': noteId,
+      if (tagId != null) 'tag_id': tagId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NoteTagsCompanion copyWith({
+    Value<String>? hlc,
+    Value<int>? deleted,
+    Value<i2.Uint8List>? collectionId,
+    Value<i2.Uint8List>? noteId,
+    Value<i2.Uint8List>? tagId,
+    Value<int>? rowid,
+  }) {
+    return NoteTagsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
+      collectionId: collectionId ?? this.collectionId,
+      noteId: noteId ?? this.noteId,
+      tagId: tagId ?? this.tagId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(hlc.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<int>(deleted.value);
+    }
+    if (collectionId.present) {
+      map['collection_id'] = Variable<i2.Uint8List>(collectionId.value);
+    }
+    if (noteId.present) {
+      map['note_id'] = Variable<i2.Uint8List>(noteId.value);
+    }
+    if (tagId.present) {
+      map['tag_id'] = Variable<i2.Uint8List>(tagId.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NoteTagsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('noteId: $noteId, ')
+          ..write('tagId: $tagId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class VisibleNoteTag extends DataClass {
+  final i2.Uint8List noteId;
+  final i2.Uint8List tagId;
+  const VisibleNoteTag({required this.noteId, required this.tagId});
+  factory VisibleNoteTag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleNoteTag(
+      noteId: serializer.fromJson<i2.Uint8List>(json['noteId']),
+      tagId: serializer.fromJson<i2.Uint8List>(json['tagId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'noteId': serializer.toJson<i2.Uint8List>(noteId),
+      'tagId': serializer.toJson<i2.Uint8List>(tagId),
+    };
+  }
+
+  VisibleNoteTag copyWith({i2.Uint8List? noteId, i2.Uint8List? tagId}) =>
+      VisibleNoteTag(noteId: noteId ?? this.noteId, tagId: tagId ?? this.tagId);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleNoteTag(')
+          ..write('noteId: $noteId, ')
+          ..write('tagId: $tagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    $driftBlobEquality.hash(noteId),
+    $driftBlobEquality.hash(tagId),
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleNoteTag &&
+          $driftBlobEquality.equals(other.noteId, this.noteId) &&
+          $driftBlobEquality.equals(other.tagId, this.tagId));
+}
+
+class VisibleNoteTags extends ViewInfo<VisibleNoteTags, VisibleNoteTag>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final DatabaseAtV2 attachedDatabase;
+  VisibleNoteTags(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [noteId, tagId];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_note_tags';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_note_tags AS SELECT note_id, tag_id FROM note_tags WHERE deleted = 0 AND note_id IN (SELECT id FROM visible_notes) AND tag_id IN (SELECT id FROM visible_tags)',
+  };
+  @override
+  VisibleNoteTags get asDslTable => this;
+  @override
+  VisibleNoteTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleNoteTag(
+      noteId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}note_id'],
+      )!,
+      tagId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}tag_id'],
+      )!,
+    );
+  }
+
+  late final GeneratedColumn<i2.Uint8List> noteId =
+      GeneratedColumn<i2.Uint8List>(
+        'note_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      );
+  late final GeneratedColumn<i2.Uint8List> tagId =
+      GeneratedColumn<i2.Uint8List>(
+        'tag_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      );
+  @override
+  VisibleNoteTags createAlias(String alias) {
+    return VisibleNoteTags(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'note_tags',
+    'tags',
+    'collections',
+    'notes',
+    'study_cards',
+    'study_card_templates',
+    'note_types',
+    'decks',
+  };
+}
+
+class Device extends Table with TableInfo<Device, DeviceData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Device(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> node = GeneratedColumn<String>(
+    'node',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> lastHlc = GeneratedColumn<String>(
+    'last_hlc',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [id, node, lastHlc];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'device';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DeviceData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeviceData(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      node: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node'],
+      )!,
+      lastHlc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}last_hlc'],
+      ),
+    );
+  }
+
+  @override
+  Device createAlias(String alias) {
+    return Device(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class DeviceData extends DataClass implements Insertable<DeviceData> {
+  final int id;
+  final String node;
+  final String? lastHlc;
+  const DeviceData({required this.id, required this.node, this.lastHlc});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['node'] = Variable<String>(node);
+    if (!nullToAbsent || lastHlc != null) {
+      map['last_hlc'] = Variable<String>(lastHlc);
+    }
+    return map;
+  }
+
+  DeviceCompanion toCompanion(bool nullToAbsent) {
+    return DeviceCompanion(
+      id: Value(id),
+      node: Value(node),
+      lastHlc: lastHlc == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastHlc),
+    );
+  }
+
+  factory DeviceData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeviceData(
+      id: serializer.fromJson<int>(json['id']),
+      node: serializer.fromJson<String>(json['node']),
+      lastHlc: serializer.fromJson<String?>(json['lastHlc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'node': serializer.toJson<String>(node),
+      'lastHlc': serializer.toJson<String?>(lastHlc),
+    };
+  }
+
+  DeviceData copyWith({
+    int? id,
+    String? node,
+    Value<String?> lastHlc = const Value.absent(),
+  }) => DeviceData(
+    id: id ?? this.id,
+    node: node ?? this.node,
+    lastHlc: lastHlc.present ? lastHlc.value : this.lastHlc,
+  );
+  DeviceData copyWithCompanion(DeviceCompanion data) {
+    return DeviceData(
+      id: data.id.present ? data.id.value : this.id,
+      node: data.node.present ? data.node.value : this.node,
+      lastHlc: data.lastHlc.present ? data.lastHlc.value : this.lastHlc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeviceData(')
+          ..write('id: $id, ')
+          ..write('node: $node, ')
+          ..write('lastHlc: $lastHlc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, node, lastHlc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeviceData &&
+          other.id == this.id &&
+          other.node == this.node &&
+          other.lastHlc == this.lastHlc);
+}
+
+class DeviceCompanion extends UpdateCompanion<DeviceData> {
+  final Value<int> id;
+  final Value<String> node;
+  final Value<String?> lastHlc;
+  const DeviceCompanion({
+    this.id = const Value.absent(),
+    this.node = const Value.absent(),
+    this.lastHlc = const Value.absent(),
+  });
+  DeviceCompanion.insert({
+    this.id = const Value.absent(),
+    required String node,
+    this.lastHlc = const Value.absent(),
+  }) : node = Value(node);
+  static Insertable<DeviceData> custom({
+    Expression<int>? id,
+    Expression<String>? node,
+    Expression<String>? lastHlc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (node != null) 'node': node,
+      if (lastHlc != null) 'last_hlc': lastHlc,
+    });
+  }
+
+  DeviceCompanion copyWith({
+    Value<int>? id,
+    Value<String>? node,
+    Value<String?>? lastHlc,
+  }) {
+    return DeviceCompanion(
+      id: id ?? this.id,
+      node: node ?? this.node,
+      lastHlc: lastHlc ?? this.lastHlc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (node.present) {
+      map['node'] = Variable<String>(node.value);
+    }
+    if (lastHlc.present) {
+      map['last_hlc'] = Variable<String>(lastHlc.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeviceCompanion(')
+          ..write('id: $id, ')
+          ..write('node: $node, ')
+          ..write('lastHlc: $lastHlc')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class Outbox extends Table with TableInfo<Outbox, OutboxData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  Outbox(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<i2.Uint8List> collectionId =
+      GeneratedColumn<i2.Uint8List>(
+        'collection_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      );
+  late final GeneratedColumn<String> entityTable = GeneratedColumn<String>(
+    'entity_table',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<i2.Uint8List> entityKey =
+      GeneratedColumn<i2.Uint8List>(
+        'entity_key',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL',
+      );
+  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
+    'hlc',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    collectionId,
+    entityTable,
+    entityKey,
+    hlc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'outbox';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {entityTable, entityKey};
+  @override
+  OutboxData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OutboxData(
+      collectionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}collection_id'],
+      )!,
+      entityTable: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_table'],
+      )!,
+      entityKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}entity_key'],
+      )!,
+      hlc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hlc'],
+      )!,
+    );
+  }
+
+  @override
+  Outbox createAlias(String alias) {
+    return Outbox(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(entity_table, entity_key)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class OutboxData extends DataClass implements Insertable<OutboxData> {
+  final i2.Uint8List collectionId;
+  final String entityTable;
+  final i2.Uint8List entityKey;
+  final String hlc;
+  const OutboxData({
+    required this.collectionId,
+    required this.entityTable,
+    required this.entityKey,
+    required this.hlc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['collection_id'] = Variable<i2.Uint8List>(collectionId);
+    map['entity_table'] = Variable<String>(entityTable);
+    map['entity_key'] = Variable<i2.Uint8List>(entityKey);
+    map['hlc'] = Variable<String>(hlc);
+    return map;
+  }
+
+  OutboxCompanion toCompanion(bool nullToAbsent) {
+    return OutboxCompanion(
+      collectionId: Value(collectionId),
+      entityTable: Value(entityTable),
+      entityKey: Value(entityKey),
+      hlc: Value(hlc),
+    );
+  }
+
+  factory OutboxData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OutboxData(
+      collectionId: serializer.fromJson<i2.Uint8List>(json['collectionId']),
+      entityTable: serializer.fromJson<String>(json['entityTable']),
+      entityKey: serializer.fromJson<i2.Uint8List>(json['entityKey']),
+      hlc: serializer.fromJson<String>(json['hlc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'collectionId': serializer.toJson<i2.Uint8List>(collectionId),
+      'entityTable': serializer.toJson<String>(entityTable),
+      'entityKey': serializer.toJson<i2.Uint8List>(entityKey),
+      'hlc': serializer.toJson<String>(hlc),
+    };
+  }
+
+  OutboxData copyWith({
+    i2.Uint8List? collectionId,
+    String? entityTable,
+    i2.Uint8List? entityKey,
+    String? hlc,
+  }) => OutboxData(
+    collectionId: collectionId ?? this.collectionId,
+    entityTable: entityTable ?? this.entityTable,
+    entityKey: entityKey ?? this.entityKey,
+    hlc: hlc ?? this.hlc,
+  );
+  OutboxData copyWithCompanion(OutboxCompanion data) {
+    return OutboxData(
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      entityTable: data.entityTable.present
+          ? data.entityTable.value
+          : this.entityTable,
+      entityKey: data.entityKey.present ? data.entityKey.value : this.entityKey,
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxData(')
+          ..write('collectionId: $collectionId, ')
+          ..write('entityTable: $entityTable, ')
+          ..write('entityKey: $entityKey, ')
+          ..write('hlc: $hlc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    $driftBlobEquality.hash(collectionId),
+    entityTable,
+    $driftBlobEquality.hash(entityKey),
+    hlc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OutboxData &&
+          $driftBlobEquality.equals(other.collectionId, this.collectionId) &&
+          other.entityTable == this.entityTable &&
+          $driftBlobEquality.equals(other.entityKey, this.entityKey) &&
+          other.hlc == this.hlc);
+}
+
+class OutboxCompanion extends UpdateCompanion<OutboxData> {
+  final Value<i2.Uint8List> collectionId;
+  final Value<String> entityTable;
+  final Value<i2.Uint8List> entityKey;
+  final Value<String> hlc;
+  final Value<int> rowid;
+  const OutboxCompanion({
+    this.collectionId = const Value.absent(),
+    this.entityTable = const Value.absent(),
+    this.entityKey = const Value.absent(),
+    this.hlc = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OutboxCompanion.insert({
+    required i2.Uint8List collectionId,
+    required String entityTable,
+    required i2.Uint8List entityKey,
+    required String hlc,
+    this.rowid = const Value.absent(),
+  }) : collectionId = Value(collectionId),
+       entityTable = Value(entityTable),
+       entityKey = Value(entityKey),
+       hlc = Value(hlc);
+  static Insertable<OutboxData> custom({
+    Expression<i2.Uint8List>? collectionId,
+    Expression<String>? entityTable,
+    Expression<i2.Uint8List>? entityKey,
+    Expression<String>? hlc,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (collectionId != null) 'collection_id': collectionId,
+      if (entityTable != null) 'entity_table': entityTable,
+      if (entityKey != null) 'entity_key': entityKey,
+      if (hlc != null) 'hlc': hlc,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OutboxCompanion copyWith({
+    Value<i2.Uint8List>? collectionId,
+    Value<String>? entityTable,
+    Value<i2.Uint8List>? entityKey,
+    Value<String>? hlc,
+    Value<int>? rowid,
+  }) {
+    return OutboxCompanion(
+      collectionId: collectionId ?? this.collectionId,
+      entityTable: entityTable ?? this.entityTable,
+      entityKey: entityKey ?? this.entityKey,
+      hlc: hlc ?? this.hlc,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (collectionId.present) {
+      map['collection_id'] = Variable<i2.Uint8List>(collectionId.value);
+    }
+    if (entityTable.present) {
+      map['entity_table'] = Variable<String>(entityTable.value);
+    }
+    if (entityKey.present) {
+      map['entity_key'] = Variable<i2.Uint8List>(entityKey.value);
+    }
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(hlc.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxCompanion(')
+          ..write('collectionId: $collectionId, ')
+          ..write('entityTable: $entityTable, ')
+          ..write('entityKey: $entityKey, ')
+          ..write('hlc: $hlc, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -4549,506 +5581,6 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventsData> {
   }
 }
 
-class Device extends Table with TableInfo<Device, DeviceData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  Device(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> node = GeneratedColumn<String>(
-    'node',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<String> lastHlc = GeneratedColumn<String>(
-    'last_hlc',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-    $customConstraints: 'NULL',
-  );
-  @override
-  List<GeneratedColumn> get $columns => [id, node, lastHlc];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'device';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  DeviceData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return DeviceData(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      node: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}node'],
-      )!,
-      lastHlc: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}last_hlc'],
-      ),
-    );
-  }
-
-  @override
-  Device createAlias(String alias) {
-    return Device(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const ['PRIMARY KEY(id)'];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class DeviceData extends DataClass implements Insertable<DeviceData> {
-  final int id;
-  final String node;
-  final String? lastHlc;
-  const DeviceData({required this.id, required this.node, this.lastHlc});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['node'] = Variable<String>(node);
-    if (!nullToAbsent || lastHlc != null) {
-      map['last_hlc'] = Variable<String>(lastHlc);
-    }
-    return map;
-  }
-
-  DeviceCompanion toCompanion(bool nullToAbsent) {
-    return DeviceCompanion(
-      id: Value(id),
-      node: Value(node),
-      lastHlc: lastHlc == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lastHlc),
-    );
-  }
-
-  factory DeviceData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return DeviceData(
-      id: serializer.fromJson<int>(json['id']),
-      node: serializer.fromJson<String>(json['node']),
-      lastHlc: serializer.fromJson<String?>(json['lastHlc']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'node': serializer.toJson<String>(node),
-      'lastHlc': serializer.toJson<String?>(lastHlc),
-    };
-  }
-
-  DeviceData copyWith({
-    int? id,
-    String? node,
-    Value<String?> lastHlc = const Value.absent(),
-  }) => DeviceData(
-    id: id ?? this.id,
-    node: node ?? this.node,
-    lastHlc: lastHlc.present ? lastHlc.value : this.lastHlc,
-  );
-  DeviceData copyWithCompanion(DeviceCompanion data) {
-    return DeviceData(
-      id: data.id.present ? data.id.value : this.id,
-      node: data.node.present ? data.node.value : this.node,
-      lastHlc: data.lastHlc.present ? data.lastHlc.value : this.lastHlc,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('DeviceData(')
-          ..write('id: $id, ')
-          ..write('node: $node, ')
-          ..write('lastHlc: $lastHlc')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, node, lastHlc);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is DeviceData &&
-          other.id == this.id &&
-          other.node == this.node &&
-          other.lastHlc == this.lastHlc);
-}
-
-class DeviceCompanion extends UpdateCompanion<DeviceData> {
-  final Value<int> id;
-  final Value<String> node;
-  final Value<String?> lastHlc;
-  const DeviceCompanion({
-    this.id = const Value.absent(),
-    this.node = const Value.absent(),
-    this.lastHlc = const Value.absent(),
-  });
-  DeviceCompanion.insert({
-    this.id = const Value.absent(),
-    required String node,
-    this.lastHlc = const Value.absent(),
-  }) : node = Value(node);
-  static Insertable<DeviceData> custom({
-    Expression<int>? id,
-    Expression<String>? node,
-    Expression<String>? lastHlc,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (node != null) 'node': node,
-      if (lastHlc != null) 'last_hlc': lastHlc,
-    });
-  }
-
-  DeviceCompanion copyWith({
-    Value<int>? id,
-    Value<String>? node,
-    Value<String?>? lastHlc,
-  }) {
-    return DeviceCompanion(
-      id: id ?? this.id,
-      node: node ?? this.node,
-      lastHlc: lastHlc ?? this.lastHlc,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (node.present) {
-      map['node'] = Variable<String>(node.value);
-    }
-    if (lastHlc.present) {
-      map['last_hlc'] = Variable<String>(lastHlc.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('DeviceCompanion(')
-          ..write('id: $id, ')
-          ..write('node: $node, ')
-          ..write('lastHlc: $lastHlc')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class Outbox extends Table with TableInfo<Outbox, OutboxData> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  Outbox(this.attachedDatabase, [this._alias]);
-  late final GeneratedColumn<i2.Uint8List> collectionId =
-      GeneratedColumn<i2.Uint8List>(
-        'collection_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL',
-      );
-  late final GeneratedColumn<String> entityTable = GeneratedColumn<String>(
-    'entity_table',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  late final GeneratedColumn<i2.Uint8List> entityKey =
-      GeneratedColumn<i2.Uint8List>(
-        'entity_key',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-        $customConstraints: 'NOT NULL',
-      );
-  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
-    'hlc',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-    $customConstraints: 'NOT NULL',
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    collectionId,
-    entityTable,
-    entityKey,
-    hlc,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'outbox';
-  @override
-  Set<GeneratedColumn> get $primaryKey => {entityTable, entityKey};
-  @override
-  OutboxData map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return OutboxData(
-      collectionId: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}collection_id'],
-      )!,
-      entityTable: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}entity_table'],
-      )!,
-      entityKey: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}entity_key'],
-      )!,
-      hlc: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}hlc'],
-      )!,
-    );
-  }
-
-  @override
-  Outbox createAlias(String alias) {
-    return Outbox(attachedDatabase, alias);
-  }
-
-  @override
-  List<String> get customConstraints => const [
-    'PRIMARY KEY(entity_table, entity_key)',
-  ];
-  @override
-  bool get dontWriteConstraints => true;
-}
-
-class OutboxData extends DataClass implements Insertable<OutboxData> {
-  final i2.Uint8List collectionId;
-  final String entityTable;
-  final i2.Uint8List entityKey;
-  final String hlc;
-  const OutboxData({
-    required this.collectionId,
-    required this.entityTable,
-    required this.entityKey,
-    required this.hlc,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['collection_id'] = Variable<i2.Uint8List>(collectionId);
-    map['entity_table'] = Variable<String>(entityTable);
-    map['entity_key'] = Variable<i2.Uint8List>(entityKey);
-    map['hlc'] = Variable<String>(hlc);
-    return map;
-  }
-
-  OutboxCompanion toCompanion(bool nullToAbsent) {
-    return OutboxCompanion(
-      collectionId: Value(collectionId),
-      entityTable: Value(entityTable),
-      entityKey: Value(entityKey),
-      hlc: Value(hlc),
-    );
-  }
-
-  factory OutboxData.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return OutboxData(
-      collectionId: serializer.fromJson<i2.Uint8List>(json['collectionId']),
-      entityTable: serializer.fromJson<String>(json['entityTable']),
-      entityKey: serializer.fromJson<i2.Uint8List>(json['entityKey']),
-      hlc: serializer.fromJson<String>(json['hlc']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'collectionId': serializer.toJson<i2.Uint8List>(collectionId),
-      'entityTable': serializer.toJson<String>(entityTable),
-      'entityKey': serializer.toJson<i2.Uint8List>(entityKey),
-      'hlc': serializer.toJson<String>(hlc),
-    };
-  }
-
-  OutboxData copyWith({
-    i2.Uint8List? collectionId,
-    String? entityTable,
-    i2.Uint8List? entityKey,
-    String? hlc,
-  }) => OutboxData(
-    collectionId: collectionId ?? this.collectionId,
-    entityTable: entityTable ?? this.entityTable,
-    entityKey: entityKey ?? this.entityKey,
-    hlc: hlc ?? this.hlc,
-  );
-  OutboxData copyWithCompanion(OutboxCompanion data) {
-    return OutboxData(
-      collectionId: data.collectionId.present
-          ? data.collectionId.value
-          : this.collectionId,
-      entityTable: data.entityTable.present
-          ? data.entityTable.value
-          : this.entityTable,
-      entityKey: data.entityKey.present ? data.entityKey.value : this.entityKey,
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('OutboxData(')
-          ..write('collectionId: $collectionId, ')
-          ..write('entityTable: $entityTable, ')
-          ..write('entityKey: $entityKey, ')
-          ..write('hlc: $hlc')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    $driftBlobEquality.hash(collectionId),
-    entityTable,
-    $driftBlobEquality.hash(entityKey),
-    hlc,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is OutboxData &&
-          $driftBlobEquality.equals(other.collectionId, this.collectionId) &&
-          other.entityTable == this.entityTable &&
-          $driftBlobEquality.equals(other.entityKey, this.entityKey) &&
-          other.hlc == this.hlc);
-}
-
-class OutboxCompanion extends UpdateCompanion<OutboxData> {
-  final Value<i2.Uint8List> collectionId;
-  final Value<String> entityTable;
-  final Value<i2.Uint8List> entityKey;
-  final Value<String> hlc;
-  final Value<int> rowid;
-  const OutboxCompanion({
-    this.collectionId = const Value.absent(),
-    this.entityTable = const Value.absent(),
-    this.entityKey = const Value.absent(),
-    this.hlc = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  OutboxCompanion.insert({
-    required i2.Uint8List collectionId,
-    required String entityTable,
-    required i2.Uint8List entityKey,
-    required String hlc,
-    this.rowid = const Value.absent(),
-  }) : collectionId = Value(collectionId),
-       entityTable = Value(entityTable),
-       entityKey = Value(entityKey),
-       hlc = Value(hlc);
-  static Insertable<OutboxData> custom({
-    Expression<i2.Uint8List>? collectionId,
-    Expression<String>? entityTable,
-    Expression<i2.Uint8List>? entityKey,
-    Expression<String>? hlc,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (collectionId != null) 'collection_id': collectionId,
-      if (entityTable != null) 'entity_table': entityTable,
-      if (entityKey != null) 'entity_key': entityKey,
-      if (hlc != null) 'hlc': hlc,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  OutboxCompanion copyWith({
-    Value<i2.Uint8List>? collectionId,
-    Value<String>? entityTable,
-    Value<i2.Uint8List>? entityKey,
-    Value<String>? hlc,
-    Value<int>? rowid,
-  }) {
-    return OutboxCompanion(
-      collectionId: collectionId ?? this.collectionId,
-      entityTable: entityTable ?? this.entityTable,
-      entityKey: entityKey ?? this.entityKey,
-      hlc: hlc ?? this.hlc,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (collectionId.present) {
-      map['collection_id'] = Variable<i2.Uint8List>(collectionId.value);
-    }
-    if (entityTable.present) {
-      map['entity_table'] = Variable<String>(entityTable.value);
-    }
-    if (entityKey.present) {
-      map['entity_key'] = Variable<i2.Uint8List>(entityKey.value);
-    }
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(hlc.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('OutboxCompanion(')
-          ..write('collectionId: $collectionId, ')
-          ..write('entityTable: $entityTable, ')
-          ..write('entityKey: $entityKey, ')
-          ..write('hlc: $hlc, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class SchedulingStates extends Table
     with TableInfo<SchedulingStates, SchedulingStatesData> {
   @override
@@ -5525,96 +6057,426 @@ class SchedulingStatesCompanion extends UpdateCompanion<SchedulingStatesData> {
   }
 }
 
+class MediaAssets extends Table with TableInfo<MediaAssets, MediaAssetsData> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  MediaAssets(this.attachedDatabase, [this._alias]);
+  late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
+    'hlc',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> deleted = GeneratedColumn<int>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+    $customConstraints: 'NOT NULL DEFAULT 0 CHECK (deleted IN (0, 1))',
+    defaultValue: const CustomExpression('0'),
+  );
+  late final GeneratedColumn<i2.Uint8List> collectionId =
+      GeneratedColumn<i2.Uint8List>(
+        'collection_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+        $customConstraints: 'NOT NULL REFERENCES collections(id)',
+      );
+  late final GeneratedColumn<i2.Uint8List> hash = GeneratedColumn<i2.Uint8List>(
+    'hash',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
+    'size_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+    $customConstraints: 'NOT NULL',
+  );
+  late final GeneratedColumn<String> originalName = GeneratedColumn<String>(
+    'original_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    $customConstraints: 'NULL',
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    collectionId,
+    hash,
+    mimeType,
+    sizeBytes,
+    originalName,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'media_assets';
+  @override
+  Set<GeneratedColumn> get $primaryKey => {collectionId, hash};
+  @override
+  MediaAssetsData map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MediaAssetsData(
+      hlc: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}hlc'],
+      )!,
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}deleted'],
+      )!,
+      collectionId: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}collection_id'],
+      )!,
+      hash: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}hash'],
+      )!,
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      )!,
+      sizeBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size_bytes'],
+      )!,
+      originalName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}original_name'],
+      ),
+    );
+  }
+
+  @override
+  MediaAssets createAlias(String alias) {
+    return MediaAssets(attachedDatabase, alias);
+  }
+
+  @override
+  List<String> get customConstraints => const [
+    'PRIMARY KEY(collection_id, hash)',
+  ];
+  @override
+  bool get dontWriteConstraints => true;
+}
+
+class MediaAssetsData extends DataClass implements Insertable<MediaAssetsData> {
+  final String hlc;
+  final int deleted;
+  final i2.Uint8List collectionId;
+  final i2.Uint8List hash;
+  final String mimeType;
+  final int sizeBytes;
+  final String? originalName;
+  const MediaAssetsData({
+    required this.hlc,
+    required this.deleted,
+    required this.collectionId,
+    required this.hash,
+    required this.mimeType,
+    required this.sizeBytes,
+    this.originalName,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['hlc'] = Variable<String>(hlc);
+    map['deleted'] = Variable<int>(deleted);
+    map['collection_id'] = Variable<i2.Uint8List>(collectionId);
+    map['hash'] = Variable<i2.Uint8List>(hash);
+    map['mime_type'] = Variable<String>(mimeType);
+    map['size_bytes'] = Variable<int>(sizeBytes);
+    if (!nullToAbsent || originalName != null) {
+      map['original_name'] = Variable<String>(originalName);
+    }
+    return map;
+  }
+
+  MediaAssetsCompanion toCompanion(bool nullToAbsent) {
+    return MediaAssetsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      collectionId: Value(collectionId),
+      hash: Value(hash),
+      mimeType: Value(mimeType),
+      sizeBytes: Value(sizeBytes),
+      originalName: originalName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalName),
+    );
+  }
+
+  factory MediaAssetsData.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MediaAssetsData(
+      hlc: serializer.fromJson<String>(json['hlc']),
+      deleted: serializer.fromJson<int>(json['deleted']),
+      collectionId: serializer.fromJson<i2.Uint8List>(json['collectionId']),
+      hash: serializer.fromJson<i2.Uint8List>(json['hash']),
+      mimeType: serializer.fromJson<String>(json['mimeType']),
+      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
+      originalName: serializer.fromJson<String?>(json['originalName']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'hlc': serializer.toJson<String>(hlc),
+      'deleted': serializer.toJson<int>(deleted),
+      'collectionId': serializer.toJson<i2.Uint8List>(collectionId),
+      'hash': serializer.toJson<i2.Uint8List>(hash),
+      'mimeType': serializer.toJson<String>(mimeType),
+      'sizeBytes': serializer.toJson<int>(sizeBytes),
+      'originalName': serializer.toJson<String?>(originalName),
+    };
+  }
+
+  MediaAssetsData copyWith({
+    String? hlc,
+    int? deleted,
+    i2.Uint8List? collectionId,
+    i2.Uint8List? hash,
+    String? mimeType,
+    int? sizeBytes,
+    Value<String?> originalName = const Value.absent(),
+  }) => MediaAssetsData(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    collectionId: collectionId ?? this.collectionId,
+    hash: hash ?? this.hash,
+    mimeType: mimeType ?? this.mimeType,
+    sizeBytes: sizeBytes ?? this.sizeBytes,
+    originalName: originalName.present ? originalName.value : this.originalName,
+  );
+  MediaAssetsData copyWithCompanion(MediaAssetsCompanion data) {
+    return MediaAssetsData(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      hash: data.hash.present ? data.hash.value : this.hash,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
+      originalName: data.originalName.present
+          ? data.originalName.value
+          : this.originalName,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaAssetsData(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('hash: $hash, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('originalName: $originalName')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    hlc,
+    deleted,
+    $driftBlobEquality.hash(collectionId),
+    $driftBlobEquality.hash(hash),
+    mimeType,
+    sizeBytes,
+    originalName,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MediaAssetsData &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
+          $driftBlobEquality.equals(other.collectionId, this.collectionId) &&
+          $driftBlobEquality.equals(other.hash, this.hash) &&
+          other.mimeType == this.mimeType &&
+          other.sizeBytes == this.sizeBytes &&
+          other.originalName == this.originalName);
+}
+
+class MediaAssetsCompanion extends UpdateCompanion<MediaAssetsData> {
+  final Value<String> hlc;
+  final Value<int> deleted;
+  final Value<i2.Uint8List> collectionId;
+  final Value<i2.Uint8List> hash;
+  final Value<String> mimeType;
+  final Value<int> sizeBytes;
+  final Value<String?> originalName;
+  final Value<int> rowid;
+  const MediaAssetsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.collectionId = const Value.absent(),
+    this.hash = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.sizeBytes = const Value.absent(),
+    this.originalName = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MediaAssetsCompanion.insert({
+    required String hlc,
+    this.deleted = const Value.absent(),
+    required i2.Uint8List collectionId,
+    required i2.Uint8List hash,
+    required String mimeType,
+    required int sizeBytes,
+    this.originalName = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : hlc = Value(hlc),
+       collectionId = Value(collectionId),
+       hash = Value(hash),
+       mimeType = Value(mimeType),
+       sizeBytes = Value(sizeBytes);
+  static Insertable<MediaAssetsData> custom({
+    Expression<String>? hlc,
+    Expression<int>? deleted,
+    Expression<i2.Uint8List>? collectionId,
+    Expression<i2.Uint8List>? hash,
+    Expression<String>? mimeType,
+    Expression<int>? sizeBytes,
+    Expression<String>? originalName,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
+      if (collectionId != null) 'collection_id': collectionId,
+      if (hash != null) 'hash': hash,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (sizeBytes != null) 'size_bytes': sizeBytes,
+      if (originalName != null) 'original_name': originalName,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MediaAssetsCompanion copyWith({
+    Value<String>? hlc,
+    Value<int>? deleted,
+    Value<i2.Uint8List>? collectionId,
+    Value<i2.Uint8List>? hash,
+    Value<String>? mimeType,
+    Value<int>? sizeBytes,
+    Value<String?>? originalName,
+    Value<int>? rowid,
+  }) {
+    return MediaAssetsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
+      collectionId: collectionId ?? this.collectionId,
+      hash: hash ?? this.hash,
+      mimeType: mimeType ?? this.mimeType,
+      sizeBytes: sizeBytes ?? this.sizeBytes,
+      originalName: originalName ?? this.originalName,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(hlc.value);
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<int>(deleted.value);
+    }
+    if (collectionId.present) {
+      map['collection_id'] = Variable<i2.Uint8List>(collectionId.value);
+    }
+    if (hash.present) {
+      map['hash'] = Variable<i2.Uint8List>(hash.value);
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (sizeBytes.present) {
+      map['size_bytes'] = Variable<int>(sizeBytes.value);
+    }
+    if (originalName.present) {
+      map['original_name'] = Variable<String>(originalName.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaAssetsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('hash: $hash, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('originalName: $originalName, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 class DatabaseAtV2 extends GeneratedDatabase {
   DatabaseAtV2(QueryExecutor e) : super(e);
   late final Collections collections = Collections(this);
+  late final VisibleCollections visibleCollections = VisibleCollections(this);
   late final Decks decks = Decks(this);
-  late final Trigger decksCollectionImmutable = Trigger(
-    'CREATE TRIGGER decks_collection_immutable BEFORE UPDATE OF collection_id ON decks WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'decks_collection_immutable',
-  );
+  late final VisibleDecks visibleDecks = VisibleDecks(this);
   late final Tags tags = Tags(this);
-  late final Trigger tagsCollectionImmutable = Trigger(
-    'CREATE TRIGGER tags_collection_immutable BEFORE UPDATE OF collection_id ON tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'tags_collection_immutable',
-  );
+  late final VisibleTags visibleTags = VisibleTags(this);
   late final NoteTypes noteTypes = NoteTypes(this);
-  late final Trigger noteTypesCollectionImmutable = Trigger(
-    'CREATE TRIGGER note_types_collection_immutable BEFORE UPDATE OF collection_id ON note_types WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'note_types_collection_immutable',
-  );
-  late final Notes notes = Notes(this);
-  late final Trigger notesCollectionImmutable = Trigger(
-    'CREATE TRIGGER notes_collection_immutable BEFORE UPDATE OF collection_id ON notes WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'notes_collection_immutable',
-  );
-  late final NoteTags noteTags = NoteTags(this);
-  late final Trigger noteTagsCollectionImmutable = Trigger(
-    'CREATE TRIGGER note_tags_collection_immutable BEFORE UPDATE OF collection_id ON note_tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'note_tags_collection_immutable',
-  );
-  late final StudyCardTemplates studyCardTemplates = StudyCardTemplates(this);
-  late final StudyCards studyCards = StudyCards(this);
-  late final Trigger studyCardsCollectionImmutable = Trigger(
-    'CREATE TRIGGER study_cards_collection_immutable BEFORE UPDATE OF collection_id ON study_cards WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'study_cards_collection_immutable',
-  );
-  late final MediaAssets mediaAssets = MediaAssets(this);
-  late final Trigger mediaAssetsCollectionImmutable = Trigger(
-    'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'media_assets_collection_immutable',
-  );
-  late final Trigger collectionsHlcChanges = Trigger(
-    'CREATE TRIGGER collections_hlc_changes BEFORE UPDATE ON collections WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'collections_hlc_changes',
-  );
-  late final Trigger decksHlcChanges = Trigger(
-    'CREATE TRIGGER decks_hlc_changes BEFORE UPDATE ON decks WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'decks_hlc_changes',
-  );
-  late final Trigger tagsHlcChanges = Trigger(
-    'CREATE TRIGGER tags_hlc_changes BEFORE UPDATE ON tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'tags_hlc_changes',
-  );
-  late final Trigger noteTypesHlcChanges = Trigger(
-    'CREATE TRIGGER note_types_hlc_changes BEFORE UPDATE ON note_types WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'note_types_hlc_changes',
-  );
+  late final VisibleNoteTypes visibleNoteTypes = VisibleNoteTypes(this);
   late final FieldDefinitions fieldDefinitions = FieldDefinitions(this);
-  late final Trigger fieldDefinitionsHlcChanges = Trigger(
-    'CREATE TRIGGER field_definitions_hlc_changes BEFORE UPDATE ON field_definitions WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'field_definitions_hlc_changes',
-  );
-  late final Trigger studyCardTemplatesHlcChanges = Trigger(
-    'CREATE TRIGGER study_card_templates_hlc_changes BEFORE UPDATE ON study_card_templates WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'study_card_templates_hlc_changes',
-  );
-  late final Trigger notesHlcChanges = Trigger(
-    'CREATE TRIGGER notes_hlc_changes BEFORE UPDATE ON notes WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'notes_hlc_changes',
-  );
+  late final VisibleFieldDefinitions visibleFieldDefinitions =
+      VisibleFieldDefinitions(this);
+  late final StudyCardTemplates studyCardTemplates = StudyCardTemplates(this);
+  late final VisibleStudyCardTemplates visibleStudyCardTemplates =
+      VisibleStudyCardTemplates(this);
+  late final Notes notes = Notes(this);
+  late final StudyCards studyCards = StudyCards(this);
+  late final VisibleStudyCards visibleStudyCards = VisibleStudyCards(this);
+  late final VisibleNotes visibleNotes = VisibleNotes(this);
   late final NoteFields noteFields = NoteFields(this);
-  late final Trigger noteFieldsHlcChanges = Trigger(
-    'CREATE TRIGGER note_fields_hlc_changes BEFORE UPDATE ON note_fields WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'note_fields_hlc_changes',
-  );
-  late final Trigger noteTagsHlcChanges = Trigger(
-    'CREATE TRIGGER note_tags_hlc_changes BEFORE UPDATE ON note_tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'note_tags_hlc_changes',
-  );
-  late final Trigger studyCardsHlcChanges = Trigger(
-    'CREATE TRIGGER study_cards_hlc_changes BEFORE UPDATE ON study_cards WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'study_cards_hlc_changes',
-  );
-  late final Trigger mediaAssetsHlcChanges = Trigger(
-    'CREATE TRIGGER media_assets_hlc_changes BEFORE UPDATE ON media_assets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'media_assets_hlc_changes',
-  );
-  late final ReviewEvents reviewEvents = ReviewEvents(this);
-  late final Trigger reviewEventsAppendOnly = Trigger(
-    'CREATE TRIGGER review_events_append_only BEFORE UPDATE ON review_events BEGIN SELECT RAISE (ABORT, \'review events are append-only\');END',
-    'review_events_append_only',
-  );
+  late final VisibleNoteFields visibleNoteFields = VisibleNoteFields(this);
+  late final NoteTags noteTags = NoteTags(this);
+  late final VisibleNoteTags visibleNoteTags = VisibleNoteTags(this);
   late final Device device = Device(this);
   late final Outbox outbox = Outbox(this);
   late final Index outboxHlc = Index(
@@ -5633,6 +6495,7 @@ class DatabaseAtV2 extends GeneratedDatabase {
     'study_cards_hlc',
     'CREATE INDEX study_cards_hlc ON study_cards (hlc)',
   );
+  late final ReviewEvents reviewEvents = ReviewEvents(this);
   late final SchedulingStates schedulingStates = SchedulingStates(this);
   late final Index reviewEventsCard = Index(
     'review_events_card',
@@ -5706,6 +6569,7 @@ class DatabaseAtV2 extends GeneratedDatabase {
     'note_tags_hlc',
     'CREATE INDEX note_tags_hlc ON note_tags (hlc)',
   );
+  late final MediaAssets mediaAssets = MediaAssets(this);
   late final Index mediaAssetsHlc = Index(
     'media_assets_hlc',
     'CREATE INDEX media_assets_hlc ON media_assets (hlc)',
@@ -5722,48 +6586,114 @@ class DatabaseAtV2 extends GeneratedDatabase {
     'decks_hlc',
     'CREATE INDEX decks_hlc ON decks (hlc)',
   );
+  late final Trigger decksCollectionImmutable = Trigger(
+    'CREATE TRIGGER decks_collection_immutable BEFORE UPDATE OF collection_id ON decks WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'decks_collection_immutable',
+  );
+  late final Trigger tagsCollectionImmutable = Trigger(
+    'CREATE TRIGGER tags_collection_immutable BEFORE UPDATE OF collection_id ON tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'tags_collection_immutable',
+  );
+  late final Trigger noteTypesCollectionImmutable = Trigger(
+    'CREATE TRIGGER note_types_collection_immutable BEFORE UPDATE OF collection_id ON note_types WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'note_types_collection_immutable',
+  );
+  late final Trigger notesCollectionImmutable = Trigger(
+    'CREATE TRIGGER notes_collection_immutable BEFORE UPDATE OF collection_id ON notes WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'notes_collection_immutable',
+  );
+  late final Trigger noteTagsCollectionImmutable = Trigger(
+    'CREATE TRIGGER note_tags_collection_immutable BEFORE UPDATE OF collection_id ON note_tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'note_tags_collection_immutable',
+  );
+  late final Trigger studyCardsCollectionImmutable = Trigger(
+    'CREATE TRIGGER study_cards_collection_immutable BEFORE UPDATE OF collection_id ON study_cards WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'study_cards_collection_immutable',
+  );
+  late final Trigger mediaAssetsCollectionImmutable = Trigger(
+    'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'media_assets_collection_immutable',
+  );
+  late final Trigger collectionsHlcChanges = Trigger(
+    'CREATE TRIGGER collections_hlc_changes BEFORE UPDATE ON collections WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'collections_hlc_changes',
+  );
+  late final Trigger decksHlcChanges = Trigger(
+    'CREATE TRIGGER decks_hlc_changes BEFORE UPDATE ON decks WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'decks_hlc_changes',
+  );
+  late final Trigger tagsHlcChanges = Trigger(
+    'CREATE TRIGGER tags_hlc_changes BEFORE UPDATE ON tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'tags_hlc_changes',
+  );
+  late final Trigger noteTypesHlcChanges = Trigger(
+    'CREATE TRIGGER note_types_hlc_changes BEFORE UPDATE ON note_types WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_types_hlc_changes',
+  );
+  late final Trigger fieldDefinitionsHlcChanges = Trigger(
+    'CREATE TRIGGER field_definitions_hlc_changes BEFORE UPDATE ON field_definitions WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'field_definitions_hlc_changes',
+  );
+  late final Trigger studyCardTemplatesHlcChanges = Trigger(
+    'CREATE TRIGGER study_card_templates_hlc_changes BEFORE UPDATE ON study_card_templates WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'study_card_templates_hlc_changes',
+  );
+  late final Trigger notesHlcChanges = Trigger(
+    'CREATE TRIGGER notes_hlc_changes BEFORE UPDATE ON notes WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'notes_hlc_changes',
+  );
+  late final Trigger noteFieldsHlcChanges = Trigger(
+    'CREATE TRIGGER note_fields_hlc_changes BEFORE UPDATE ON note_fields WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_fields_hlc_changes',
+  );
+  late final Trigger noteTagsHlcChanges = Trigger(
+    'CREATE TRIGGER note_tags_hlc_changes BEFORE UPDATE ON note_tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_tags_hlc_changes',
+  );
+  late final Trigger studyCardsHlcChanges = Trigger(
+    'CREATE TRIGGER study_cards_hlc_changes BEFORE UPDATE ON study_cards WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'study_cards_hlc_changes',
+  );
+  late final Trigger mediaAssetsHlcChanges = Trigger(
+    'CREATE TRIGGER media_assets_hlc_changes BEFORE UPDATE ON media_assets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'media_assets_hlc_changes',
+  );
+  late final Trigger reviewEventsAppendOnly = Trigger(
+    'CREATE TRIGGER review_events_append_only BEFORE UPDATE ON review_events BEGIN SELECT RAISE (ABORT, \'review events are append-only\');END',
+    'review_events_append_only',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     collections,
+    visibleCollections,
     decks,
-    decksCollectionImmutable,
+    visibleDecks,
     tags,
-    tagsCollectionImmutable,
+    visibleTags,
     noteTypes,
-    noteTypesCollectionImmutable,
-    notes,
-    notesCollectionImmutable,
-    noteTags,
-    noteTagsCollectionImmutable,
-    studyCardTemplates,
-    studyCards,
-    studyCardsCollectionImmutable,
-    mediaAssets,
-    mediaAssetsCollectionImmutable,
-    collectionsHlcChanges,
-    decksHlcChanges,
-    tagsHlcChanges,
-    noteTypesHlcChanges,
+    visibleNoteTypes,
     fieldDefinitions,
-    fieldDefinitionsHlcChanges,
-    studyCardTemplatesHlcChanges,
-    notesHlcChanges,
+    visibleFieldDefinitions,
+    studyCardTemplates,
+    visibleStudyCardTemplates,
+    notes,
+    studyCards,
+    visibleStudyCards,
+    visibleNotes,
     noteFields,
-    noteFieldsHlcChanges,
-    noteTagsHlcChanges,
-    studyCardsHlcChanges,
-    mediaAssetsHlcChanges,
-    reviewEvents,
-    reviewEventsAppendOnly,
+    visibleNoteFields,
+    noteTags,
+    visibleNoteTags,
     device,
     outbox,
     outboxHlc,
     studyCardsDeck,
     studyCardsTemplate,
     studyCardsHlc,
+    reviewEvents,
     schedulingStates,
     reviewEventsCard,
     reviewEventsAt,
@@ -5783,13 +6713,82 @@ class DatabaseAtV2 extends GeneratedDatabase {
     tagsHlc,
     noteTagsTag,
     noteTagsHlc,
+    mediaAssets,
     mediaAssetsHlc,
     collectionsHlc,
     decksParent,
     decksHlc,
+    decksCollectionImmutable,
+    tagsCollectionImmutable,
+    noteTypesCollectionImmutable,
+    notesCollectionImmutable,
+    noteTagsCollectionImmutable,
+    studyCardsCollectionImmutable,
+    mediaAssetsCollectionImmutable,
+    collectionsHlcChanges,
+    decksHlcChanges,
+    tagsHlcChanges,
+    noteTypesHlcChanges,
+    fieldDefinitionsHlcChanges,
+    studyCardTemplatesHlcChanges,
+    notesHlcChanges,
+    noteFieldsHlcChanges,
+    noteTagsHlcChanges,
+    studyCardsHlcChanges,
+    mediaAssetsHlcChanges,
+    reviewEventsAppendOnly,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'note_types',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('field_definitions', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'note_types',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('study_card_templates', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'notes',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'field_definitions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'notes',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('note_tags', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'tags',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('note_tags', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'study_cards',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('scheduling_states', kind: UpdateKind.delete)],
+    ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'decks',
@@ -5820,31 +6819,10 @@ class DatabaseAtV2 extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'notes',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('note_tags', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'tags',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('note_tags', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
         'note_tags',
         limitUpdateKind: UpdateKind.update,
       ),
       result: [],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'note_types',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('study_card_templates', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -5890,13 +6868,6 @@ class DatabaseAtV2 extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'note_types',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('field_definitions', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
         'field_definitions',
         limitUpdateKind: UpdateKind.update,
       ),
@@ -5915,20 +6886,6 @@ class DatabaseAtV2 extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.update,
       ),
       result: [],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'notes',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'field_definitions',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -5964,13 +6921,6 @@ class DatabaseAtV2 extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.update,
       ),
       result: [],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'study_cards',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('scheduling_states', kind: UpdateKind.delete)],
     ),
   ]);
   @override

@@ -65,7 +65,7 @@ Decided in Phase 1. See [ROADMAP.md](ROADMAP.md#phase-1--domain-models-and-persi
 
 - **IDs:** client-generated UUIDv7.
 - **Ordering:** hybrid logical clock (HLC) timestamps on every change, rather than wall-clock time. A timestamp is wall-clock milliseconds, a counter, and the device's random node ID, stored as fixed-width hex text (`<12 ms>-<4 counter>-<16 node>`) so text order is timestamp order. The device's node ID and latest timestamp are kept in a local `device` table, so the clock never goes backwards across restarts. Received timestamps are merged into the clock and stored too. A received timestamp more than a minute ahead of the local wall clock is rejected, so a device with a wrong clock cannot win every conflict.
-- **Deletion:** tombstones; rows are not hard-deleted while sync may still reference them. Every synced row has an `hlc` (its last change) and a `deleted` flag; reads skip tombstones. Removing tombstones for good is part of Phase 8.
+- **Deletion:** tombstones; rows are not hard-deleted while sync may still reference them. Every synced row has an `hlc` (its last change) and a `deleted` flag. A delete tombstones only the row it targets; the rows below it keep their flag and timestamp. Views in `views.drift` decide what is visible: a row is visible while its own flag is clear and its parents are visible, and a note that has cards is visible while one of its cards is. Reads go through these views. Undoing a delete, including through sync, brings back everything below it, and a delete does not overwrite concurrent changes to the rows below. Removing tombstones for good is part of Phase 8; purging a row must also remove the rows it hides.
 - **Merge granularity:** per-field last-writer-wins on notes, per-entity on other entities. Each note field value is its own row with its own timestamp, and an update only stamps the values that changed.
 - **Outbox:** every local change is recorded for later sync. The outbox holds one entry per changed entity (table, key, timestamp); later changes to the same entity overwrite its entry. Sync reads the entity's current row, which may be a tombstone, when pushing.
 - **Recording:** repositories stamp each write with one new timestamp and record every row carrying it in the outbox, in the same transaction. Triggers reject an update of a synced row that does not change its `hlc`, and any update of a review event, so no change escapes the outbox.
@@ -214,10 +214,11 @@ memuki/
 | D27 | Tags are collection-scoped entities with optional parents; note membership is a separate synced relation | Decided | 1 |
 | D28 | Cross-collection references rejected by composite foreign keys; `collection_id` is immutable | Decided | 1 |
 | D29 | Parent cycles from concurrent moves are broken at merge by detaching the node whose parent change has the highest HLC | Proposed | 8 |
-| D30 | Deleting a deck deletes its subdecks and cards, and notes left without cards; deleting a tag deletes its subtree and removes it from notes | Decided | 1 |
+| D30 | Deleting a deck hides its subdecks and cards, and notes left without visible cards; deleting a tag hides its subtree and removes it from notes | Decided | 1 |
 | D31 | Outbox lists changed entities, coalesced per entity; sync reads current rows (including tombstones) at push time | Decided | 1 |
 | D32 | HLC timestamps stored as fixed-width hex text; stamped and recorded by repositories | Decided | 1 |
 | D33 | Scheduling state is not synced; each device rebuilds it from synced review events | Decided | 1 |
+| D34 | A delete tombstones only its target; rows below it are hidden by views over their parents' tombstones | Decided | 1 |
 
 ## Open questions
 

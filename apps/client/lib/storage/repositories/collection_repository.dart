@@ -5,9 +5,9 @@ import '../../domain/ids.dart';
 import '../converters.dart';
 import '../database.dart';
 import '../sync/change_recorder.dart';
-import 'cascades.dart';
 import 'repository_exceptions.dart';
 import 'tree_queries.dart';
+import 'visibility.dart';
 
 /// Collections and their decks.
 class CollectionRepository {
@@ -23,8 +23,9 @@ class CollectionRepository {
 
   Future<Collection?> collection(CollectionId id) async {
     final row =
-        await (_db.select(_db.collections)
-              ..where((c) => c.id.equalsValue(id) & c.deleted.equals(false)))
+        await (_db.select(_db.collections)..where(
+              (c) => c.id.equalsValue(id) & _db.isVisibleCollection(c.id),
+            ))
             .getSingleOrNull();
     return row == null ? null : _collection(row);
   }
@@ -52,7 +53,8 @@ class CollectionRepository {
         final updated =
             await (_db.update(_db.collections)..where(
                   (c) =>
-                      c.id.equalsValue(collection.id) & c.deleted.equals(false),
+                      c.id.equalsValue(collection.id) &
+                      _db.isVisibleCollection(c.id),
                 ))
                 .write(
                   CollectionsCompanion(
@@ -63,38 +65,16 @@ class CollectionRepository {
         if (updated == 0) throw _collectionNotFound(collection.id);
       });
 
-  /// Deletes the collection and everything in it.
+  /// Deletes the collection. Everything in it is hidden with it.
   Future<void> deleteCollection(CollectionId id) => _changes.write((hlc) async {
     final updated =
-        await (_db.update(
-          _db.collections,
-        )..where((c) => c.id.equalsValue(id) & c.deleted.equals(false))).write(
-          CollectionsCompanion(deleted: const Value(true), hlc: Value(hlc)),
-        );
+        await (_db.update(_db.collections)..where(
+              (c) => c.id.equalsValue(id) & _db.isVisibleCollection(c.id),
+            ))
+            .write(
+              CollectionsCompanion(deleted: const Value(true), hlc: Value(hlc)),
+            );
     if (updated == 0) throw _collectionNotFound(id);
-    await tombstoneCardsWhere(_db, hlc, (c) => c.collectionId.equalsValue(id));
-    await (_db.update(_db.notes)..where(
-          (n) => n.collectionId.equalsValue(id) & n.deleted.equals(false),
-        ))
-        .write(NotesCompanion(deleted: const Value(true), hlc: Value(hlc)));
-    await (_db.update(_db.noteTypes)..where(
-          (t) => t.collectionId.equalsValue(id) & t.deleted.equals(false),
-        ))
-        .write(NoteTypesCompanion(deleted: const Value(true), hlc: Value(hlc)));
-    await (_db.update(_db.tags)..where(
-          (t) => t.collectionId.equalsValue(id) & t.deleted.equals(false),
-        ))
-        .write(TagsCompanion(deleted: const Value(true), hlc: Value(hlc)));
-    await (_db.update(_db.decks)..where(
-          (d) => d.collectionId.equalsValue(id) & d.deleted.equals(false),
-        ))
-        .write(DecksCompanion(deleted: const Value(true), hlc: Value(hlc)));
-    await (_db.update(_db.mediaAssets)..where(
-          (m) => m.collectionId.equalsValue(id) & m.deleted.equals(false),
-        ))
-        .write(
-          MediaAssetsCompanion(deleted: const Value(true), hlc: Value(hlc)),
-        );
   });
 
   // Decks
@@ -163,25 +143,18 @@ class CollectionRepository {
     );
   });
 
-  /// Deletes a deck with its subdecks and their cards. Notes left without
-  /// cards are deleted too.
+  /// Deletes a deck. Its subdecks and their cards are hidden with it, and
+  /// so are notes left without visible cards.
   Future<void> deleteDeck(DeckId id) => _changes.write((hlc) async {
     if (await _deckRow(id) == null) throw _deckNotFound(id);
-    final deckIds = (await _deckTree.subtree(id)).toList();
-    final noteIds = await notesOfCardsWhere(
-      _db,
-      (c) => c.deckId.isInValues(deckIds),
-    );
-    await tombstoneCardsWhere(_db, hlc, (c) => c.deckId.isInValues(deckIds));
-    await tombstoneNotesWithoutCards(_db, hlc, noteIds);
-    await (_db.update(_db.decks)..where((d) => d.id.isInValues(deckIds))).write(
+    await (_db.update(_db.decks)..where((d) => d.id.equalsValue(id))).write(
       DecksCompanion(deleted: const Value(true), hlc: Value(hlc)),
     );
   });
 
   Future<DeckRow?> _deckRow(DeckId id) =>
       (_db.select(_db.decks)
-            ..where((d) => d.id.equalsValue(id) & d.deleted.equals(false)))
+            ..where((d) => d.id.equalsValue(id) & _db.isVisibleDeck(d.id)))
           .getSingleOrNull();
 
   Future<void> _requireParent(
@@ -199,14 +172,14 @@ class CollectionRepository {
 
   SimpleSelectStatement<$CollectionsTable, CollectionRow> _collectionsQuery() =>
       _db.select(_db.collections)
-        ..where((c) => c.deleted.equals(false))
+        ..where((c) => _db.isVisibleCollection(c.id))
         ..orderBy([(c) => OrderingTerm(expression: c.name)]);
 
   SimpleSelectStatement<$DecksTable, DeckRow> _decksQuery(
     CollectionId collectionId,
   ) => _db.select(_db.decks)
     ..where(
-      (d) => d.collectionId.equalsValue(collectionId) & d.deleted.equals(false),
+      (d) => d.collectionId.equalsValue(collectionId) & _db.isVisibleDeck(d.id),
     )
     ..orderBy([(d) => OrderingTerm(expression: d.name)]);
 }

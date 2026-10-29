@@ -6,9 +6,9 @@ import '../../domain/study_card.dart';
 import '../converters.dart';
 import '../database.dart';
 import '../sync/change_recorder.dart';
-import 'cascades.dart';
 import 'repository_exceptions.dart';
 import 'tree_queries.dart';
+import 'visibility.dart';
 
 /// Cards and their scheduling state.
 class StudyCardRepository {
@@ -27,7 +27,7 @@ class StudyCardRepository {
 
   Future<List<StudyCard>> cardsOfNote(NoteId noteId) =>
       (_db.select(_db.studyCards)..where(
-            (c) => c.noteId.equalsValue(noteId) & c.deleted.equals(false),
+            (c) => c.noteId.equalsValue(noteId) & _db.isVisibleCard(c.id),
           ))
           .map(_card)
           .get();
@@ -53,12 +53,12 @@ class StudyCardRepository {
   /// scheduling state. The template must belong to the note's note type.
   ///
   /// A card's ID is derived from its note and template, so creating a card
-  /// that was deleted before revives it, keeping its review history and
-  /// scheduling state.
+  /// that was deleted or hidden before revives it in [StudyCard.deckId],
+  /// keeping its review history and scheduling state.
   Future<void> createCard(StudyCard card) => _changes.write((hlc) async {
     final note =
         await (_db.select(_db.notes)..where(
-              (n) => n.id.equalsValue(card.noteId) & n.deleted.equals(false),
+              (n) => n.id.equalsValue(card.noteId) & _db.isVisibleNote(n.id),
             ))
             .getSingleOrNull();
     if (note == null) {
@@ -67,7 +67,8 @@ class StudyCardRepository {
     final template =
         await (_db.select(_db.studyCardTemplates)..where(
               (t) =>
-                  t.id.equalsValue(card.templateId) & t.deleted.equals(false),
+                  t.id.equalsValue(card.templateId) &
+                  _db.isVisibleTemplate(t.id),
             ))
             .getSingleOrNull();
     if (template == null) {
@@ -121,10 +122,15 @@ class StudyCardRepository {
             .write(StudyCardsCompanion(deckId: Value(deckId), hlc: Value(hlc)));
       });
 
-  /// Deletes a card. Its review history is kept.
+  /// Deletes a card. Its review history is kept. Deleting a note's last card
+  /// hides the note.
   Future<void> deleteCard(StudyCardId id) => _changes.write((hlc) async {
     if (await _cardRow(id) == null) throw _notFound(id);
-    await tombstoneCardsWhere(_db, hlc, (c) => c.id.equalsValue(id));
+    await (_db.update(
+      _db.studyCards,
+    )..where((c) => c.id.equalsValue(id))).write(
+      StudyCardsCompanion(deleted: const Value(true), hlc: Value(hlc)),
+    );
   });
 
   // Scheduling state
@@ -150,7 +156,7 @@ class StudyCardRepository {
 
   Future<StudyCardRow?> _cardRow(StudyCardId id) =>
       (_db.select(_db.studyCards)
-            ..where((c) => c.id.equalsValue(id) & c.deleted.equals(false)))
+            ..where((c) => c.id.equalsValue(id) & _db.isVisibleCard(c.id)))
           .getSingleOrNull();
 
   Future<SimpleSelectStatement<$StudyCardsTable, StudyCardRow>>
@@ -159,7 +165,7 @@ class StudyCardRepository {
         ? (await _deckTree.subtree(deckId)).toList()
         : [deckId];
     return _db.select(_db.studyCards)
-      ..where((c) => c.deckId.isInValues(deckIds) & c.deleted.equals(false))
+      ..where((c) => c.deckId.isInValues(deckIds) & _db.isVisibleCard(c.id))
       ..orderBy([(c) => OrderingTerm(expression: c.noteId)]);
   }
 
@@ -167,7 +173,7 @@ class StudyCardRepository {
     final deck =
         await (_db.select(
               _db.decks,
-            )..where((d) => d.id.equalsValue(deckId) & d.deleted.equals(false)))
+            )..where((d) => d.id.equalsValue(deckId) & _db.isVisibleDeck(d.id)))
             .getSingleOrNull();
     if (deck == null) {
       throw EntityNotFoundException('Deck $deckId does not exist');

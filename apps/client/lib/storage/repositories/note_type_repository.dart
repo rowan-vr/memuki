@@ -6,6 +6,7 @@ import '../database.dart';
 import '../sync/change_recorder.dart';
 import '../sync/hlc.dart';
 import 'repository_exceptions.dart';
+import 'visibility.dart';
 import 'watch_tables.dart';
 
 /// Note types with their fields and card templates, saved as one unit.
@@ -28,7 +29,7 @@ class NoteTypeRepository {
               ..where(
                 (t) =>
                     t.collectionId.equalsValue(collectionId) &
-                    t.deleted.equals(false),
+                    _db.isVisibleNoteType(t.id),
               )
               ..orderBy([(t) => OrderingTerm(expression: t.name)]))
             .get();
@@ -47,7 +48,7 @@ class NoteTypeRepository {
         await (_db.select(_db.collections)..where(
               (c) =>
                   c.id.equalsValue(noteType.collectionId) &
-                  c.deleted.equals(false),
+                  _db.isVisibleCollection(c.id),
             ))
             .getSingleOrNull();
     if (collection == null) {
@@ -70,8 +71,9 @@ class NoteTypeRepository {
 
   /// Saves the note type's name, fields, and templates.
   ///
-  /// Removing a field removes its values from all notes. Removing a template
-  /// that still has cards is rejected.
+  /// Removing a field hides its values in all notes; adding it back with the
+  /// same ID shows them again. Removing a template that still has cards is
+  /// rejected.
   Future<void> updateNoteType(NoteType noteType) => _changes.write((hlc) async {
     final current = await _noteTypeRow(noteType.id);
     if (current == null) throw _notFound(noteType.id);
@@ -108,7 +110,7 @@ class NoteTypeRepository {
       ..addColumns([_db.studyCardTemplates.id])
       ..where(
         _db.studyCardTemplates.noteTypeId.equalsValue(noteType.id) &
-            _db.studyCardTemplates.deleted.equals(false) &
+            _db.isVisibleTemplate(_db.studyCardTemplates.id) &
             _db.studyCardTemplates.id.isInValues(templateIds).not(),
       );
     final cardsOfRemoved =
@@ -116,7 +118,7 @@ class NoteTypeRepository {
               ..where(
                 (c) =>
                     c.templateId.isInQuery(removedTemplates) &
-                    c.deleted.equals(false),
+                    _db.isVisibleCard(c.id),
               )
               ..limit(1))
             .get();
@@ -134,23 +136,10 @@ class NoteTypeRepository {
       );
     }
 
-    final removedFields = _db.selectOnly(_db.fieldDefinitions)
-      ..addColumns([_db.fieldDefinitions.id])
-      ..where(
-        _db.fieldDefinitions.noteTypeId.equalsValue(noteType.id) &
-            _db.fieldDefinitions.deleted.equals(false) &
-            _db.fieldDefinitions.id.isInValues(fieldIds).not(),
-      );
-    await (_db.update(_db.noteFields)..where(
-          (f) => f.fieldId.isInQuery(removedFields) & f.deleted.equals(false),
-        ))
-        .write(
-          NoteFieldsCompanion(deleted: const Value(true), hlc: Value(hlc)),
-        );
     await (_db.update(_db.fieldDefinitions)..where(
           (f) =>
               f.noteTypeId.equalsValue(noteType.id) &
-              f.deleted.equals(false) &
+              _db.isVisibleFieldDefinition(f.id) &
               f.id.isInValues(fieldIds).not(),
         ))
         .write(
@@ -162,7 +151,7 @@ class NoteTypeRepository {
     await (_db.update(_db.studyCardTemplates)..where(
           (t) =>
               t.noteTypeId.equalsValue(noteType.id) &
-              t.deleted.equals(false) &
+              _db.isVisibleTemplate(t.id) &
               t.id.isInValues(templateIds).not(),
         ))
         .write(
@@ -189,7 +178,7 @@ class NoteTypeRepository {
     final notes =
         await (_db.select(_db.notes)
               ..where(
-                (n) => n.noteTypeId.equalsValue(id) & n.deleted.equals(false),
+                (n) => n.noteTypeId.equalsValue(id) & _db.isVisibleNote(n.id),
               )
               ..limit(1))
             .get();
@@ -203,7 +192,7 @@ class NoteTypeRepository {
 
   Future<NoteTypeRow?> _noteTypeRow(NoteTypeId id) =>
       (_db.select(_db.noteTypes)
-            ..where((t) => t.id.equalsValue(id) & t.deleted.equals(false)))
+            ..where((t) => t.id.equalsValue(id) & _db.isVisibleNoteType(t.id)))
           .getSingleOrNull();
 
   /// Inserts or updates the fields and templates, with their list positions.
@@ -262,7 +251,9 @@ class NoteTypeRepository {
   Future<List<FieldDefinitionRow>> _liveFields(List<NoteTypeId> ids) =>
       (_db.select(_db.fieldDefinitions)
             ..where(
-              (f) => f.noteTypeId.isInValues(ids) & f.deleted.equals(false),
+              (f) =>
+                  f.noteTypeId.isInValues(ids) &
+                  _db.isVisibleFieldDefinition(f.id),
             )
             ..orderBy([(f) => OrderingTerm(expression: f.position)]))
           .get();
@@ -270,7 +261,7 @@ class NoteTypeRepository {
   Future<List<StudyCardTemplateRow>> _liveTemplates(List<NoteTypeId> ids) =>
       (_db.select(_db.studyCardTemplates)
             ..where(
-              (t) => t.noteTypeId.isInValues(ids) & t.deleted.equals(false),
+              (t) => t.noteTypeId.isInValues(ids) & _db.isVisibleTemplate(t.id),
             )
             ..orderBy([(t) => OrderingTerm(expression: t.position)]))
           .get();

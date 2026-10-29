@@ -5,6 +5,7 @@ import 'package:drift/native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/note.dart';
+import 'package:memuki/domain/note_type.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/domain/study_card.dart';
 import 'package:memuki/storage/database.dart';
@@ -80,7 +81,7 @@ void main() {
   });
 
   test(
-    'deleting a deck leaves tombstones for decks, cards, and notes',
+    'deleting a deck stamps only the deck and hides what is below',
     () async {
       final child = await japanese.addDeck('Child', parentId: japanese.deck.id);
       final (note, card) = await japanese.addNote('猫', deckId: child.id);
@@ -89,15 +90,68 @@ void main() {
       await repos.collections.deleteDeck(japanese.deck.id);
 
       expect(await repos.collections.decks(japanese.id), isEmpty);
-      expect(await repos.notes.note(note.id), isNull);
-      final decks = await db.select(db.decks).get();
-      expect(decks.map((d) => d.deleted), [true, true]);
-      expect((await db.select(db.studyCards).getSingle()).deleted, isTrue);
-      expect((await db.select(db.notes).getSingle()).deleted, isTrue);
-      expect(await outboxCounts(), {'decks': 2, 'study_cards': 1, 'notes': 1});
       expect(await repos.cards.card(card.id), isNull);
+      expect(await repos.notes.note(note.id), isNull);
+      expect(await outboxCounts(), {'decks': 1});
+      final decks = await db.select(db.decks).get();
+      expect(decks.where((d) => d.deleted).single.id, japanese.deck.id);
+      expect((await db.select(db.studyCards).getSingle()).deleted, isFalse);
+      expect((await db.select(db.notes).getSingle()).deleted, isFalse);
     },
   );
+
+  test('undoing a delete brings back everything below it', () async {
+    final child = await japanese.addDeck('Child', parentId: japanese.deck.id);
+    final (note, card) = await japanese.addNote('猫', deckId: child.id);
+    await repos.collections.deleteDeck(japanese.deck.id);
+
+    // As if a concurrent edit won over the delete during sync.
+    await (db.update(
+      db.decks,
+    )..where((d) => d.id.equalsValue(japanese.deck.id))).write(
+      DecksCompanion(deleted: const Value(false), hlc: Value(db.clock.tick())),
+    );
+
+    expect(await repos.collections.decks(japanese.id), hasLength(2));
+    expect(await repos.cards.card(card.id), card);
+    expect(await repos.notes.note(note.id), note);
+  });
+
+  test('a card moved out of a deck survives its deletion', () async {
+    final other = await japanese.addDeck('Other');
+    final (_, card) = await japanese.addNote('猫');
+    await repos.cards.moveCard(card.id, other.id);
+    await repos.collections.deleteDeck(japanese.deck.id);
+    expect(await repos.cards.card(card.id), card.copyWith(deckId: other.id));
+  });
+
+  test('deleting a collection stamps only the collection', () async {
+    await japanese.addNote('猫');
+    await japanese.addTag('animals');
+    await db.delete(db.outbox).go();
+
+    await repos.collections.deleteCollection(japanese.id);
+
+    expect(await outboxCounts(), {'collections': 1});
+    expect(await repos.collections.decks(japanese.id), isEmpty);
+    expect(await repos.tags.tags(japanese.id), isEmpty);
+    expect(await repos.noteTypes.noteTypes(japanese.id), isEmpty);
+    expect(await repos.notes.notes(japanese.id), isEmpty);
+  });
+
+  test('deleting a tag hides it and the tags below it on notes', () async {
+    final (note, _) = await japanese.addNote('猫');
+    final animals = await japanese.addTag('animals');
+    final cats = await japanese.addTag('cats', parentId: animals.id);
+    await repos.notes.addTag(note.id, cats.id);
+    await db.delete(db.outbox).go();
+
+    await repos.tags.deleteTag(animals.id);
+
+    expect(await outboxCounts(), {'tags': 1});
+    expect(await repos.tags.tags(japanese.id), isEmpty);
+    expect(await repos.notes.tagIds(note.id), isEmpty);
+  });
 
   test('a removed tag is revived when added again', () async {
     final (note, _) = await japanese.addNote('猫');
@@ -119,7 +173,22 @@ void main() {
   });
 
   test('a deleted card is revived by creating it again', () async {
-    final (note, card) = await japanese.addNote('猫');
+    final second = StudyCardTemplate(
+      id: StudyCardTemplateId.generate(),
+      name: 'Card 2',
+    );
+    await repos.noteTypes.updateNoteType(
+      japanese.noteType.copyWith(
+        templates: [...japanese.noteType.templates, second],
+      ),
+    );
+    final (note, _) = await japanese.addNote('猫');
+    final card = StudyCard(
+      noteId: note.id,
+      templateId: second.id,
+      deckId: japanese.deck.id,
+    );
+    await repos.cards.createCard(card);
     await repos.cards.deleteCard(card.id);
     await repos.cards.createCard(card);
     expect(await repos.cards.card(card.id), card);
@@ -127,10 +196,16 @@ void main() {
       repos.cards.createCard(card),
       throwsA(isA<DuplicateEntityException>()),
     );
-    expect(note.id, card.noteId);
   });
 
-  test('a removed field value is a tombstone', () async {
+  test("deleting a note's last card hides the note", () async {
+    final (note, card) = await japanese.addNote('猫');
+    await repos.cards.deleteCard(card.id);
+    expect(await repos.notes.note(note.id), isNull);
+    expect((await db.select(db.notes).getSingle()).deleted, isFalse);
+  });
+
+  test('removing a field hides its values until it is added back', () async {
     final [front, back] = japanese.noteType.fields;
     final note = Note(
       id: NoteId.generate(),
@@ -139,14 +214,16 @@ void main() {
       fields: {front.id: '猫', back.id: 'cat'},
     );
     await repos.notes.createNote(note);
+    await db.delete(db.outbox).go();
+
     await repos.noteTypes.updateNoteType(
       japanese.noteType.copyWith(fields: [front]),
     );
     expect((await repos.notes.note(note.id))!.fields, {front.id: '猫'});
-    final backRow = await (db.select(
-      db.noteFields,
-    )..where((f) => f.fieldId.equalsValue(back.id))).getSingle();
-    expect(backRow.deleted, isTrue);
+    expect(await outboxCounts(), {'field_definitions': 1});
+
+    await repos.noteTypes.updateNoteType(japanese.noteType);
+    expect((await repos.notes.note(note.id))!.fields, note.fields);
   });
 
   test('a failed write records nothing', () async {

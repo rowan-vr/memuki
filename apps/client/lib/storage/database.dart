@@ -46,7 +46,7 @@ final _log = Logger('memuki.storage');
     Device,
     Outbox,
   ],
-  include: {'triggers.drift'},
+  include: {'triggers.drift', 'views.drift'},
 )
 class MemukiDatabase extends _$MemukiDatabase {
   MemukiDatabase(super.e, {this.backupDirectory, DateTime Function()? now})
@@ -146,8 +146,8 @@ class MemukiDatabase extends _$MemukiDatabase {
         steps: migrationSteps(from1To2: _from1To2),
       );
 
-  /// Adds HLC timestamps and tombstones, the device table, the outbox, and the
-  /// triggers that guard them.
+  /// Adds HLC timestamps and tombstones, the device table, the outbox, the
+  /// triggers that guard them, and the views that hide tombstoned rows.
   /// Existing rows get one initial timestamp. They are not added to the
   /// outbox; the first sync uploads the whole collection.
   Future<void> _from1To2(Migrator m, Schema2 schema) async {
@@ -209,6 +209,21 @@ class MemukiDatabase extends _$MemukiDatabase {
       schema.reviewEventsAppendOnly,
     ]) {
       await m.createTrigger(trigger);
+    }
+    // Views that read other views come after them.
+    for (final view in [
+      schema.visibleCollections,
+      schema.visibleDecks,
+      schema.visibleTags,
+      schema.visibleNoteTypes,
+      schema.visibleFieldDefinitions,
+      schema.visibleStudyCardTemplates,
+      schema.visibleStudyCards,
+      schema.visibleNotes,
+      schema.visibleNoteFields,
+      schema.visibleNoteTags,
+    ]) {
+      await m.createView(view);
     }
   }
 }

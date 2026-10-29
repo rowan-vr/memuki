@@ -135,6 +135,20 @@ void main() {
     });
   });
 
+  test('watching emits when a note is hidden by deleting its deck', () async {
+    final (note, _) = await japanese.addNote('猫');
+    final notes = repos.notes.watchNotes(japanese.id);
+    expect(
+      notes,
+      emitsInOrder([
+        [note],
+        isEmpty,
+      ]),
+    );
+    await pumpEventQueue();
+    await repos.collections.deleteDeck(japanese.deck.id);
+  });
+
   test('watching emits when a field changes', () async {
     final note = newNote({front: '猫'});
     await repos.notes.createNote(note);

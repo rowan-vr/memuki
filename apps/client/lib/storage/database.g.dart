@@ -313,6 +313,89 @@ class CollectionsCompanion extends UpdateCompanion<CollectionRow> {
   }
 }
 
+class VisibleCollection extends DataClass {
+  final CollectionId id;
+  const VisibleCollection({required this.id});
+  factory VisibleCollection.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleCollection(id: serializer.fromJson<CollectionId>(json['id']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<CollectionId>(id)};
+  }
+
+  VisibleCollection copyWith({CollectionId? id}) =>
+      VisibleCollection(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleCollection(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleCollection && other.id == this.id);
+}
+
+class VisibleCollections extends ViewInfo<VisibleCollections, VisibleCollection>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisibleCollections(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_collections';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_collections AS SELECT id FROM collections WHERE deleted = 0',
+  };
+  @override
+  VisibleCollections get asDslTable => this;
+  @override
+  VisibleCollection map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleCollection(
+      id: $CollectionsTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+    );
+  }
+
+  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<CollectionId>($CollectionsTable.$converterid);
+  @override
+  VisibleCollections createAlias(String alias) {
+    return VisibleCollections(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {'collections'};
+}
+
 class $DecksTable extends Decks with TableInfo<$DecksTable, DeckRow> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -726,6 +809,87 @@ class DecksCompanion extends UpdateCompanion<DeckRow> {
           ..write(')'))
         .toString();
   }
+}
+
+class VisibleDeck extends DataClass {
+  final DeckId id;
+  const VisibleDeck({required this.id});
+  factory VisibleDeck.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleDeck(id: serializer.fromJson<DeckId>(json['id']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<DeckId>(id)};
+  }
+
+  VisibleDeck copyWith({DeckId? id}) => VisibleDeck(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleDeck(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is VisibleDeck && other.id == this.id);
+}
+
+class VisibleDecks extends ViewInfo<VisibleDecks, VisibleDeck>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisibleDecks(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_decks';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_decks AS WITH RECURSIVE visible (id) AS (SELECT id FROM decks WHERE parent_id IS NULL AND deleted = 0 AND collection_id IN (SELECT id FROM visible_collections) UNION SELECT d.id FROM decks AS d JOIN visible AS v ON d.parent_id = v.id WHERE d.deleted = 0) SELECT id FROM visible',
+  };
+  @override
+  VisibleDecks get asDslTable => this;
+  @override
+  VisibleDeck map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleDeck(
+      id: $DecksTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+    );
+  }
+
+  late final GeneratedColumnWithTypeConverter<DeckId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<DeckId>($DecksTable.$converterid);
+  @override
+  VisibleDecks createAlias(String alias) {
+    return VisibleDecks(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {'decks', 'collections'};
 }
 
 class $TagsTable extends Tags with TableInfo<$TagsTable, TagRow> {
@@ -1143,6 +1307,87 @@ class TagsCompanion extends UpdateCompanion<TagRow> {
   }
 }
 
+class VisibleTag extends DataClass {
+  final TagId id;
+  const VisibleTag({required this.id});
+  factory VisibleTag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleTag(id: serializer.fromJson<TagId>(json['id']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<TagId>(id)};
+  }
+
+  VisibleTag copyWith({TagId? id}) => VisibleTag(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleTag(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) || (other is VisibleTag && other.id == this.id);
+}
+
+class VisibleTags extends ViewInfo<VisibleTags, VisibleTag>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisibleTags(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_tags';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_tags AS WITH RECURSIVE visible (id) AS (SELECT id FROM tags WHERE parent_id IS NULL AND deleted = 0 AND collection_id IN (SELECT id FROM visible_collections) UNION SELECT t.id FROM tags AS t JOIN visible AS v ON t.parent_id = v.id WHERE t.deleted = 0) SELECT id FROM visible',
+  };
+  @override
+  VisibleTags get asDslTable => this;
+  @override
+  VisibleTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleTag(
+      id: $TagsTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+    );
+  }
+
+  late final GeneratedColumnWithTypeConverter<TagId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<TagId>($TagsTable.$converterid);
+  @override
+  VisibleTags createAlias(String alias) {
+    return VisibleTags(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {'tags', 'collections'};
+}
+
 class $NoteTypesTable extends NoteTypes
     with TableInfo<$NoteTypesTable, NoteTypeRow> {
   @override
@@ -1506,6 +1751,1163 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
           ..write(')'))
         .toString();
   }
+}
+
+class VisibleNoteType extends DataClass {
+  final NoteTypeId id;
+  const VisibleNoteType({required this.id});
+  factory VisibleNoteType.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleNoteType(id: serializer.fromJson<NoteTypeId>(json['id']));
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<NoteTypeId>(id)};
+  }
+
+  VisibleNoteType copyWith({NoteTypeId? id}) =>
+      VisibleNoteType(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleNoteType(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleNoteType && other.id == this.id);
+}
+
+class VisibleNoteTypes extends ViewInfo<VisibleNoteTypes, VisibleNoteType>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisibleNoteTypes(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_note_types';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_note_types AS SELECT id FROM note_types WHERE deleted = 0 AND collection_id IN (SELECT id FROM visible_collections)',
+  };
+  @override
+  VisibleNoteTypes get asDslTable => this;
+  @override
+  VisibleNoteType map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleNoteType(
+      id: $NoteTypesTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+    );
+  }
+
+  late final GeneratedColumnWithTypeConverter<NoteTypeId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<NoteTypeId>($NoteTypesTable.$converterid);
+  @override
+  VisibleNoteTypes createAlias(String alias) {
+    return VisibleNoteTypes(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {'note_types', 'collections'};
+}
+
+class $FieldDefinitionsTable extends FieldDefinitions
+    with TableInfo<$FieldDefinitionsTable, FieldDefinitionRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $FieldDefinitionsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($FieldDefinitionsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+      ).withConverter<FieldDefinitionId>($FieldDefinitionsTable.$converterid);
+  @override
+  late final GeneratedColumnWithTypeConverter<NoteTypeId, Uint8List>
+  noteTypeId = GeneratedColumn<Uint8List>(
+    'note_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES note_types (id) ON DELETE CASCADE',
+    ),
+  ).withConverter<NoteTypeId>($FieldDefinitionsTable.$converternoteTypeId);
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<FieldType, String> type =
+      GeneratedColumn<String>(
+        'type',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<FieldType>($FieldDefinitionsTable.$convertertype);
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    noteTypeId,
+    position,
+    name,
+    type,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'field_definitions';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<FieldDefinitionRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  FieldDefinitionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return FieldDefinitionRow(
+      hlc: $FieldDefinitionsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      id: $FieldDefinitionsTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+      noteTypeId: $FieldDefinitionsTable.$converternoteTypeId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}note_type_id'],
+        )!,
+      ),
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+      type: $FieldDefinitionsTable.$convertertype.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}type'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $FieldDefinitionsTable createAlias(String alias) {
+    return $FieldDefinitionsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
+  static TypeConverter<FieldDefinitionId, Uint8List> $converterid =
+      fieldDefinitionIdConverter;
+  static TypeConverter<NoteTypeId, Uint8List> $converternoteTypeId =
+      noteTypeIdConverter;
+  static JsonTypeConverter2<FieldType, String, String> $convertertype =
+      const EnumNameConverter<FieldType>(FieldType.values);
+}
+
+class FieldDefinitionRow extends DataClass
+    implements Insertable<FieldDefinitionRow> {
+  final Hlc hlc;
+  final bool deleted;
+  final FieldDefinitionId id;
+  final NoteTypeId noteTypeId;
+  final int position;
+  final String name;
+  final FieldType type;
+  const FieldDefinitionRow({
+    required this.hlc,
+    required this.deleted,
+    required this.id,
+    required this.noteTypeId,
+    required this.position,
+    required this.name,
+    required this.type,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>(
+        $FieldDefinitionsTable.$converterhlc.toSql(hlc),
+      );
+    }
+    map['deleted'] = Variable<bool>(deleted);
+    {
+      map['id'] = Variable<Uint8List>(
+        $FieldDefinitionsTable.$converterid.toSql(id),
+      );
+    }
+    {
+      map['note_type_id'] = Variable<Uint8List>(
+        $FieldDefinitionsTable.$converternoteTypeId.toSql(noteTypeId),
+      );
+    }
+    map['position'] = Variable<int>(position);
+    map['name'] = Variable<String>(name);
+    {
+      map['type'] = Variable<String>(
+        $FieldDefinitionsTable.$convertertype.toSql(type),
+      );
+    }
+    return map;
+  }
+
+  FieldDefinitionsCompanion toCompanion(bool nullToAbsent) {
+    return FieldDefinitionsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      id: Value(id),
+      noteTypeId: Value(noteTypeId),
+      position: Value(position),
+      name: Value(name),
+      type: Value(type),
+    );
+  }
+
+  factory FieldDefinitionRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return FieldDefinitionRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      id: serializer.fromJson<FieldDefinitionId>(json['id']),
+      noteTypeId: serializer.fromJson<NoteTypeId>(json['noteTypeId']),
+      position: serializer.fromJson<int>(json['position']),
+      name: serializer.fromJson<String>(json['name']),
+      type: $FieldDefinitionsTable.$convertertype.fromJson(
+        serializer.fromJson<String>(json['type']),
+      ),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
+      'id': serializer.toJson<FieldDefinitionId>(id),
+      'noteTypeId': serializer.toJson<NoteTypeId>(noteTypeId),
+      'position': serializer.toJson<int>(position),
+      'name': serializer.toJson<String>(name),
+      'type': serializer.toJson<String>(
+        $FieldDefinitionsTable.$convertertype.toJson(type),
+      ),
+    };
+  }
+
+  FieldDefinitionRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
+    FieldDefinitionId? id,
+    NoteTypeId? noteTypeId,
+    int? position,
+    String? name,
+    FieldType? type,
+  }) => FieldDefinitionRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    id: id ?? this.id,
+    noteTypeId: noteTypeId ?? this.noteTypeId,
+    position: position ?? this.position,
+    name: name ?? this.name,
+    type: type ?? this.type,
+  );
+  FieldDefinitionRow copyWithCompanion(FieldDefinitionsCompanion data) {
+    return FieldDefinitionRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      id: data.id.present ? data.id.value : this.id,
+      noteTypeId: data.noteTypeId.present
+          ? data.noteTypeId.value
+          : this.noteTypeId,
+      position: data.position.present ? data.position.value : this.position,
+      name: data.name.present ? data.name.value : this.name,
+      type: data.type.present ? data.type.value : this.type,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldDefinitionRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('id: $id, ')
+          ..write('noteTypeId: $noteTypeId, ')
+          ..write('position: $position, ')
+          ..write('name: $name, ')
+          ..write('type: $type')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(hlc, deleted, id, noteTypeId, position, name, type);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is FieldDefinitionRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
+          other.id == this.id &&
+          other.noteTypeId == this.noteTypeId &&
+          other.position == this.position &&
+          other.name == this.name &&
+          other.type == this.type);
+}
+
+class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
+  final Value<FieldDefinitionId> id;
+  final Value<NoteTypeId> noteTypeId;
+  final Value<int> position;
+  final Value<String> name;
+  final Value<FieldType> type;
+  final Value<int> rowid;
+  const FieldDefinitionsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.id = const Value.absent(),
+    this.noteTypeId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.name = const Value.absent(),
+    this.type = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  FieldDefinitionsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
+    required FieldDefinitionId id,
+    required NoteTypeId noteTypeId,
+    required int position,
+    required String name,
+    required FieldType type,
+    this.rowid = const Value.absent(),
+  }) : hlc = Value(hlc),
+       id = Value(id),
+       noteTypeId = Value(noteTypeId),
+       position = Value(position),
+       name = Value(name),
+       type = Value(type);
+  static Insertable<FieldDefinitionRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
+    Expression<Uint8List>? id,
+    Expression<Uint8List>? noteTypeId,
+    Expression<int>? position,
+    Expression<String>? name,
+    Expression<String>? type,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
+      if (id != null) 'id': id,
+      if (noteTypeId != null) 'note_type_id': noteTypeId,
+      if (position != null) 'position': position,
+      if (name != null) 'name': name,
+      if (type != null) 'type': type,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  FieldDefinitionsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
+    Value<FieldDefinitionId>? id,
+    Value<NoteTypeId>? noteTypeId,
+    Value<int>? position,
+    Value<String>? name,
+    Value<FieldType>? type,
+    Value<int>? rowid,
+  }) {
+    return FieldDefinitionsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
+      id: id ?? this.id,
+      noteTypeId: noteTypeId ?? this.noteTypeId,
+      position: position ?? this.position,
+      name: name ?? this.name,
+      type: type ?? this.type,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $FieldDefinitionsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<Uint8List>(
+        $FieldDefinitionsTable.$converterid.toSql(id.value),
+      );
+    }
+    if (noteTypeId.present) {
+      map['note_type_id'] = Variable<Uint8List>(
+        $FieldDefinitionsTable.$converternoteTypeId.toSql(noteTypeId.value),
+      );
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (type.present) {
+      map['type'] = Variable<String>(
+        $FieldDefinitionsTable.$convertertype.toSql(type.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('FieldDefinitionsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('id: $id, ')
+          ..write('noteTypeId: $noteTypeId, ')
+          ..write('position: $position, ')
+          ..write('name: $name, ')
+          ..write('type: $type, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class VisibleFieldDefinition extends DataClass {
+  final FieldDefinitionId id;
+  const VisibleFieldDefinition({required this.id});
+  factory VisibleFieldDefinition.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleFieldDefinition(
+      id: serializer.fromJson<FieldDefinitionId>(json['id']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<FieldDefinitionId>(id)};
+  }
+
+  VisibleFieldDefinition copyWith({FieldDefinitionId? id}) =>
+      VisibleFieldDefinition(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleFieldDefinition(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleFieldDefinition && other.id == this.id);
+}
+
+class VisibleFieldDefinitions
+    extends ViewInfo<VisibleFieldDefinitions, VisibleFieldDefinition>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisibleFieldDefinitions(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_field_definitions';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_field_definitions AS SELECT id FROM field_definitions WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types)',
+  };
+  @override
+  VisibleFieldDefinitions get asDslTable => this;
+  @override
+  VisibleFieldDefinition map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleFieldDefinition(
+      id: $FieldDefinitionsTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+    );
+  }
+
+  late final GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<FieldDefinitionId>($FieldDefinitionsTable.$converterid);
+  @override
+  VisibleFieldDefinitions createAlias(String alias) {
+    return VisibleFieldDefinitions(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'field_definitions',
+    'note_types',
+    'collections',
+  };
+}
+
+class $StudyCardTemplatesTable extends StudyCardTemplates
+    with TableInfo<$StudyCardTemplatesTable, StudyCardTemplateRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $StudyCardTemplatesTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($StudyCardTemplatesTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<StudyCardTemplateId, Uint8List>
+  id = GeneratedColumn<Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  ).withConverter<StudyCardTemplateId>($StudyCardTemplatesTable.$converterid);
+  @override
+  late final GeneratedColumnWithTypeConverter<NoteTypeId, Uint8List>
+  noteTypeId = GeneratedColumn<Uint8List>(
+    'note_type_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES note_types (id) ON DELETE CASCADE',
+    ),
+  ).withConverter<NoteTypeId>($StudyCardTemplatesTable.$converternoteTypeId);
+  static const VerificationMeta _positionMeta = const VerificationMeta(
+    'position',
+  );
+  @override
+  late final GeneratedColumn<int> position = GeneratedColumn<int>(
+    'position',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  @override
+  late final GeneratedColumn<String> name = GeneratedColumn<String>(
+    'name',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    noteTypeId,
+    position,
+    name,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'study_card_templates';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<StudyCardTemplateRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('position')) {
+      context.handle(
+        _positionMeta,
+        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_positionMeta);
+    }
+    if (data.containsKey('name')) {
+      context.handle(
+        _nameMeta,
+        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nameMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  StudyCardTemplateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return StudyCardTemplateRow(
+      hlc: $StudyCardTemplatesTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      id: $StudyCardTemplatesTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+      noteTypeId: $StudyCardTemplatesTable.$converternoteTypeId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}note_type_id'],
+        )!,
+      ),
+      position: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}position'],
+      )!,
+      name: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}name'],
+      )!,
+    );
+  }
+
+  @override
+  $StudyCardTemplatesTable createAlias(String alias) {
+    return $StudyCardTemplatesTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
+  static TypeConverter<StudyCardTemplateId, Uint8List> $converterid =
+      studyCardTemplateIdConverter;
+  static TypeConverter<NoteTypeId, Uint8List> $converternoteTypeId =
+      noteTypeIdConverter;
+}
+
+class StudyCardTemplateRow extends DataClass
+    implements Insertable<StudyCardTemplateRow> {
+  final Hlc hlc;
+  final bool deleted;
+  final StudyCardTemplateId id;
+  final NoteTypeId noteTypeId;
+  final int position;
+  final String name;
+  const StudyCardTemplateRow({
+    required this.hlc,
+    required this.deleted,
+    required this.id,
+    required this.noteTypeId,
+    required this.position,
+    required this.name,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>(
+        $StudyCardTemplatesTable.$converterhlc.toSql(hlc),
+      );
+    }
+    map['deleted'] = Variable<bool>(deleted);
+    {
+      map['id'] = Variable<Uint8List>(
+        $StudyCardTemplatesTable.$converterid.toSql(id),
+      );
+    }
+    {
+      map['note_type_id'] = Variable<Uint8List>(
+        $StudyCardTemplatesTable.$converternoteTypeId.toSql(noteTypeId),
+      );
+    }
+    map['position'] = Variable<int>(position);
+    map['name'] = Variable<String>(name);
+    return map;
+  }
+
+  StudyCardTemplatesCompanion toCompanion(bool nullToAbsent) {
+    return StudyCardTemplatesCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      id: Value(id),
+      noteTypeId: Value(noteTypeId),
+      position: Value(position),
+      name: Value(name),
+    );
+  }
+
+  factory StudyCardTemplateRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return StudyCardTemplateRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      id: serializer.fromJson<StudyCardTemplateId>(json['id']),
+      noteTypeId: serializer.fromJson<NoteTypeId>(json['noteTypeId']),
+      position: serializer.fromJson<int>(json['position']),
+      name: serializer.fromJson<String>(json['name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
+      'id': serializer.toJson<StudyCardTemplateId>(id),
+      'noteTypeId': serializer.toJson<NoteTypeId>(noteTypeId),
+      'position': serializer.toJson<int>(position),
+      'name': serializer.toJson<String>(name),
+    };
+  }
+
+  StudyCardTemplateRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
+    StudyCardTemplateId? id,
+    NoteTypeId? noteTypeId,
+    int? position,
+    String? name,
+  }) => StudyCardTemplateRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    id: id ?? this.id,
+    noteTypeId: noteTypeId ?? this.noteTypeId,
+    position: position ?? this.position,
+    name: name ?? this.name,
+  );
+  StudyCardTemplateRow copyWithCompanion(StudyCardTemplatesCompanion data) {
+    return StudyCardTemplateRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      id: data.id.present ? data.id.value : this.id,
+      noteTypeId: data.noteTypeId.present
+          ? data.noteTypeId.value
+          : this.noteTypeId,
+      position: data.position.present ? data.position.value : this.position,
+      name: data.name.present ? data.name.value : this.name,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StudyCardTemplateRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('id: $id, ')
+          ..write('noteTypeId: $noteTypeId, ')
+          ..write('position: $position, ')
+          ..write('name: $name')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(hlc, deleted, id, noteTypeId, position, name);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is StudyCardTemplateRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
+          other.id == this.id &&
+          other.noteTypeId == this.noteTypeId &&
+          other.position == this.position &&
+          other.name == this.name);
+}
+
+class StudyCardTemplatesCompanion
+    extends UpdateCompanion<StudyCardTemplateRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
+  final Value<StudyCardTemplateId> id;
+  final Value<NoteTypeId> noteTypeId;
+  final Value<int> position;
+  final Value<String> name;
+  final Value<int> rowid;
+  const StudyCardTemplatesCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.id = const Value.absent(),
+    this.noteTypeId = const Value.absent(),
+    this.position = const Value.absent(),
+    this.name = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  StudyCardTemplatesCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
+    required StudyCardTemplateId id,
+    required NoteTypeId noteTypeId,
+    required int position,
+    required String name,
+    this.rowid = const Value.absent(),
+  }) : hlc = Value(hlc),
+       id = Value(id),
+       noteTypeId = Value(noteTypeId),
+       position = Value(position),
+       name = Value(name);
+  static Insertable<StudyCardTemplateRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
+    Expression<Uint8List>? id,
+    Expression<Uint8List>? noteTypeId,
+    Expression<int>? position,
+    Expression<String>? name,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
+      if (id != null) 'id': id,
+      if (noteTypeId != null) 'note_type_id': noteTypeId,
+      if (position != null) 'position': position,
+      if (name != null) 'name': name,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  StudyCardTemplatesCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
+    Value<StudyCardTemplateId>? id,
+    Value<NoteTypeId>? noteTypeId,
+    Value<int>? position,
+    Value<String>? name,
+    Value<int>? rowid,
+  }) {
+    return StudyCardTemplatesCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
+      id: id ?? this.id,
+      noteTypeId: noteTypeId ?? this.noteTypeId,
+      position: position ?? this.position,
+      name: name ?? this.name,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $StudyCardTemplatesTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (id.present) {
+      map['id'] = Variable<Uint8List>(
+        $StudyCardTemplatesTable.$converterid.toSql(id.value),
+      );
+    }
+    if (noteTypeId.present) {
+      map['note_type_id'] = Variable<Uint8List>(
+        $StudyCardTemplatesTable.$converternoteTypeId.toSql(noteTypeId.value),
+      );
+    }
+    if (position.present) {
+      map['position'] = Variable<int>(position.value);
+    }
+    if (name.present) {
+      map['name'] = Variable<String>(name.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('StudyCardTemplatesCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('id: $id, ')
+          ..write('noteTypeId: $noteTypeId, ')
+          ..write('position: $position, ')
+          ..write('name: $name, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class VisibleStudyCardTemplate extends DataClass {
+  final StudyCardTemplateId id;
+  const VisibleStudyCardTemplate({required this.id});
+  factory VisibleStudyCardTemplate.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleStudyCardTemplate(
+      id: serializer.fromJson<StudyCardTemplateId>(json['id']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{'id': serializer.toJson<StudyCardTemplateId>(id)};
+  }
+
+  VisibleStudyCardTemplate copyWith({StudyCardTemplateId? id}) =>
+      VisibleStudyCardTemplate(id: id ?? this.id);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleStudyCardTemplate(')
+          ..write('id: $id')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => id.hashCode;
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleStudyCardTemplate && other.id == this.id);
+}
+
+class VisibleStudyCardTemplates
+    extends ViewInfo<VisibleStudyCardTemplates, VisibleStudyCardTemplate>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisibleStudyCardTemplates(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_study_card_templates';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_study_card_templates AS SELECT id FROM study_card_templates WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types)',
+  };
+  @override
+  VisibleStudyCardTemplates get asDslTable => this;
+  @override
+  VisibleStudyCardTemplate map(
+    Map<String, dynamic> data, {
+    String? tablePrefix,
+  }) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleStudyCardTemplate(
+      id: $StudyCardTemplatesTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
+    );
+  }
+
+  late final GeneratedColumnWithTypeConverter<StudyCardTemplateId, Uint8List>
+  id = GeneratedColumn<Uint8List>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+  ).withConverter<StudyCardTemplateId>($StudyCardTemplatesTable.$converterid);
+  @override
+  VisibleStudyCardTemplates createAlias(String alias) {
+    return VisibleStudyCardTemplates(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'study_card_templates',
+    'note_types',
+    'collections',
+  };
 }
 
 class $NotesTable extends Notes with TableInfo<$NotesTable, NoteRow> {
@@ -1996,795 +3398,6 @@ class NotesCompanion extends UpdateCompanion<NoteRow> {
   }
 }
 
-class $NoteTagsTable extends NoteTags
-    with TableInfo<$NoteTagsTable, NoteTagRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $NoteTagsTable(this.attachedDatabase, [this._alias]);
-  @override
-  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
-      GeneratedColumn<String>(
-        'hlc',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<Hlc>($NoteTagsTable.$converterhlc);
-  static const VerificationMeta _deletedMeta = const VerificationMeta(
-    'deleted',
-  );
-  @override
-  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
-    'deleted',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("deleted" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
-  collectionId = GeneratedColumn<Uint8List>(
-    'collection_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES collections (id)',
-    ),
-  ).withConverter<CollectionId>($NoteTagsTable.$convertercollectionId);
-  @override
-  late final GeneratedColumnWithTypeConverter<NoteId, Uint8List> noteId =
-      GeneratedColumn<Uint8List>(
-        'note_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-      ).withConverter<NoteId>($NoteTagsTable.$converternoteId);
-  @override
-  late final GeneratedColumnWithTypeConverter<TagId, Uint8List> tagId =
-      GeneratedColumn<Uint8List>(
-        'tag_id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-      ).withConverter<TagId>($NoteTagsTable.$convertertagId);
-  @override
-  List<GeneratedColumn> get $columns => [
-    hlc,
-    deleted,
-    collectionId,
-    noteId,
-    tagId,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'note_tags';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<NoteTagRow> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('deleted')) {
-      context.handle(
-        _deletedMeta,
-        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {noteId, tagId};
-  @override
-  NoteTagRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return NoteTagRow(
-      hlc: $NoteTagsTable.$converterhlc.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}hlc'],
-        )!,
-      ),
-      deleted: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}deleted'],
-      )!,
-      collectionId: $NoteTagsTable.$convertercollectionId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}collection_id'],
-        )!,
-      ),
-      noteId: $NoteTagsTable.$converternoteId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}note_id'],
-        )!,
-      ),
-      tagId: $NoteTagsTable.$convertertagId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}tag_id'],
-        )!,
-      ),
-    );
-  }
-
-  @override
-  $NoteTagsTable createAlias(String alias) {
-    return $NoteTagsTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
-  static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
-      collectionIdConverter;
-  static TypeConverter<NoteId, Uint8List> $converternoteId = noteIdConverter;
-  static TypeConverter<TagId, Uint8List> $convertertagId = tagIdConverter;
-}
-
-class NoteTagRow extends DataClass implements Insertable<NoteTagRow> {
-  final Hlc hlc;
-  final bool deleted;
-  final CollectionId collectionId;
-  final NoteId noteId;
-  final TagId tagId;
-  const NoteTagRow({
-    required this.hlc,
-    required this.deleted,
-    required this.collectionId,
-    required this.noteId,
-    required this.tagId,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    {
-      map['hlc'] = Variable<String>($NoteTagsTable.$converterhlc.toSql(hlc));
-    }
-    map['deleted'] = Variable<bool>(deleted);
-    {
-      map['collection_id'] = Variable<Uint8List>(
-        $NoteTagsTable.$convertercollectionId.toSql(collectionId),
-      );
-    }
-    {
-      map['note_id'] = Variable<Uint8List>(
-        $NoteTagsTable.$converternoteId.toSql(noteId),
-      );
-    }
-    {
-      map['tag_id'] = Variable<Uint8List>(
-        $NoteTagsTable.$convertertagId.toSql(tagId),
-      );
-    }
-    return map;
-  }
-
-  NoteTagsCompanion toCompanion(bool nullToAbsent) {
-    return NoteTagsCompanion(
-      hlc: Value(hlc),
-      deleted: Value(deleted),
-      collectionId: Value(collectionId),
-      noteId: Value(noteId),
-      tagId: Value(tagId),
-    );
-  }
-
-  factory NoteTagRow.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return NoteTagRow(
-      hlc: serializer.fromJson<Hlc>(json['hlc']),
-      deleted: serializer.fromJson<bool>(json['deleted']),
-      collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
-      noteId: serializer.fromJson<NoteId>(json['noteId']),
-      tagId: serializer.fromJson<TagId>(json['tagId']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'hlc': serializer.toJson<Hlc>(hlc),
-      'deleted': serializer.toJson<bool>(deleted),
-      'collectionId': serializer.toJson<CollectionId>(collectionId),
-      'noteId': serializer.toJson<NoteId>(noteId),
-      'tagId': serializer.toJson<TagId>(tagId),
-    };
-  }
-
-  NoteTagRow copyWith({
-    Hlc? hlc,
-    bool? deleted,
-    CollectionId? collectionId,
-    NoteId? noteId,
-    TagId? tagId,
-  }) => NoteTagRow(
-    hlc: hlc ?? this.hlc,
-    deleted: deleted ?? this.deleted,
-    collectionId: collectionId ?? this.collectionId,
-    noteId: noteId ?? this.noteId,
-    tagId: tagId ?? this.tagId,
-  );
-  NoteTagRow copyWithCompanion(NoteTagsCompanion data) {
-    return NoteTagRow(
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-      deleted: data.deleted.present ? data.deleted.value : this.deleted,
-      collectionId: data.collectionId.present
-          ? data.collectionId.value
-          : this.collectionId,
-      noteId: data.noteId.present ? data.noteId.value : this.noteId,
-      tagId: data.tagId.present ? data.tagId.value : this.tagId,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('NoteTagRow(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('collectionId: $collectionId, ')
-          ..write('noteId: $noteId, ')
-          ..write('tagId: $tagId')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(hlc, deleted, collectionId, noteId, tagId);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is NoteTagRow &&
-          other.hlc == this.hlc &&
-          other.deleted == this.deleted &&
-          other.collectionId == this.collectionId &&
-          other.noteId == this.noteId &&
-          other.tagId == this.tagId);
-}
-
-class NoteTagsCompanion extends UpdateCompanion<NoteTagRow> {
-  final Value<Hlc> hlc;
-  final Value<bool> deleted;
-  final Value<CollectionId> collectionId;
-  final Value<NoteId> noteId;
-  final Value<TagId> tagId;
-  final Value<int> rowid;
-  const NoteTagsCompanion({
-    this.hlc = const Value.absent(),
-    this.deleted = const Value.absent(),
-    this.collectionId = const Value.absent(),
-    this.noteId = const Value.absent(),
-    this.tagId = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  NoteTagsCompanion.insert({
-    required Hlc hlc,
-    this.deleted = const Value.absent(),
-    required CollectionId collectionId,
-    required NoteId noteId,
-    required TagId tagId,
-    this.rowid = const Value.absent(),
-  }) : hlc = Value(hlc),
-       collectionId = Value(collectionId),
-       noteId = Value(noteId),
-       tagId = Value(tagId);
-  static Insertable<NoteTagRow> custom({
-    Expression<String>? hlc,
-    Expression<bool>? deleted,
-    Expression<Uint8List>? collectionId,
-    Expression<Uint8List>? noteId,
-    Expression<Uint8List>? tagId,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (hlc != null) 'hlc': hlc,
-      if (deleted != null) 'deleted': deleted,
-      if (collectionId != null) 'collection_id': collectionId,
-      if (noteId != null) 'note_id': noteId,
-      if (tagId != null) 'tag_id': tagId,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  NoteTagsCompanion copyWith({
-    Value<Hlc>? hlc,
-    Value<bool>? deleted,
-    Value<CollectionId>? collectionId,
-    Value<NoteId>? noteId,
-    Value<TagId>? tagId,
-    Value<int>? rowid,
-  }) {
-    return NoteTagsCompanion(
-      hlc: hlc ?? this.hlc,
-      deleted: deleted ?? this.deleted,
-      collectionId: collectionId ?? this.collectionId,
-      noteId: noteId ?? this.noteId,
-      tagId: tagId ?? this.tagId,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(
-        $NoteTagsTable.$converterhlc.toSql(hlc.value),
-      );
-    }
-    if (deleted.present) {
-      map['deleted'] = Variable<bool>(deleted.value);
-    }
-    if (collectionId.present) {
-      map['collection_id'] = Variable<Uint8List>(
-        $NoteTagsTable.$convertercollectionId.toSql(collectionId.value),
-      );
-    }
-    if (noteId.present) {
-      map['note_id'] = Variable<Uint8List>(
-        $NoteTagsTable.$converternoteId.toSql(noteId.value),
-      );
-    }
-    if (tagId.present) {
-      map['tag_id'] = Variable<Uint8List>(
-        $NoteTagsTable.$convertertagId.toSql(tagId.value),
-      );
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('NoteTagsCompanion(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('collectionId: $collectionId, ')
-          ..write('noteId: $noteId, ')
-          ..write('tagId: $tagId, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $StudyCardTemplatesTable extends StudyCardTemplates
-    with TableInfo<$StudyCardTemplatesTable, StudyCardTemplateRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $StudyCardTemplatesTable(this.attachedDatabase, [this._alias]);
-  @override
-  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
-      GeneratedColumn<String>(
-        'hlc',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<Hlc>($StudyCardTemplatesTable.$converterhlc);
-  static const VerificationMeta _deletedMeta = const VerificationMeta(
-    'deleted',
-  );
-  @override
-  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
-    'deleted',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("deleted" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<StudyCardTemplateId, Uint8List>
-  id = GeneratedColumn<Uint8List>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-  ).withConverter<StudyCardTemplateId>($StudyCardTemplatesTable.$converterid);
-  @override
-  late final GeneratedColumnWithTypeConverter<NoteTypeId, Uint8List>
-  noteTypeId = GeneratedColumn<Uint8List>(
-    'note_type_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES note_types (id) ON DELETE CASCADE',
-    ),
-  ).withConverter<NoteTypeId>($StudyCardTemplatesTable.$converternoteTypeId);
-  static const VerificationMeta _positionMeta = const VerificationMeta(
-    'position',
-  );
-  @override
-  late final GeneratedColumn<int> position = GeneratedColumn<int>(
-    'position',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
-  @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    hlc,
-    deleted,
-    id,
-    noteTypeId,
-    position,
-    name,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'study_card_templates';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<StudyCardTemplateRow> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('deleted')) {
-      context.handle(
-        _deletedMeta,
-        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
-      );
-    }
-    if (data.containsKey('position')) {
-      context.handle(
-        _positionMeta,
-        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_positionMeta);
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  StudyCardTemplateRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return StudyCardTemplateRow(
-      hlc: $StudyCardTemplatesTable.$converterhlc.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}hlc'],
-        )!,
-      ),
-      deleted: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}deleted'],
-      )!,
-      id: $StudyCardTemplatesTable.$converterid.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}id'],
-        )!,
-      ),
-      noteTypeId: $StudyCardTemplatesTable.$converternoteTypeId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}note_type_id'],
-        )!,
-      ),
-      position: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}position'],
-      )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-    );
-  }
-
-  @override
-  $StudyCardTemplatesTable createAlias(String alias) {
-    return $StudyCardTemplatesTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
-  static TypeConverter<StudyCardTemplateId, Uint8List> $converterid =
-      studyCardTemplateIdConverter;
-  static TypeConverter<NoteTypeId, Uint8List> $converternoteTypeId =
-      noteTypeIdConverter;
-}
-
-class StudyCardTemplateRow extends DataClass
-    implements Insertable<StudyCardTemplateRow> {
-  final Hlc hlc;
-  final bool deleted;
-  final StudyCardTemplateId id;
-  final NoteTypeId noteTypeId;
-  final int position;
-  final String name;
-  const StudyCardTemplateRow({
-    required this.hlc,
-    required this.deleted,
-    required this.id,
-    required this.noteTypeId,
-    required this.position,
-    required this.name,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    {
-      map['hlc'] = Variable<String>(
-        $StudyCardTemplatesTable.$converterhlc.toSql(hlc),
-      );
-    }
-    map['deleted'] = Variable<bool>(deleted);
-    {
-      map['id'] = Variable<Uint8List>(
-        $StudyCardTemplatesTable.$converterid.toSql(id),
-      );
-    }
-    {
-      map['note_type_id'] = Variable<Uint8List>(
-        $StudyCardTemplatesTable.$converternoteTypeId.toSql(noteTypeId),
-      );
-    }
-    map['position'] = Variable<int>(position);
-    map['name'] = Variable<String>(name);
-    return map;
-  }
-
-  StudyCardTemplatesCompanion toCompanion(bool nullToAbsent) {
-    return StudyCardTemplatesCompanion(
-      hlc: Value(hlc),
-      deleted: Value(deleted),
-      id: Value(id),
-      noteTypeId: Value(noteTypeId),
-      position: Value(position),
-      name: Value(name),
-    );
-  }
-
-  factory StudyCardTemplateRow.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return StudyCardTemplateRow(
-      hlc: serializer.fromJson<Hlc>(json['hlc']),
-      deleted: serializer.fromJson<bool>(json['deleted']),
-      id: serializer.fromJson<StudyCardTemplateId>(json['id']),
-      noteTypeId: serializer.fromJson<NoteTypeId>(json['noteTypeId']),
-      position: serializer.fromJson<int>(json['position']),
-      name: serializer.fromJson<String>(json['name']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'hlc': serializer.toJson<Hlc>(hlc),
-      'deleted': serializer.toJson<bool>(deleted),
-      'id': serializer.toJson<StudyCardTemplateId>(id),
-      'noteTypeId': serializer.toJson<NoteTypeId>(noteTypeId),
-      'position': serializer.toJson<int>(position),
-      'name': serializer.toJson<String>(name),
-    };
-  }
-
-  StudyCardTemplateRow copyWith({
-    Hlc? hlc,
-    bool? deleted,
-    StudyCardTemplateId? id,
-    NoteTypeId? noteTypeId,
-    int? position,
-    String? name,
-  }) => StudyCardTemplateRow(
-    hlc: hlc ?? this.hlc,
-    deleted: deleted ?? this.deleted,
-    id: id ?? this.id,
-    noteTypeId: noteTypeId ?? this.noteTypeId,
-    position: position ?? this.position,
-    name: name ?? this.name,
-  );
-  StudyCardTemplateRow copyWithCompanion(StudyCardTemplatesCompanion data) {
-    return StudyCardTemplateRow(
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-      deleted: data.deleted.present ? data.deleted.value : this.deleted,
-      id: data.id.present ? data.id.value : this.id,
-      noteTypeId: data.noteTypeId.present
-          ? data.noteTypeId.value
-          : this.noteTypeId,
-      position: data.position.present ? data.position.value : this.position,
-      name: data.name.present ? data.name.value : this.name,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('StudyCardTemplateRow(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('id: $id, ')
-          ..write('noteTypeId: $noteTypeId, ')
-          ..write('position: $position, ')
-          ..write('name: $name')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(hlc, deleted, id, noteTypeId, position, name);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is StudyCardTemplateRow &&
-          other.hlc == this.hlc &&
-          other.deleted == this.deleted &&
-          other.id == this.id &&
-          other.noteTypeId == this.noteTypeId &&
-          other.position == this.position &&
-          other.name == this.name);
-}
-
-class StudyCardTemplatesCompanion
-    extends UpdateCompanion<StudyCardTemplateRow> {
-  final Value<Hlc> hlc;
-  final Value<bool> deleted;
-  final Value<StudyCardTemplateId> id;
-  final Value<NoteTypeId> noteTypeId;
-  final Value<int> position;
-  final Value<String> name;
-  final Value<int> rowid;
-  const StudyCardTemplatesCompanion({
-    this.hlc = const Value.absent(),
-    this.deleted = const Value.absent(),
-    this.id = const Value.absent(),
-    this.noteTypeId = const Value.absent(),
-    this.position = const Value.absent(),
-    this.name = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  StudyCardTemplatesCompanion.insert({
-    required Hlc hlc,
-    this.deleted = const Value.absent(),
-    required StudyCardTemplateId id,
-    required NoteTypeId noteTypeId,
-    required int position,
-    required String name,
-    this.rowid = const Value.absent(),
-  }) : hlc = Value(hlc),
-       id = Value(id),
-       noteTypeId = Value(noteTypeId),
-       position = Value(position),
-       name = Value(name);
-  static Insertable<StudyCardTemplateRow> custom({
-    Expression<String>? hlc,
-    Expression<bool>? deleted,
-    Expression<Uint8List>? id,
-    Expression<Uint8List>? noteTypeId,
-    Expression<int>? position,
-    Expression<String>? name,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (hlc != null) 'hlc': hlc,
-      if (deleted != null) 'deleted': deleted,
-      if (id != null) 'id': id,
-      if (noteTypeId != null) 'note_type_id': noteTypeId,
-      if (position != null) 'position': position,
-      if (name != null) 'name': name,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  StudyCardTemplatesCompanion copyWith({
-    Value<Hlc>? hlc,
-    Value<bool>? deleted,
-    Value<StudyCardTemplateId>? id,
-    Value<NoteTypeId>? noteTypeId,
-    Value<int>? position,
-    Value<String>? name,
-    Value<int>? rowid,
-  }) {
-    return StudyCardTemplatesCompanion(
-      hlc: hlc ?? this.hlc,
-      deleted: deleted ?? this.deleted,
-      id: id ?? this.id,
-      noteTypeId: noteTypeId ?? this.noteTypeId,
-      position: position ?? this.position,
-      name: name ?? this.name,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(
-        $StudyCardTemplatesTable.$converterhlc.toSql(hlc.value),
-      );
-    }
-    if (deleted.present) {
-      map['deleted'] = Variable<bool>(deleted.value);
-    }
-    if (id.present) {
-      map['id'] = Variable<Uint8List>(
-        $StudyCardTemplatesTable.$converterid.toSql(id.value),
-      );
-    }
-    if (noteTypeId.present) {
-      map['note_type_id'] = Variable<Uint8List>(
-        $StudyCardTemplatesTable.$converternoteTypeId.toSql(noteTypeId.value),
-      );
-    }
-    if (position.present) {
-      map['position'] = Variable<int>(position.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('StudyCardTemplatesCompanion(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('id: $id, ')
-          ..write('noteTypeId: $noteTypeId, ')
-          ..write('position: $position, ')
-          ..write('name: $name, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $StudyCardsTable extends StudyCards
     with TableInfo<$StudyCardsTable, StudyCardRow> {
   @override
@@ -3256,954 +3869,182 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
   }
 }
 
-class $MediaAssetsTable extends MediaAssets
-    with TableInfo<$MediaAssetsTable, MediaAssetRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $MediaAssetsTable(this.attachedDatabase, [this._alias]);
-  @override
-  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
-      GeneratedColumn<String>(
-        'hlc',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<Hlc>($MediaAssetsTable.$converterhlc);
-  static const VerificationMeta _deletedMeta = const VerificationMeta(
-    'deleted',
-  );
-  @override
-  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
-    'deleted',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("deleted" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
-  collectionId = GeneratedColumn<Uint8List>(
-    'collection_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES collections (id)',
-    ),
-  ).withConverter<CollectionId>($MediaAssetsTable.$convertercollectionId);
-  @override
-  late final GeneratedColumnWithTypeConverter<ContentHash, Uint8List> hash =
-      GeneratedColumn<Uint8List>(
-        'hash',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-      ).withConverter<ContentHash>($MediaAssetsTable.$converterhash);
-  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
-    'mimeType',
-  );
-  @override
-  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
-    'mime_type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _sizeBytesMeta = const VerificationMeta(
-    'sizeBytes',
-  );
-  @override
-  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
-    'size_bytes',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _originalNameMeta = const VerificationMeta(
-    'originalName',
-  );
-  @override
-  late final GeneratedColumn<String> originalName = GeneratedColumn<String>(
-    'original_name',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    hlc,
-    deleted,
-    collectionId,
-    hash,
-    mimeType,
-    sizeBytes,
-    originalName,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'media_assets';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<MediaAssetRow> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('deleted')) {
-      context.handle(
-        _deletedMeta,
-        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
-      );
-    }
-    if (data.containsKey('mime_type')) {
-      context.handle(
-        _mimeTypeMeta,
-        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_mimeTypeMeta);
-    }
-    if (data.containsKey('size_bytes')) {
-      context.handle(
-        _sizeBytesMeta,
-        sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_sizeBytesMeta);
-    }
-    if (data.containsKey('original_name')) {
-      context.handle(
-        _originalNameMeta,
-        originalName.isAcceptableOrUnknown(
-          data['original_name']!,
-          _originalNameMeta,
-        ),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {collectionId, hash};
-  @override
-  MediaAssetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MediaAssetRow(
-      hlc: $MediaAssetsTable.$converterhlc.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}hlc'],
-        )!,
-      ),
-      deleted: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}deleted'],
-      )!,
-      collectionId: $MediaAssetsTable.$convertercollectionId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}collection_id'],
-        )!,
-      ),
-      hash: $MediaAssetsTable.$converterhash.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}hash'],
-        )!,
-      ),
-      mimeType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}mime_type'],
-      )!,
-      sizeBytes: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}size_bytes'],
-      )!,
-      originalName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}original_name'],
-      ),
-    );
-  }
-
-  @override
-  $MediaAssetsTable createAlias(String alias) {
-    return $MediaAssetsTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
-  static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
-      collectionIdConverter;
-  static TypeConverter<ContentHash, Uint8List> $converterhash =
-      const ContentHashConverter();
-}
-
-class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
-  final Hlc hlc;
-  final bool deleted;
-  final CollectionId collectionId;
-  final ContentHash hash;
-  final String mimeType;
-  final int sizeBytes;
-  final String? originalName;
-  const MediaAssetRow({
-    required this.hlc,
-    required this.deleted,
-    required this.collectionId,
-    required this.hash,
-    required this.mimeType,
-    required this.sizeBytes,
-    this.originalName,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    {
-      map['hlc'] = Variable<String>($MediaAssetsTable.$converterhlc.toSql(hlc));
-    }
-    map['deleted'] = Variable<bool>(deleted);
-    {
-      map['collection_id'] = Variable<Uint8List>(
-        $MediaAssetsTable.$convertercollectionId.toSql(collectionId),
-      );
-    }
-    {
-      map['hash'] = Variable<Uint8List>(
-        $MediaAssetsTable.$converterhash.toSql(hash),
-      );
-    }
-    map['mime_type'] = Variable<String>(mimeType);
-    map['size_bytes'] = Variable<int>(sizeBytes);
-    if (!nullToAbsent || originalName != null) {
-      map['original_name'] = Variable<String>(originalName);
-    }
-    return map;
-  }
-
-  MediaAssetsCompanion toCompanion(bool nullToAbsent) {
-    return MediaAssetsCompanion(
-      hlc: Value(hlc),
-      deleted: Value(deleted),
-      collectionId: Value(collectionId),
-      hash: Value(hash),
-      mimeType: Value(mimeType),
-      sizeBytes: Value(sizeBytes),
-      originalName: originalName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(originalName),
-    );
-  }
-
-  factory MediaAssetRow.fromJson(
+class VisibleStudyCard extends DataClass {
+  final StudyCardId id;
+  const VisibleStudyCard({required this.id});
+  factory VisibleStudyCard.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return MediaAssetRow(
-      hlc: serializer.fromJson<Hlc>(json['hlc']),
-      deleted: serializer.fromJson<bool>(json['deleted']),
-      collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
-      hash: serializer.fromJson<ContentHash>(json['hash']),
-      mimeType: serializer.fromJson<String>(json['mimeType']),
-      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
-      originalName: serializer.fromJson<String?>(json['originalName']),
-    );
+    return VisibleStudyCard(id: serializer.fromJson<StudyCardId>(json['id']));
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'hlc': serializer.toJson<Hlc>(hlc),
-      'deleted': serializer.toJson<bool>(deleted),
-      'collectionId': serializer.toJson<CollectionId>(collectionId),
-      'hash': serializer.toJson<ContentHash>(hash),
-      'mimeType': serializer.toJson<String>(mimeType),
-      'sizeBytes': serializer.toJson<int>(sizeBytes),
-      'originalName': serializer.toJson<String?>(originalName),
-    };
+    return <String, dynamic>{'id': serializer.toJson<StudyCardId>(id)};
   }
 
-  MediaAssetRow copyWith({
-    Hlc? hlc,
-    bool? deleted,
-    CollectionId? collectionId,
-    ContentHash? hash,
-    String? mimeType,
-    int? sizeBytes,
-    Value<String?> originalName = const Value.absent(),
-  }) => MediaAssetRow(
-    hlc: hlc ?? this.hlc,
-    deleted: deleted ?? this.deleted,
-    collectionId: collectionId ?? this.collectionId,
-    hash: hash ?? this.hash,
-    mimeType: mimeType ?? this.mimeType,
-    sizeBytes: sizeBytes ?? this.sizeBytes,
-    originalName: originalName.present ? originalName.value : this.originalName,
-  );
-  MediaAssetRow copyWithCompanion(MediaAssetsCompanion data) {
-    return MediaAssetRow(
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-      deleted: data.deleted.present ? data.deleted.value : this.deleted,
-      collectionId: data.collectionId.present
-          ? data.collectionId.value
-          : this.collectionId,
-      hash: data.hash.present ? data.hash.value : this.hash,
-      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
-      sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
-      originalName: data.originalName.present
-          ? data.originalName.value
-          : this.originalName,
-    );
-  }
-
+  VisibleStudyCard copyWith({StudyCardId? id}) =>
+      VisibleStudyCard(id: id ?? this.id);
   @override
   String toString() {
-    return (StringBuffer('MediaAssetRow(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('collectionId: $collectionId, ')
-          ..write('hash: $hash, ')
-          ..write('mimeType: $mimeType, ')
-          ..write('sizeBytes: $sizeBytes, ')
-          ..write('originalName: $originalName')
+    return (StringBuffer('VisibleStudyCard(')
+          ..write('id: $id')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(
-    hlc,
-    deleted,
-    collectionId,
-    hash,
-    mimeType,
-    sizeBytes,
-    originalName,
-  );
+  int get hashCode => id.hashCode;
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
-      (other is MediaAssetRow &&
-          other.hlc == this.hlc &&
-          other.deleted == this.deleted &&
-          other.collectionId == this.collectionId &&
-          other.hash == this.hash &&
-          other.mimeType == this.mimeType &&
-          other.sizeBytes == this.sizeBytes &&
-          other.originalName == this.originalName);
+      (other is VisibleStudyCard && other.id == this.id);
 }
 
-class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
-  final Value<Hlc> hlc;
-  final Value<bool> deleted;
-  final Value<CollectionId> collectionId;
-  final Value<ContentHash> hash;
-  final Value<String> mimeType;
-  final Value<int> sizeBytes;
-  final Value<String?> originalName;
-  final Value<int> rowid;
-  const MediaAssetsCompanion({
-    this.hlc = const Value.absent(),
-    this.deleted = const Value.absent(),
-    this.collectionId = const Value.absent(),
-    this.hash = const Value.absent(),
-    this.mimeType = const Value.absent(),
-    this.sizeBytes = const Value.absent(),
-    this.originalName = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  MediaAssetsCompanion.insert({
-    required Hlc hlc,
-    this.deleted = const Value.absent(),
-    required CollectionId collectionId,
-    required ContentHash hash,
-    required String mimeType,
-    required int sizeBytes,
-    this.originalName = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : hlc = Value(hlc),
-       collectionId = Value(collectionId),
-       hash = Value(hash),
-       mimeType = Value(mimeType),
-       sizeBytes = Value(sizeBytes);
-  static Insertable<MediaAssetRow> custom({
-    Expression<String>? hlc,
-    Expression<bool>? deleted,
-    Expression<Uint8List>? collectionId,
-    Expression<Uint8List>? hash,
-    Expression<String>? mimeType,
-    Expression<int>? sizeBytes,
-    Expression<String>? originalName,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (hlc != null) 'hlc': hlc,
-      if (deleted != null) 'deleted': deleted,
-      if (collectionId != null) 'collection_id': collectionId,
-      if (hash != null) 'hash': hash,
-      if (mimeType != null) 'mime_type': mimeType,
-      if (sizeBytes != null) 'size_bytes': sizeBytes,
-      if (originalName != null) 'original_name': originalName,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  MediaAssetsCompanion copyWith({
-    Value<Hlc>? hlc,
-    Value<bool>? deleted,
-    Value<CollectionId>? collectionId,
-    Value<ContentHash>? hash,
-    Value<String>? mimeType,
-    Value<int>? sizeBytes,
-    Value<String?>? originalName,
-    Value<int>? rowid,
-  }) {
-    return MediaAssetsCompanion(
-      hlc: hlc ?? this.hlc,
-      deleted: deleted ?? this.deleted,
-      collectionId: collectionId ?? this.collectionId,
-      hash: hash ?? this.hash,
-      mimeType: mimeType ?? this.mimeType,
-      sizeBytes: sizeBytes ?? this.sizeBytes,
-      originalName: originalName ?? this.originalName,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(
-        $MediaAssetsTable.$converterhlc.toSql(hlc.value),
-      );
-    }
-    if (deleted.present) {
-      map['deleted'] = Variable<bool>(deleted.value);
-    }
-    if (collectionId.present) {
-      map['collection_id'] = Variable<Uint8List>(
-        $MediaAssetsTable.$convertercollectionId.toSql(collectionId.value),
-      );
-    }
-    if (hash.present) {
-      map['hash'] = Variable<Uint8List>(
-        $MediaAssetsTable.$converterhash.toSql(hash.value),
-      );
-    }
-    if (mimeType.present) {
-      map['mime_type'] = Variable<String>(mimeType.value);
-    }
-    if (sizeBytes.present) {
-      map['size_bytes'] = Variable<int>(sizeBytes.value);
-    }
-    if (originalName.present) {
-      map['original_name'] = Variable<String>(originalName.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('MediaAssetsCompanion(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('collectionId: $collectionId, ')
-          ..write('hash: $hash, ')
-          ..write('mimeType: $mimeType, ')
-          ..write('sizeBytes: $sizeBytes, ')
-          ..write('originalName: $originalName, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $FieldDefinitionsTable extends FieldDefinitions
-    with TableInfo<$FieldDefinitionsTable, FieldDefinitionRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
+class VisibleStudyCards extends ViewInfo<VisibleStudyCards, VisibleStudyCard>
+    implements HasResultSet {
   final String? _alias;
-  $FieldDefinitionsTable(this.attachedDatabase, [this._alias]);
   @override
-  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
-      GeneratedColumn<String>(
-        'hlc',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<Hlc>($FieldDefinitionsTable.$converterhlc);
-  static const VerificationMeta _deletedMeta = const VerificationMeta(
-    'deleted',
-  );
+  final _$MemukiDatabase attachedDatabase;
+  VisibleStudyCards(this.attachedDatabase, [this._alias]);
   @override
-  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
-    'deleted',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("deleted" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
+  List<GeneratedColumn> get $columns => [id];
   @override
-  late final GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> id =
-      GeneratedColumn<Uint8List>(
-        'id',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-      ).withConverter<FieldDefinitionId>($FieldDefinitionsTable.$converterid);
+  String get aliasedName => _alias ?? entityName;
   @override
-  late final GeneratedColumnWithTypeConverter<NoteTypeId, Uint8List>
-  noteTypeId = GeneratedColumn<Uint8List>(
-    'note_type_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES note_types (id) ON DELETE CASCADE',
-    ),
-  ).withConverter<NoteTypeId>($FieldDefinitionsTable.$converternoteTypeId);
-  static const VerificationMeta _positionMeta = const VerificationMeta(
-    'position',
-  );
+  String get entityName => 'visible_study_cards';
   @override
-  late final GeneratedColumn<int> position = GeneratedColumn<int>(
-    'position',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _nameMeta = const VerificationMeta('name');
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_study_cards AS SELECT id FROM study_cards WHERE deleted = 0 AND note_id IN (SELECT id FROM notes WHERE deleted = 0) AND deck_id IN (SELECT id FROM visible_decks) AND template_id IN (SELECT id FROM visible_study_card_templates)',
+  };
   @override
-  late final GeneratedColumn<String> name = GeneratedColumn<String>(
-    'name',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
+  VisibleStudyCards get asDslTable => this;
   @override
-  late final GeneratedColumnWithTypeConverter<FieldType, String> type =
-      GeneratedColumn<String>(
-        'type',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<FieldType>($FieldDefinitionsTable.$convertertype);
-  @override
-  List<GeneratedColumn> get $columns => [
-    hlc,
-    deleted,
-    id,
-    noteTypeId,
-    position,
-    name,
-    type,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'field_definitions';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<FieldDefinitionRow> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('deleted')) {
-      context.handle(
-        _deletedMeta,
-        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
-      );
-    }
-    if (data.containsKey('position')) {
-      context.handle(
-        _positionMeta,
-        position.isAcceptableOrUnknown(data['position']!, _positionMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_positionMeta);
-    }
-    if (data.containsKey('name')) {
-      context.handle(
-        _nameMeta,
-        name.isAcceptableOrUnknown(data['name']!, _nameMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nameMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  FieldDefinitionRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+  VisibleStudyCard map(Map<String, dynamic> data, {String? tablePrefix}) {
     final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return FieldDefinitionRow(
-      hlc: $FieldDefinitionsTable.$converterhlc.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}hlc'],
-        )!,
-      ),
-      deleted: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}deleted'],
-      )!,
-      id: $FieldDefinitionsTable.$converterid.fromSql(
+    return VisibleStudyCard(
+      id: $StudyCardsTable.$converterid.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.blob,
           data['${effectivePrefix}id'],
         )!,
       ),
-      noteTypeId: $FieldDefinitionsTable.$converternoteTypeId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}note_type_id'],
-        )!,
-      ),
-      position: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}position'],
-      )!,
-      name: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}name'],
-      )!,
-      type: $FieldDefinitionsTable.$convertertype.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}type'],
-        )!,
-      ),
     );
   }
 
+  late final GeneratedColumnWithTypeConverter<StudyCardId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<StudyCardId>($StudyCardsTable.$converterid);
   @override
-  $FieldDefinitionsTable createAlias(String alias) {
-    return $FieldDefinitionsTable(attachedDatabase, alias);
+  VisibleStudyCards createAlias(String alias) {
+    return VisibleStudyCards(attachedDatabase, alias);
   }
 
-  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
-  static TypeConverter<FieldDefinitionId, Uint8List> $converterid =
-      fieldDefinitionIdConverter;
-  static TypeConverter<NoteTypeId, Uint8List> $converternoteTypeId =
-      noteTypeIdConverter;
-  static JsonTypeConverter2<FieldType, String, String> $convertertype =
-      const EnumNameConverter<FieldType>(FieldType.values);
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'study_cards',
+    'notes',
+    'study_card_templates',
+    'note_types',
+    'collections',
+    'decks',
+  };
 }
 
-class FieldDefinitionRow extends DataClass
-    implements Insertable<FieldDefinitionRow> {
-  final Hlc hlc;
-  final bool deleted;
-  final FieldDefinitionId id;
-  final NoteTypeId noteTypeId;
-  final int position;
-  final String name;
-  final FieldType type;
-  const FieldDefinitionRow({
-    required this.hlc,
-    required this.deleted,
-    required this.id,
-    required this.noteTypeId,
-    required this.position,
-    required this.name,
-    required this.type,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    {
-      map['hlc'] = Variable<String>(
-        $FieldDefinitionsTable.$converterhlc.toSql(hlc),
-      );
-    }
-    map['deleted'] = Variable<bool>(deleted);
-    {
-      map['id'] = Variable<Uint8List>(
-        $FieldDefinitionsTable.$converterid.toSql(id),
-      );
-    }
-    {
-      map['note_type_id'] = Variable<Uint8List>(
-        $FieldDefinitionsTable.$converternoteTypeId.toSql(noteTypeId),
-      );
-    }
-    map['position'] = Variable<int>(position);
-    map['name'] = Variable<String>(name);
-    {
-      map['type'] = Variable<String>(
-        $FieldDefinitionsTable.$convertertype.toSql(type),
-      );
-    }
-    return map;
-  }
-
-  FieldDefinitionsCompanion toCompanion(bool nullToAbsent) {
-    return FieldDefinitionsCompanion(
-      hlc: Value(hlc),
-      deleted: Value(deleted),
-      id: Value(id),
-      noteTypeId: Value(noteTypeId),
-      position: Value(position),
-      name: Value(name),
-      type: Value(type),
-    );
-  }
-
-  factory FieldDefinitionRow.fromJson(
+class VisibleNote extends DataClass {
+  final NoteId id;
+  const VisibleNote({required this.id});
+  factory VisibleNote.fromJson(
     Map<String, dynamic> json, {
     ValueSerializer? serializer,
   }) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return FieldDefinitionRow(
-      hlc: serializer.fromJson<Hlc>(json['hlc']),
-      deleted: serializer.fromJson<bool>(json['deleted']),
-      id: serializer.fromJson<FieldDefinitionId>(json['id']),
-      noteTypeId: serializer.fromJson<NoteTypeId>(json['noteTypeId']),
-      position: serializer.fromJson<int>(json['position']),
-      name: serializer.fromJson<String>(json['name']),
-      type: $FieldDefinitionsTable.$convertertype.fromJson(
-        serializer.fromJson<String>(json['type']),
-      ),
-    );
+    return VisibleNote(id: serializer.fromJson<NoteId>(json['id']));
   }
   @override
   Map<String, dynamic> toJson({ValueSerializer? serializer}) {
     serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'hlc': serializer.toJson<Hlc>(hlc),
-      'deleted': serializer.toJson<bool>(deleted),
-      'id': serializer.toJson<FieldDefinitionId>(id),
-      'noteTypeId': serializer.toJson<NoteTypeId>(noteTypeId),
-      'position': serializer.toJson<int>(position),
-      'name': serializer.toJson<String>(name),
-      'type': serializer.toJson<String>(
-        $FieldDefinitionsTable.$convertertype.toJson(type),
-      ),
-    };
+    return <String, dynamic>{'id': serializer.toJson<NoteId>(id)};
   }
 
-  FieldDefinitionRow copyWith({
-    Hlc? hlc,
-    bool? deleted,
-    FieldDefinitionId? id,
-    NoteTypeId? noteTypeId,
-    int? position,
-    String? name,
-    FieldType? type,
-  }) => FieldDefinitionRow(
-    hlc: hlc ?? this.hlc,
-    deleted: deleted ?? this.deleted,
-    id: id ?? this.id,
-    noteTypeId: noteTypeId ?? this.noteTypeId,
-    position: position ?? this.position,
-    name: name ?? this.name,
-    type: type ?? this.type,
-  );
-  FieldDefinitionRow copyWithCompanion(FieldDefinitionsCompanion data) {
-    return FieldDefinitionRow(
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-      deleted: data.deleted.present ? data.deleted.value : this.deleted,
-      id: data.id.present ? data.id.value : this.id,
-      noteTypeId: data.noteTypeId.present
-          ? data.noteTypeId.value
-          : this.noteTypeId,
-      position: data.position.present ? data.position.value : this.position,
-      name: data.name.present ? data.name.value : this.name,
-      type: data.type.present ? data.type.value : this.type,
-    );
-  }
-
+  VisibleNote copyWith({NoteId? id}) => VisibleNote(id: id ?? this.id);
   @override
   String toString() {
-    return (StringBuffer('FieldDefinitionRow(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('id: $id, ')
-          ..write('noteTypeId: $noteTypeId, ')
-          ..write('position: $position, ')
-          ..write('name: $name, ')
-          ..write('type: $type')
+    return (StringBuffer('VisibleNote(')
+          ..write('id: $id')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(hlc, deleted, id, noteTypeId, position, name, type);
+  int get hashCode => id.hashCode;
   @override
   bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is FieldDefinitionRow &&
-          other.hlc == this.hlc &&
-          other.deleted == this.deleted &&
-          other.id == this.id &&
-          other.noteTypeId == this.noteTypeId &&
-          other.position == this.position &&
-          other.name == this.name &&
-          other.type == this.type);
+      identical(this, other) || (other is VisibleNote && other.id == this.id);
 }
 
-class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
-  final Value<Hlc> hlc;
-  final Value<bool> deleted;
-  final Value<FieldDefinitionId> id;
-  final Value<NoteTypeId> noteTypeId;
-  final Value<int> position;
-  final Value<String> name;
-  final Value<FieldType> type;
-  final Value<int> rowid;
-  const FieldDefinitionsCompanion({
-    this.hlc = const Value.absent(),
-    this.deleted = const Value.absent(),
-    this.id = const Value.absent(),
-    this.noteTypeId = const Value.absent(),
-    this.position = const Value.absent(),
-    this.name = const Value.absent(),
-    this.type = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  FieldDefinitionsCompanion.insert({
-    required Hlc hlc,
-    this.deleted = const Value.absent(),
-    required FieldDefinitionId id,
-    required NoteTypeId noteTypeId,
-    required int position,
-    required String name,
-    required FieldType type,
-    this.rowid = const Value.absent(),
-  }) : hlc = Value(hlc),
-       id = Value(id),
-       noteTypeId = Value(noteTypeId),
-       position = Value(position),
-       name = Value(name),
-       type = Value(type);
-  static Insertable<FieldDefinitionRow> custom({
-    Expression<String>? hlc,
-    Expression<bool>? deleted,
-    Expression<Uint8List>? id,
-    Expression<Uint8List>? noteTypeId,
-    Expression<int>? position,
-    Expression<String>? name,
-    Expression<String>? type,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (hlc != null) 'hlc': hlc,
-      if (deleted != null) 'deleted': deleted,
-      if (id != null) 'id': id,
-      if (noteTypeId != null) 'note_type_id': noteTypeId,
-      if (position != null) 'position': position,
-      if (name != null) 'name': name,
-      if (type != null) 'type': type,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  FieldDefinitionsCompanion copyWith({
-    Value<Hlc>? hlc,
-    Value<bool>? deleted,
-    Value<FieldDefinitionId>? id,
-    Value<NoteTypeId>? noteTypeId,
-    Value<int>? position,
-    Value<String>? name,
-    Value<FieldType>? type,
-    Value<int>? rowid,
-  }) {
-    return FieldDefinitionsCompanion(
-      hlc: hlc ?? this.hlc,
-      deleted: deleted ?? this.deleted,
-      id: id ?? this.id,
-      noteTypeId: noteTypeId ?? this.noteTypeId,
-      position: position ?? this.position,
-      name: name ?? this.name,
-      type: type ?? this.type,
-      rowid: rowid ?? this.rowid,
+class VisibleNotes extends ViewInfo<VisibleNotes, VisibleNote>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisibleNotes(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [id];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_notes';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_notes AS SELECT id FROM notes WHERE deleted = 0 AND note_type_id IN (SELECT id FROM visible_note_types) AND(id IN (SELECT note_id FROM study_cards WHERE id IN (SELECT id FROM visible_study_cards)) OR id NOT IN (SELECT note_id FROM study_cards))',
+  };
+  @override
+  VisibleNotes get asDslTable => this;
+  @override
+  VisibleNote map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleNote(
+      id: $NotesTable.$converterid.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}id'],
+        )!,
+      ),
     );
   }
 
+  late final GeneratedColumnWithTypeConverter<NoteId, Uint8List> id =
+      GeneratedColumn<Uint8List>(
+        'id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<NoteId>($NotesTable.$converterid);
   @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(
-        $FieldDefinitionsTable.$converterhlc.toSql(hlc.value),
-      );
-    }
-    if (deleted.present) {
-      map['deleted'] = Variable<bool>(deleted.value);
-    }
-    if (id.present) {
-      map['id'] = Variable<Uint8List>(
-        $FieldDefinitionsTable.$converterid.toSql(id.value),
-      );
-    }
-    if (noteTypeId.present) {
-      map['note_type_id'] = Variable<Uint8List>(
-        $FieldDefinitionsTable.$converternoteTypeId.toSql(noteTypeId.value),
-      );
-    }
-    if (position.present) {
-      map['position'] = Variable<int>(position.value);
-    }
-    if (name.present) {
-      map['name'] = Variable<String>(name.value);
-    }
-    if (type.present) {
-      map['type'] = Variable<String>(
-        $FieldDefinitionsTable.$convertertype.toSql(type.value),
-      );
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
+  VisibleNotes createAlias(String alias) {
+    return VisibleNotes(attachedDatabase, alias);
   }
 
   @override
-  String toString() {
-    return (StringBuffer('FieldDefinitionsCompanion(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('id: $id, ')
-          ..write('noteTypeId: $noteTypeId, ')
-          ..write('position: $position, ')
-          ..write('name: $name, ')
-          ..write('type: $type, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'notes',
+    'study_cards',
+    'study_card_templates',
+    'note_types',
+    'collections',
+    'decks',
+  };
 }
 
 class $NoteFieldsTable extends NoteFields
@@ -4563,6 +4404,1214 @@ class NoteFieldsCompanion extends UpdateCompanion<NoteFieldRow> {
           ..write('noteId: $noteId, ')
           ..write('fieldId: $fieldId, ')
           ..write('value: $value, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class VisibleNoteField extends DataClass {
+  final NoteId noteId;
+  final FieldDefinitionId fieldId;
+  final String value;
+  const VisibleNoteField({
+    required this.noteId,
+    required this.fieldId,
+    required this.value,
+  });
+  factory VisibleNoteField.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleNoteField(
+      noteId: serializer.fromJson<NoteId>(json['note_id']),
+      fieldId: serializer.fromJson<FieldDefinitionId>(json['field_id']),
+      value: serializer.fromJson<String>(json['value']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'note_id': serializer.toJson<NoteId>(noteId),
+      'field_id': serializer.toJson<FieldDefinitionId>(fieldId),
+      'value': serializer.toJson<String>(value),
+    };
+  }
+
+  VisibleNoteField copyWith({
+    NoteId? noteId,
+    FieldDefinitionId? fieldId,
+    String? value,
+  }) => VisibleNoteField(
+    noteId: noteId ?? this.noteId,
+    fieldId: fieldId ?? this.fieldId,
+    value: value ?? this.value,
+  );
+  @override
+  String toString() {
+    return (StringBuffer('VisibleNoteField(')
+          ..write('noteId: $noteId, ')
+          ..write('fieldId: $fieldId, ')
+          ..write('value: $value')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(noteId, fieldId, value);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleNoteField &&
+          other.noteId == this.noteId &&
+          other.fieldId == this.fieldId &&
+          other.value == this.value);
+}
+
+class VisibleNoteFields extends ViewInfo<VisibleNoteFields, VisibleNoteField>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisibleNoteFields(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [noteId, fieldId, value];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_note_fields';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_note_fields AS SELECT note_id, field_id, value FROM note_fields WHERE deleted = 0 AND note_id IN (SELECT id FROM visible_notes) AND field_id IN (SELECT id FROM visible_field_definitions)',
+  };
+  @override
+  VisibleNoteFields get asDslTable => this;
+  @override
+  VisibleNoteField map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleNoteField(
+      noteId: $NoteFieldsTable.$converternoteId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}note_id'],
+        )!,
+      ),
+      fieldId: $NoteFieldsTable.$converterfieldId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}field_id'],
+        )!,
+      ),
+      value: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}value'],
+      )!,
+    );
+  }
+
+  late final GeneratedColumnWithTypeConverter<NoteId, Uint8List> noteId =
+      GeneratedColumn<Uint8List>(
+        'note_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<NoteId>($NoteFieldsTable.$converternoteId);
+  late final GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List>
+  fieldId = GeneratedColumn<Uint8List>(
+    'field_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+  ).withConverter<FieldDefinitionId>($NoteFieldsTable.$converterfieldId);
+  late final GeneratedColumn<String> value = GeneratedColumn<String>(
+    'value',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+  );
+  @override
+  VisibleNoteFields createAlias(String alias) {
+    return VisibleNoteFields(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'note_fields',
+    'field_definitions',
+    'note_types',
+    'collections',
+    'notes',
+    'study_cards',
+    'study_card_templates',
+    'decks',
+  };
+}
+
+class $NoteTagsTable extends NoteTags
+    with TableInfo<$NoteTagsTable, NoteTagRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $NoteTagsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($NoteTagsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
+  collectionId = GeneratedColumn<Uint8List>(
+    'collection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES collections (id)',
+    ),
+  ).withConverter<CollectionId>($NoteTagsTable.$convertercollectionId);
+  @override
+  late final GeneratedColumnWithTypeConverter<NoteId, Uint8List> noteId =
+      GeneratedColumn<Uint8List>(
+        'note_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+      ).withConverter<NoteId>($NoteTagsTable.$converternoteId);
+  @override
+  late final GeneratedColumnWithTypeConverter<TagId, Uint8List> tagId =
+      GeneratedColumn<Uint8List>(
+        'tag_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+      ).withConverter<TagId>($NoteTagsTable.$convertertagId);
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    collectionId,
+    noteId,
+    tagId,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'note_tags';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<NoteTagRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {noteId, tagId};
+  @override
+  NoteTagRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return NoteTagRow(
+      hlc: $NoteTagsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      collectionId: $NoteTagsTable.$convertercollectionId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}collection_id'],
+        )!,
+      ),
+      noteId: $NoteTagsTable.$converternoteId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}note_id'],
+        )!,
+      ),
+      tagId: $NoteTagsTable.$convertertagId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}tag_id'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $NoteTagsTable createAlias(String alias) {
+    return $NoteTagsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
+  static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
+      collectionIdConverter;
+  static TypeConverter<NoteId, Uint8List> $converternoteId = noteIdConverter;
+  static TypeConverter<TagId, Uint8List> $convertertagId = tagIdConverter;
+}
+
+class NoteTagRow extends DataClass implements Insertable<NoteTagRow> {
+  final Hlc hlc;
+  final bool deleted;
+  final CollectionId collectionId;
+  final NoteId noteId;
+  final TagId tagId;
+  const NoteTagRow({
+    required this.hlc,
+    required this.deleted,
+    required this.collectionId,
+    required this.noteId,
+    required this.tagId,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($NoteTagsTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
+    {
+      map['collection_id'] = Variable<Uint8List>(
+        $NoteTagsTable.$convertercollectionId.toSql(collectionId),
+      );
+    }
+    {
+      map['note_id'] = Variable<Uint8List>(
+        $NoteTagsTable.$converternoteId.toSql(noteId),
+      );
+    }
+    {
+      map['tag_id'] = Variable<Uint8List>(
+        $NoteTagsTable.$convertertagId.toSql(tagId),
+      );
+    }
+    return map;
+  }
+
+  NoteTagsCompanion toCompanion(bool nullToAbsent) {
+    return NoteTagsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      collectionId: Value(collectionId),
+      noteId: Value(noteId),
+      tagId: Value(tagId),
+    );
+  }
+
+  factory NoteTagRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return NoteTagRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
+      noteId: serializer.fromJson<NoteId>(json['noteId']),
+      tagId: serializer.fromJson<TagId>(json['tagId']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
+      'collectionId': serializer.toJson<CollectionId>(collectionId),
+      'noteId': serializer.toJson<NoteId>(noteId),
+      'tagId': serializer.toJson<TagId>(tagId),
+    };
+  }
+
+  NoteTagRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
+    CollectionId? collectionId,
+    NoteId? noteId,
+    TagId? tagId,
+  }) => NoteTagRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    collectionId: collectionId ?? this.collectionId,
+    noteId: noteId ?? this.noteId,
+    tagId: tagId ?? this.tagId,
+  );
+  NoteTagRow copyWithCompanion(NoteTagsCompanion data) {
+    return NoteTagRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      noteId: data.noteId.present ? data.noteId.value : this.noteId,
+      tagId: data.tagId.present ? data.tagId.value : this.tagId,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NoteTagRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('noteId: $noteId, ')
+          ..write('tagId: $tagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(hlc, deleted, collectionId, noteId, tagId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is NoteTagRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
+          other.collectionId == this.collectionId &&
+          other.noteId == this.noteId &&
+          other.tagId == this.tagId);
+}
+
+class NoteTagsCompanion extends UpdateCompanion<NoteTagRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
+  final Value<CollectionId> collectionId;
+  final Value<NoteId> noteId;
+  final Value<TagId> tagId;
+  final Value<int> rowid;
+  const NoteTagsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.collectionId = const Value.absent(),
+    this.noteId = const Value.absent(),
+    this.tagId = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  NoteTagsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
+    required CollectionId collectionId,
+    required NoteId noteId,
+    required TagId tagId,
+    this.rowid = const Value.absent(),
+  }) : hlc = Value(hlc),
+       collectionId = Value(collectionId),
+       noteId = Value(noteId),
+       tagId = Value(tagId);
+  static Insertable<NoteTagRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
+    Expression<Uint8List>? collectionId,
+    Expression<Uint8List>? noteId,
+    Expression<Uint8List>? tagId,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
+      if (collectionId != null) 'collection_id': collectionId,
+      if (noteId != null) 'note_id': noteId,
+      if (tagId != null) 'tag_id': tagId,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  NoteTagsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
+    Value<CollectionId>? collectionId,
+    Value<NoteId>? noteId,
+    Value<TagId>? tagId,
+    Value<int>? rowid,
+  }) {
+    return NoteTagsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
+      collectionId: collectionId ?? this.collectionId,
+      noteId: noteId ?? this.noteId,
+      tagId: tagId ?? this.tagId,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $NoteTagsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (collectionId.present) {
+      map['collection_id'] = Variable<Uint8List>(
+        $NoteTagsTable.$convertercollectionId.toSql(collectionId.value),
+      );
+    }
+    if (noteId.present) {
+      map['note_id'] = Variable<Uint8List>(
+        $NoteTagsTable.$converternoteId.toSql(noteId.value),
+      );
+    }
+    if (tagId.present) {
+      map['tag_id'] = Variable<Uint8List>(
+        $NoteTagsTable.$convertertagId.toSql(tagId.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('NoteTagsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('noteId: $noteId, ')
+          ..write('tagId: $tagId, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class VisibleNoteTag extends DataClass {
+  final NoteId noteId;
+  final TagId tagId;
+  const VisibleNoteTag({required this.noteId, required this.tagId});
+  factory VisibleNoteTag.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleNoteTag(
+      noteId: serializer.fromJson<NoteId>(json['note_id']),
+      tagId: serializer.fromJson<TagId>(json['tag_id']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'note_id': serializer.toJson<NoteId>(noteId),
+      'tag_id': serializer.toJson<TagId>(tagId),
+    };
+  }
+
+  VisibleNoteTag copyWith({NoteId? noteId, TagId? tagId}) =>
+      VisibleNoteTag(noteId: noteId ?? this.noteId, tagId: tagId ?? this.tagId);
+  @override
+  String toString() {
+    return (StringBuffer('VisibleNoteTag(')
+          ..write('noteId: $noteId, ')
+          ..write('tagId: $tagId')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(noteId, tagId);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleNoteTag &&
+          other.noteId == this.noteId &&
+          other.tagId == this.tagId);
+}
+
+class VisibleNoteTags extends ViewInfo<VisibleNoteTags, VisibleNoteTag>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisibleNoteTags(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [noteId, tagId];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_note_tags';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_note_tags AS SELECT note_id, tag_id FROM note_tags WHERE deleted = 0 AND note_id IN (SELECT id FROM visible_notes) AND tag_id IN (SELECT id FROM visible_tags)',
+  };
+  @override
+  VisibleNoteTags get asDslTable => this;
+  @override
+  VisibleNoteTag map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleNoteTag(
+      noteId: $NoteTagsTable.$converternoteId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}note_id'],
+        )!,
+      ),
+      tagId: $NoteTagsTable.$convertertagId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}tag_id'],
+        )!,
+      ),
+    );
+  }
+
+  late final GeneratedColumnWithTypeConverter<NoteId, Uint8List> noteId =
+      GeneratedColumn<Uint8List>(
+        'note_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<NoteId>($NoteTagsTable.$converternoteId);
+  late final GeneratedColumnWithTypeConverter<TagId, Uint8List> tagId =
+      GeneratedColumn<Uint8List>(
+        'tag_id',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<TagId>($NoteTagsTable.$convertertagId);
+  @override
+  VisibleNoteTags createAlias(String alias) {
+    return VisibleNoteTags(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {
+    'note_tags',
+    'tags',
+    'collections',
+    'notes',
+    'study_cards',
+    'study_card_templates',
+    'note_types',
+    'decks',
+  };
+}
+
+class $DeviceTable extends Device with TableInfo<$DeviceTable, DeviceRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $DeviceTable(this.attachedDatabase, [this._alias]);
+  static const VerificationMeta _idMeta = const VerificationMeta('id');
+  @override
+  late final GeneratedColumn<int> id = GeneratedColumn<int>(
+    'id',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _nodeMeta = const VerificationMeta('node');
+  @override
+  late final GeneratedColumn<String> node = GeneratedColumn<String>(
+    'node',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc?, String> lastHlc =
+      GeneratedColumn<String>(
+        'last_hlc',
+        aliasedName,
+        true,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+      ).withConverter<Hlc?>($DeviceTable.$converterlastHlcn);
+  @override
+  List<GeneratedColumn> get $columns => [id, node, lastHlc];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'device';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<DeviceRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('id')) {
+      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
+    }
+    if (data.containsKey('node')) {
+      context.handle(
+        _nodeMeta,
+        node.isAcceptableOrUnknown(data['node']!, _nodeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_nodeMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {id};
+  @override
+  DeviceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return DeviceRow(
+      id: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}id'],
+      )!,
+      node: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}node'],
+      )!,
+      lastHlc: $DeviceTable.$converterlastHlcn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}last_hlc'],
+        ),
+      ),
+    );
+  }
+
+  @override
+  $DeviceTable createAlias(String alias) {
+    return $DeviceTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Hlc, String> $converterlastHlc = const HlcConverter();
+  static TypeConverter<Hlc?, String?> $converterlastHlcn =
+      NullAwareTypeConverter.wrap($converterlastHlc);
+}
+
+class DeviceRow extends DataClass implements Insertable<DeviceRow> {
+  final int id;
+
+  /// The node ID in this device's HLC timestamps.
+  final String node;
+
+  /// The latest timestamp issued, so the clock never goes backwards across
+  /// restarts.
+  final Hlc? lastHlc;
+  const DeviceRow({required this.id, required this.node, this.lastHlc});
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    map['id'] = Variable<int>(id);
+    map['node'] = Variable<String>(node);
+    if (!nullToAbsent || lastHlc != null) {
+      map['last_hlc'] = Variable<String>(
+        $DeviceTable.$converterlastHlcn.toSql(lastHlc),
+      );
+    }
+    return map;
+  }
+
+  DeviceCompanion toCompanion(bool nullToAbsent) {
+    return DeviceCompanion(
+      id: Value(id),
+      node: Value(node),
+      lastHlc: lastHlc == null && nullToAbsent
+          ? const Value.absent()
+          : Value(lastHlc),
+    );
+  }
+
+  factory DeviceRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return DeviceRow(
+      id: serializer.fromJson<int>(json['id']),
+      node: serializer.fromJson<String>(json['node']),
+      lastHlc: serializer.fromJson<Hlc?>(json['lastHlc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'id': serializer.toJson<int>(id),
+      'node': serializer.toJson<String>(node),
+      'lastHlc': serializer.toJson<Hlc?>(lastHlc),
+    };
+  }
+
+  DeviceRow copyWith({
+    int? id,
+    String? node,
+    Value<Hlc?> lastHlc = const Value.absent(),
+  }) => DeviceRow(
+    id: id ?? this.id,
+    node: node ?? this.node,
+    lastHlc: lastHlc.present ? lastHlc.value : this.lastHlc,
+  );
+  DeviceRow copyWithCompanion(DeviceCompanion data) {
+    return DeviceRow(
+      id: data.id.present ? data.id.value : this.id,
+      node: data.node.present ? data.node.value : this.node,
+      lastHlc: data.lastHlc.present ? data.lastHlc.value : this.lastHlc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeviceRow(')
+          ..write('id: $id, ')
+          ..write('node: $node, ')
+          ..write('lastHlc: $lastHlc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(id, node, lastHlc);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is DeviceRow &&
+          other.id == this.id &&
+          other.node == this.node &&
+          other.lastHlc == this.lastHlc);
+}
+
+class DeviceCompanion extends UpdateCompanion<DeviceRow> {
+  final Value<int> id;
+  final Value<String> node;
+  final Value<Hlc?> lastHlc;
+  const DeviceCompanion({
+    this.id = const Value.absent(),
+    this.node = const Value.absent(),
+    this.lastHlc = const Value.absent(),
+  });
+  DeviceCompanion.insert({
+    this.id = const Value.absent(),
+    required String node,
+    this.lastHlc = const Value.absent(),
+  }) : node = Value(node);
+  static Insertable<DeviceRow> custom({
+    Expression<int>? id,
+    Expression<String>? node,
+    Expression<String>? lastHlc,
+  }) {
+    return RawValuesInsertable({
+      if (id != null) 'id': id,
+      if (node != null) 'node': node,
+      if (lastHlc != null) 'last_hlc': lastHlc,
+    });
+  }
+
+  DeviceCompanion copyWith({
+    Value<int>? id,
+    Value<String>? node,
+    Value<Hlc?>? lastHlc,
+  }) {
+    return DeviceCompanion(
+      id: id ?? this.id,
+      node: node ?? this.node,
+      lastHlc: lastHlc ?? this.lastHlc,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (id.present) {
+      map['id'] = Variable<int>(id.value);
+    }
+    if (node.present) {
+      map['node'] = Variable<String>(node.value);
+    }
+    if (lastHlc.present) {
+      map['last_hlc'] = Variable<String>(
+        $DeviceTable.$converterlastHlcn.toSql(lastHlc.value),
+      );
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('DeviceCompanion(')
+          ..write('id: $id, ')
+          ..write('node: $node, ')
+          ..write('lastHlc: $lastHlc')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class $OutboxTable extends Outbox with TableInfo<$OutboxTable, OutboxRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $OutboxTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
+  collectionId = GeneratedColumn<Uint8List>(
+    'collection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  ).withConverter<CollectionId>($OutboxTable.$convertercollectionId);
+  static const VerificationMeta _entityTableMeta = const VerificationMeta(
+    'entityTable',
+  );
+  @override
+  late final GeneratedColumn<String> entityTable = GeneratedColumn<String>(
+    'entity_table',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _entityKeyMeta = const VerificationMeta(
+    'entityKey',
+  );
+  @override
+  late final GeneratedColumn<Uint8List> entityKey = GeneratedColumn<Uint8List>(
+    'entity_key',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($OutboxTable.$converterhlc);
+  @override
+  List<GeneratedColumn> get $columns => [
+    collectionId,
+    entityTable,
+    entityKey,
+    hlc,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'outbox';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<OutboxRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('entity_table')) {
+      context.handle(
+        _entityTableMeta,
+        entityTable.isAcceptableOrUnknown(
+          data['entity_table']!,
+          _entityTableMeta,
+        ),
+      );
+    } else if (isInserting) {
+      context.missing(_entityTableMeta);
+    }
+    if (data.containsKey('entity_key')) {
+      context.handle(
+        _entityKeyMeta,
+        entityKey.isAcceptableOrUnknown(data['entity_key']!, _entityKeyMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_entityKeyMeta);
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {entityTable, entityKey};
+  @override
+  OutboxRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return OutboxRow(
+      collectionId: $OutboxTable.$convertercollectionId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}collection_id'],
+        )!,
+      ),
+      entityTable: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}entity_table'],
+      )!,
+      entityKey: attachedDatabase.typeMapping.read(
+        DriftSqlType.blob,
+        data['${effectivePrefix}entity_key'],
+      )!,
+      hlc: $OutboxTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+    );
+  }
+
+  @override
+  $OutboxTable createAlias(String alias) {
+    return $OutboxTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
+      collectionIdConverter;
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
+}
+
+class OutboxRow extends DataClass implements Insertable<OutboxRow> {
+  final CollectionId collectionId;
+  final String entityTable;
+
+  /// The entity's primary key; composite keys are their parts' bytes
+  /// concatenated.
+  final Uint8List entityKey;
+  final Hlc hlc;
+  const OutboxRow({
+    required this.collectionId,
+    required this.entityTable,
+    required this.entityKey,
+    required this.hlc,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['collection_id'] = Variable<Uint8List>(
+        $OutboxTable.$convertercollectionId.toSql(collectionId),
+      );
+    }
+    map['entity_table'] = Variable<String>(entityTable);
+    map['entity_key'] = Variable<Uint8List>(entityKey);
+    {
+      map['hlc'] = Variable<String>($OutboxTable.$converterhlc.toSql(hlc));
+    }
+    return map;
+  }
+
+  OutboxCompanion toCompanion(bool nullToAbsent) {
+    return OutboxCompanion(
+      collectionId: Value(collectionId),
+      entityTable: Value(entityTable),
+      entityKey: Value(entityKey),
+      hlc: Value(hlc),
+    );
+  }
+
+  factory OutboxRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return OutboxRow(
+      collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
+      entityTable: serializer.fromJson<String>(json['entityTable']),
+      entityKey: serializer.fromJson<Uint8List>(json['entityKey']),
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'collectionId': serializer.toJson<CollectionId>(collectionId),
+      'entityTable': serializer.toJson<String>(entityTable),
+      'entityKey': serializer.toJson<Uint8List>(entityKey),
+      'hlc': serializer.toJson<Hlc>(hlc),
+    };
+  }
+
+  OutboxRow copyWith({
+    CollectionId? collectionId,
+    String? entityTable,
+    Uint8List? entityKey,
+    Hlc? hlc,
+  }) => OutboxRow(
+    collectionId: collectionId ?? this.collectionId,
+    entityTable: entityTable ?? this.entityTable,
+    entityKey: entityKey ?? this.entityKey,
+    hlc: hlc ?? this.hlc,
+  );
+  OutboxRow copyWithCompanion(OutboxCompanion data) {
+    return OutboxRow(
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      entityTable: data.entityTable.present
+          ? data.entityTable.value
+          : this.entityTable,
+      entityKey: data.entityKey.present ? data.entityKey.value : this.entityKey,
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxRow(')
+          ..write('collectionId: $collectionId, ')
+          ..write('entityTable: $entityTable, ')
+          ..write('entityKey: $entityKey, ')
+          ..write('hlc: $hlc')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    collectionId,
+    entityTable,
+    $driftBlobEquality.hash(entityKey),
+    hlc,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is OutboxRow &&
+          other.collectionId == this.collectionId &&
+          other.entityTable == this.entityTable &&
+          $driftBlobEquality.equals(other.entityKey, this.entityKey) &&
+          other.hlc == this.hlc);
+}
+
+class OutboxCompanion extends UpdateCompanion<OutboxRow> {
+  final Value<CollectionId> collectionId;
+  final Value<String> entityTable;
+  final Value<Uint8List> entityKey;
+  final Value<Hlc> hlc;
+  final Value<int> rowid;
+  const OutboxCompanion({
+    this.collectionId = const Value.absent(),
+    this.entityTable = const Value.absent(),
+    this.entityKey = const Value.absent(),
+    this.hlc = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  OutboxCompanion.insert({
+    required CollectionId collectionId,
+    required String entityTable,
+    required Uint8List entityKey,
+    required Hlc hlc,
+    this.rowid = const Value.absent(),
+  }) : collectionId = Value(collectionId),
+       entityTable = Value(entityTable),
+       entityKey = Value(entityKey),
+       hlc = Value(hlc);
+  static Insertable<OutboxRow> custom({
+    Expression<Uint8List>? collectionId,
+    Expression<String>? entityTable,
+    Expression<Uint8List>? entityKey,
+    Expression<String>? hlc,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (collectionId != null) 'collection_id': collectionId,
+      if (entityTable != null) 'entity_table': entityTable,
+      if (entityKey != null) 'entity_key': entityKey,
+      if (hlc != null) 'hlc': hlc,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  OutboxCompanion copyWith({
+    Value<CollectionId>? collectionId,
+    Value<String>? entityTable,
+    Value<Uint8List>? entityKey,
+    Value<Hlc>? hlc,
+    Value<int>? rowid,
+  }) {
+    return OutboxCompanion(
+      collectionId: collectionId ?? this.collectionId,
+      entityTable: entityTable ?? this.entityTable,
+      entityKey: entityKey ?? this.entityKey,
+      hlc: hlc ?? this.hlc,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (collectionId.present) {
+      map['collection_id'] = Variable<Uint8List>(
+        $OutboxTable.$convertercollectionId.toSql(collectionId.value),
+      );
+    }
+    if (entityTable.present) {
+      map['entity_table'] = Variable<String>(entityTable.value);
+    }
+    if (entityKey.present) {
+      map['entity_key'] = Variable<Uint8List>(entityKey.value);
+    }
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $OutboxTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('OutboxCompanion(')
+          ..write('collectionId: $collectionId, ')
+          ..write('entityTable: $entityTable, ')
+          ..write('entityKey: $entityKey, ')
+          ..write('hlc: $hlc, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5375,589 +6424,6 @@ class ReviewEventsCompanion extends UpdateCompanion<ReviewEventRow> {
   }
 }
 
-class $DeviceTable extends Device with TableInfo<$DeviceTable, DeviceRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $DeviceTable(this.attachedDatabase, [this._alias]);
-  static const VerificationMeta _idMeta = const VerificationMeta('id');
-  @override
-  late final GeneratedColumn<int> id = GeneratedColumn<int>(
-    'id',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: false,
-  );
-  static const VerificationMeta _nodeMeta = const VerificationMeta('node');
-  @override
-  late final GeneratedColumn<String> node = GeneratedColumn<String>(
-    'node',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<Hlc?, String> lastHlc =
-      GeneratedColumn<String>(
-        'last_hlc',
-        aliasedName,
-        true,
-        type: DriftSqlType.string,
-        requiredDuringInsert: false,
-      ).withConverter<Hlc?>($DeviceTable.$converterlastHlcn);
-  @override
-  List<GeneratedColumn> get $columns => [id, node, lastHlc];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'device';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<DeviceRow> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('id')) {
-      context.handle(_idMeta, id.isAcceptableOrUnknown(data['id']!, _idMeta));
-    }
-    if (data.containsKey('node')) {
-      context.handle(
-        _nodeMeta,
-        node.isAcceptableOrUnknown(data['node']!, _nodeMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_nodeMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {id};
-  @override
-  DeviceRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return DeviceRow(
-      id: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}id'],
-      )!,
-      node: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}node'],
-      )!,
-      lastHlc: $DeviceTable.$converterlastHlcn.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}last_hlc'],
-        ),
-      ),
-    );
-  }
-
-  @override
-  $DeviceTable createAlias(String alias) {
-    return $DeviceTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<Hlc, String> $converterlastHlc = const HlcConverter();
-  static TypeConverter<Hlc?, String?> $converterlastHlcn =
-      NullAwareTypeConverter.wrap($converterlastHlc);
-}
-
-class DeviceRow extends DataClass implements Insertable<DeviceRow> {
-  final int id;
-
-  /// The node ID in this device's HLC timestamps.
-  final String node;
-
-  /// The latest timestamp issued, so the clock never goes backwards across
-  /// restarts.
-  final Hlc? lastHlc;
-  const DeviceRow({required this.id, required this.node, this.lastHlc});
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    map['id'] = Variable<int>(id);
-    map['node'] = Variable<String>(node);
-    if (!nullToAbsent || lastHlc != null) {
-      map['last_hlc'] = Variable<String>(
-        $DeviceTable.$converterlastHlcn.toSql(lastHlc),
-      );
-    }
-    return map;
-  }
-
-  DeviceCompanion toCompanion(bool nullToAbsent) {
-    return DeviceCompanion(
-      id: Value(id),
-      node: Value(node),
-      lastHlc: lastHlc == null && nullToAbsent
-          ? const Value.absent()
-          : Value(lastHlc),
-    );
-  }
-
-  factory DeviceRow.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return DeviceRow(
-      id: serializer.fromJson<int>(json['id']),
-      node: serializer.fromJson<String>(json['node']),
-      lastHlc: serializer.fromJson<Hlc?>(json['lastHlc']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'id': serializer.toJson<int>(id),
-      'node': serializer.toJson<String>(node),
-      'lastHlc': serializer.toJson<Hlc?>(lastHlc),
-    };
-  }
-
-  DeviceRow copyWith({
-    int? id,
-    String? node,
-    Value<Hlc?> lastHlc = const Value.absent(),
-  }) => DeviceRow(
-    id: id ?? this.id,
-    node: node ?? this.node,
-    lastHlc: lastHlc.present ? lastHlc.value : this.lastHlc,
-  );
-  DeviceRow copyWithCompanion(DeviceCompanion data) {
-    return DeviceRow(
-      id: data.id.present ? data.id.value : this.id,
-      node: data.node.present ? data.node.value : this.node,
-      lastHlc: data.lastHlc.present ? data.lastHlc.value : this.lastHlc,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('DeviceRow(')
-          ..write('id: $id, ')
-          ..write('node: $node, ')
-          ..write('lastHlc: $lastHlc')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(id, node, lastHlc);
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is DeviceRow &&
-          other.id == this.id &&
-          other.node == this.node &&
-          other.lastHlc == this.lastHlc);
-}
-
-class DeviceCompanion extends UpdateCompanion<DeviceRow> {
-  final Value<int> id;
-  final Value<String> node;
-  final Value<Hlc?> lastHlc;
-  const DeviceCompanion({
-    this.id = const Value.absent(),
-    this.node = const Value.absent(),
-    this.lastHlc = const Value.absent(),
-  });
-  DeviceCompanion.insert({
-    this.id = const Value.absent(),
-    required String node,
-    this.lastHlc = const Value.absent(),
-  }) : node = Value(node);
-  static Insertable<DeviceRow> custom({
-    Expression<int>? id,
-    Expression<String>? node,
-    Expression<String>? lastHlc,
-  }) {
-    return RawValuesInsertable({
-      if (id != null) 'id': id,
-      if (node != null) 'node': node,
-      if (lastHlc != null) 'last_hlc': lastHlc,
-    });
-  }
-
-  DeviceCompanion copyWith({
-    Value<int>? id,
-    Value<String>? node,
-    Value<Hlc?>? lastHlc,
-  }) {
-    return DeviceCompanion(
-      id: id ?? this.id,
-      node: node ?? this.node,
-      lastHlc: lastHlc ?? this.lastHlc,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (id.present) {
-      map['id'] = Variable<int>(id.value);
-    }
-    if (node.present) {
-      map['node'] = Variable<String>(node.value);
-    }
-    if (lastHlc.present) {
-      map['last_hlc'] = Variable<String>(
-        $DeviceTable.$converterlastHlcn.toSql(lastHlc.value),
-      );
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('DeviceCompanion(')
-          ..write('id: $id, ')
-          ..write('node: $node, ')
-          ..write('lastHlc: $lastHlc')
-          ..write(')'))
-        .toString();
-  }
-}
-
-class $OutboxTable extends Outbox with TableInfo<$OutboxTable, OutboxRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $OutboxTable(this.attachedDatabase, [this._alias]);
-  @override
-  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
-  collectionId = GeneratedColumn<Uint8List>(
-    'collection_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-  ).withConverter<CollectionId>($OutboxTable.$convertercollectionId);
-  static const VerificationMeta _entityTableMeta = const VerificationMeta(
-    'entityTable',
-  );
-  @override
-  late final GeneratedColumn<String> entityTable = GeneratedColumn<String>(
-    'entity_table',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _entityKeyMeta = const VerificationMeta(
-    'entityKey',
-  );
-  @override
-  late final GeneratedColumn<Uint8List> entityKey = GeneratedColumn<Uint8List>(
-    'entity_key',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
-      GeneratedColumn<String>(
-        'hlc',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<Hlc>($OutboxTable.$converterhlc);
-  @override
-  List<GeneratedColumn> get $columns => [
-    collectionId,
-    entityTable,
-    entityKey,
-    hlc,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'outbox';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<OutboxRow> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('entity_table')) {
-      context.handle(
-        _entityTableMeta,
-        entityTable.isAcceptableOrUnknown(
-          data['entity_table']!,
-          _entityTableMeta,
-        ),
-      );
-    } else if (isInserting) {
-      context.missing(_entityTableMeta);
-    }
-    if (data.containsKey('entity_key')) {
-      context.handle(
-        _entityKeyMeta,
-        entityKey.isAcceptableOrUnknown(data['entity_key']!, _entityKeyMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_entityKeyMeta);
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {entityTable, entityKey};
-  @override
-  OutboxRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return OutboxRow(
-      collectionId: $OutboxTable.$convertercollectionId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}collection_id'],
-        )!,
-      ),
-      entityTable: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}entity_table'],
-      )!,
-      entityKey: attachedDatabase.typeMapping.read(
-        DriftSqlType.blob,
-        data['${effectivePrefix}entity_key'],
-      )!,
-      hlc: $OutboxTable.$converterhlc.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}hlc'],
-        )!,
-      ),
-    );
-  }
-
-  @override
-  $OutboxTable createAlias(String alias) {
-    return $OutboxTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
-      collectionIdConverter;
-  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
-}
-
-class OutboxRow extends DataClass implements Insertable<OutboxRow> {
-  final CollectionId collectionId;
-  final String entityTable;
-
-  /// The entity's primary key; composite keys are their parts' bytes
-  /// concatenated.
-  final Uint8List entityKey;
-  final Hlc hlc;
-  const OutboxRow({
-    required this.collectionId,
-    required this.entityTable,
-    required this.entityKey,
-    required this.hlc,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    {
-      map['collection_id'] = Variable<Uint8List>(
-        $OutboxTable.$convertercollectionId.toSql(collectionId),
-      );
-    }
-    map['entity_table'] = Variable<String>(entityTable);
-    map['entity_key'] = Variable<Uint8List>(entityKey);
-    {
-      map['hlc'] = Variable<String>($OutboxTable.$converterhlc.toSql(hlc));
-    }
-    return map;
-  }
-
-  OutboxCompanion toCompanion(bool nullToAbsent) {
-    return OutboxCompanion(
-      collectionId: Value(collectionId),
-      entityTable: Value(entityTable),
-      entityKey: Value(entityKey),
-      hlc: Value(hlc),
-    );
-  }
-
-  factory OutboxRow.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return OutboxRow(
-      collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
-      entityTable: serializer.fromJson<String>(json['entityTable']),
-      entityKey: serializer.fromJson<Uint8List>(json['entityKey']),
-      hlc: serializer.fromJson<Hlc>(json['hlc']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'collectionId': serializer.toJson<CollectionId>(collectionId),
-      'entityTable': serializer.toJson<String>(entityTable),
-      'entityKey': serializer.toJson<Uint8List>(entityKey),
-      'hlc': serializer.toJson<Hlc>(hlc),
-    };
-  }
-
-  OutboxRow copyWith({
-    CollectionId? collectionId,
-    String? entityTable,
-    Uint8List? entityKey,
-    Hlc? hlc,
-  }) => OutboxRow(
-    collectionId: collectionId ?? this.collectionId,
-    entityTable: entityTable ?? this.entityTable,
-    entityKey: entityKey ?? this.entityKey,
-    hlc: hlc ?? this.hlc,
-  );
-  OutboxRow copyWithCompanion(OutboxCompanion data) {
-    return OutboxRow(
-      collectionId: data.collectionId.present
-          ? data.collectionId.value
-          : this.collectionId,
-      entityTable: data.entityTable.present
-          ? data.entityTable.value
-          : this.entityTable,
-      entityKey: data.entityKey.present ? data.entityKey.value : this.entityKey,
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('OutboxRow(')
-          ..write('collectionId: $collectionId, ')
-          ..write('entityTable: $entityTable, ')
-          ..write('entityKey: $entityKey, ')
-          ..write('hlc: $hlc')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    collectionId,
-    entityTable,
-    $driftBlobEquality.hash(entityKey),
-    hlc,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is OutboxRow &&
-          other.collectionId == this.collectionId &&
-          other.entityTable == this.entityTable &&
-          $driftBlobEquality.equals(other.entityKey, this.entityKey) &&
-          other.hlc == this.hlc);
-}
-
-class OutboxCompanion extends UpdateCompanion<OutboxRow> {
-  final Value<CollectionId> collectionId;
-  final Value<String> entityTable;
-  final Value<Uint8List> entityKey;
-  final Value<Hlc> hlc;
-  final Value<int> rowid;
-  const OutboxCompanion({
-    this.collectionId = const Value.absent(),
-    this.entityTable = const Value.absent(),
-    this.entityKey = const Value.absent(),
-    this.hlc = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  OutboxCompanion.insert({
-    required CollectionId collectionId,
-    required String entityTable,
-    required Uint8List entityKey,
-    required Hlc hlc,
-    this.rowid = const Value.absent(),
-  }) : collectionId = Value(collectionId),
-       entityTable = Value(entityTable),
-       entityKey = Value(entityKey),
-       hlc = Value(hlc);
-  static Insertable<OutboxRow> custom({
-    Expression<Uint8List>? collectionId,
-    Expression<String>? entityTable,
-    Expression<Uint8List>? entityKey,
-    Expression<String>? hlc,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (collectionId != null) 'collection_id': collectionId,
-      if (entityTable != null) 'entity_table': entityTable,
-      if (entityKey != null) 'entity_key': entityKey,
-      if (hlc != null) 'hlc': hlc,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  OutboxCompanion copyWith({
-    Value<CollectionId>? collectionId,
-    Value<String>? entityTable,
-    Value<Uint8List>? entityKey,
-    Value<Hlc>? hlc,
-    Value<int>? rowid,
-  }) {
-    return OutboxCompanion(
-      collectionId: collectionId ?? this.collectionId,
-      entityTable: entityTable ?? this.entityTable,
-      entityKey: entityKey ?? this.entityKey,
-      hlc: hlc ?? this.hlc,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (collectionId.present) {
-      map['collection_id'] = Variable<Uint8List>(
-        $OutboxTable.$convertercollectionId.toSql(collectionId.value),
-      );
-    }
-    if (entityTable.present) {
-      map['entity_table'] = Variable<String>(entityTable.value);
-    }
-    if (entityKey.present) {
-      map['entity_key'] = Variable<Uint8List>(entityKey.value);
-    }
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(
-        $OutboxTable.$converterhlc.toSql(hlc.value),
-      );
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('OutboxCompanion(')
-          ..write('collectionId: $collectionId, ')
-          ..write('entityTable: $entityTable, ')
-          ..write('entityKey: $entityKey, ')
-          ..write('hlc: $hlc, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 class $SchedulingStatesTable extends SchedulingStates
     with TableInfo<$SchedulingStatesTable, SchedulingStateRow> {
   @override
@@ -6544,100 +7010,513 @@ class SchedulingStatesCompanion extends UpdateCompanion<SchedulingStateRow> {
   }
 }
 
+class $MediaAssetsTable extends MediaAssets
+    with TableInfo<$MediaAssetsTable, MediaAssetRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MediaAssetsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($MediaAssetsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
+  collectionId = GeneratedColumn<Uint8List>(
+    'collection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES collections (id)',
+    ),
+  ).withConverter<CollectionId>($MediaAssetsTable.$convertercollectionId);
+  @override
+  late final GeneratedColumnWithTypeConverter<ContentHash, Uint8List> hash =
+      GeneratedColumn<Uint8List>(
+        'hash',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+      ).withConverter<ContentHash>($MediaAssetsTable.$converterhash);
+  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
+    'mimeType',
+  );
+  @override
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sizeBytesMeta = const VerificationMeta(
+    'sizeBytes',
+  );
+  @override
+  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
+    'size_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originalNameMeta = const VerificationMeta(
+    'originalName',
+  );
+  @override
+  late final GeneratedColumn<String> originalName = GeneratedColumn<String>(
+    'original_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    collectionId,
+    hash,
+    mimeType,
+    sizeBytes,
+    originalName,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'media_assets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MediaAssetRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(
+        _mimeTypeMeta,
+        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mimeTypeMeta);
+    }
+    if (data.containsKey('size_bytes')) {
+      context.handle(
+        _sizeBytesMeta,
+        sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sizeBytesMeta);
+    }
+    if (data.containsKey('original_name')) {
+      context.handle(
+        _originalNameMeta,
+        originalName.isAcceptableOrUnknown(
+          data['original_name']!,
+          _originalNameMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {collectionId, hash};
+  @override
+  MediaAssetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MediaAssetRow(
+      hlc: $MediaAssetsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      collectionId: $MediaAssetsTable.$convertercollectionId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}collection_id'],
+        )!,
+      ),
+      hash: $MediaAssetsTable.$converterhash.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}hash'],
+        )!,
+      ),
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      )!,
+      sizeBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size_bytes'],
+      )!,
+      originalName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}original_name'],
+      ),
+    );
+  }
+
+  @override
+  $MediaAssetsTable createAlias(String alias) {
+    return $MediaAssetsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
+  static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
+      collectionIdConverter;
+  static TypeConverter<ContentHash, Uint8List> $converterhash =
+      const ContentHashConverter();
+}
+
+class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
+  final Hlc hlc;
+  final bool deleted;
+  final CollectionId collectionId;
+  final ContentHash hash;
+  final String mimeType;
+  final int sizeBytes;
+  final String? originalName;
+  const MediaAssetRow({
+    required this.hlc,
+    required this.deleted,
+    required this.collectionId,
+    required this.hash,
+    required this.mimeType,
+    required this.sizeBytes,
+    this.originalName,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($MediaAssetsTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
+    {
+      map['collection_id'] = Variable<Uint8List>(
+        $MediaAssetsTable.$convertercollectionId.toSql(collectionId),
+      );
+    }
+    {
+      map['hash'] = Variable<Uint8List>(
+        $MediaAssetsTable.$converterhash.toSql(hash),
+      );
+    }
+    map['mime_type'] = Variable<String>(mimeType);
+    map['size_bytes'] = Variable<int>(sizeBytes);
+    if (!nullToAbsent || originalName != null) {
+      map['original_name'] = Variable<String>(originalName);
+    }
+    return map;
+  }
+
+  MediaAssetsCompanion toCompanion(bool nullToAbsent) {
+    return MediaAssetsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      collectionId: Value(collectionId),
+      hash: Value(hash),
+      mimeType: Value(mimeType),
+      sizeBytes: Value(sizeBytes),
+      originalName: originalName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalName),
+    );
+  }
+
+  factory MediaAssetRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MediaAssetRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
+      hash: serializer.fromJson<ContentHash>(json['hash']),
+      mimeType: serializer.fromJson<String>(json['mimeType']),
+      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
+      originalName: serializer.fromJson<String?>(json['originalName']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
+      'collectionId': serializer.toJson<CollectionId>(collectionId),
+      'hash': serializer.toJson<ContentHash>(hash),
+      'mimeType': serializer.toJson<String>(mimeType),
+      'sizeBytes': serializer.toJson<int>(sizeBytes),
+      'originalName': serializer.toJson<String?>(originalName),
+    };
+  }
+
+  MediaAssetRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
+    CollectionId? collectionId,
+    ContentHash? hash,
+    String? mimeType,
+    int? sizeBytes,
+    Value<String?> originalName = const Value.absent(),
+  }) => MediaAssetRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    collectionId: collectionId ?? this.collectionId,
+    hash: hash ?? this.hash,
+    mimeType: mimeType ?? this.mimeType,
+    sizeBytes: sizeBytes ?? this.sizeBytes,
+    originalName: originalName.present ? originalName.value : this.originalName,
+  );
+  MediaAssetRow copyWithCompanion(MediaAssetsCompanion data) {
+    return MediaAssetRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      hash: data.hash.present ? data.hash.value : this.hash,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
+      originalName: data.originalName.present
+          ? data.originalName.value
+          : this.originalName,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaAssetRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('hash: $hash, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('originalName: $originalName')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    hlc,
+    deleted,
+    collectionId,
+    hash,
+    mimeType,
+    sizeBytes,
+    originalName,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MediaAssetRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
+          other.collectionId == this.collectionId &&
+          other.hash == this.hash &&
+          other.mimeType == this.mimeType &&
+          other.sizeBytes == this.sizeBytes &&
+          other.originalName == this.originalName);
+}
+
+class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
+  final Value<CollectionId> collectionId;
+  final Value<ContentHash> hash;
+  final Value<String> mimeType;
+  final Value<int> sizeBytes;
+  final Value<String?> originalName;
+  final Value<int> rowid;
+  const MediaAssetsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.collectionId = const Value.absent(),
+    this.hash = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.sizeBytes = const Value.absent(),
+    this.originalName = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MediaAssetsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
+    required CollectionId collectionId,
+    required ContentHash hash,
+    required String mimeType,
+    required int sizeBytes,
+    this.originalName = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : hlc = Value(hlc),
+       collectionId = Value(collectionId),
+       hash = Value(hash),
+       mimeType = Value(mimeType),
+       sizeBytes = Value(sizeBytes);
+  static Insertable<MediaAssetRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
+    Expression<Uint8List>? collectionId,
+    Expression<Uint8List>? hash,
+    Expression<String>? mimeType,
+    Expression<int>? sizeBytes,
+    Expression<String>? originalName,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
+      if (collectionId != null) 'collection_id': collectionId,
+      if (hash != null) 'hash': hash,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (sizeBytes != null) 'size_bytes': sizeBytes,
+      if (originalName != null) 'original_name': originalName,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MediaAssetsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
+    Value<CollectionId>? collectionId,
+    Value<ContentHash>? hash,
+    Value<String>? mimeType,
+    Value<int>? sizeBytes,
+    Value<String?>? originalName,
+    Value<int>? rowid,
+  }) {
+    return MediaAssetsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
+      collectionId: collectionId ?? this.collectionId,
+      hash: hash ?? this.hash,
+      mimeType: mimeType ?? this.mimeType,
+      sizeBytes: sizeBytes ?? this.sizeBytes,
+      originalName: originalName ?? this.originalName,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $MediaAssetsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (collectionId.present) {
+      map['collection_id'] = Variable<Uint8List>(
+        $MediaAssetsTable.$convertercollectionId.toSql(collectionId.value),
+      );
+    }
+    if (hash.present) {
+      map['hash'] = Variable<Uint8List>(
+        $MediaAssetsTable.$converterhash.toSql(hash.value),
+      );
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (sizeBytes.present) {
+      map['size_bytes'] = Variable<int>(sizeBytes.value);
+    }
+    if (originalName.present) {
+      map['original_name'] = Variable<String>(originalName.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaAssetsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('hash: $hash, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('originalName: $originalName, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
 abstract class _$MemukiDatabase extends GeneratedDatabase {
   _$MemukiDatabase(QueryExecutor e) : super(e);
   $MemukiDatabaseManager get managers => $MemukiDatabaseManager(this);
   late final $CollectionsTable collections = $CollectionsTable(this);
+  late final VisibleCollections visibleCollections = VisibleCollections(this);
   late final $DecksTable decks = $DecksTable(this);
-  late final Trigger decksCollectionImmutable = Trigger(
-    'CREATE TRIGGER decks_collection_immutable BEFORE UPDATE OF collection_id ON decks WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'decks_collection_immutable',
-  );
+  late final VisibleDecks visibleDecks = VisibleDecks(this);
   late final $TagsTable tags = $TagsTable(this);
-  late final Trigger tagsCollectionImmutable = Trigger(
-    'CREATE TRIGGER tags_collection_immutable BEFORE UPDATE OF collection_id ON tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'tags_collection_immutable',
-  );
+  late final VisibleTags visibleTags = VisibleTags(this);
   late final $NoteTypesTable noteTypes = $NoteTypesTable(this);
-  late final Trigger noteTypesCollectionImmutable = Trigger(
-    'CREATE TRIGGER note_types_collection_immutable BEFORE UPDATE OF collection_id ON note_types WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'note_types_collection_immutable',
-  );
-  late final $NotesTable notes = $NotesTable(this);
-  late final Trigger notesCollectionImmutable = Trigger(
-    'CREATE TRIGGER notes_collection_immutable BEFORE UPDATE OF collection_id ON notes WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'notes_collection_immutable',
-  );
-  late final $NoteTagsTable noteTags = $NoteTagsTable(this);
-  late final Trigger noteTagsCollectionImmutable = Trigger(
-    'CREATE TRIGGER note_tags_collection_immutable BEFORE UPDATE OF collection_id ON note_tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'note_tags_collection_immutable',
-  );
-  late final $StudyCardTemplatesTable studyCardTemplates =
-      $StudyCardTemplatesTable(this);
-  late final $StudyCardsTable studyCards = $StudyCardsTable(this);
-  late final Trigger studyCardsCollectionImmutable = Trigger(
-    'CREATE TRIGGER study_cards_collection_immutable BEFORE UPDATE OF collection_id ON study_cards WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'study_cards_collection_immutable',
-  );
-  late final $MediaAssetsTable mediaAssets = $MediaAssetsTable(this);
-  late final Trigger mediaAssetsCollectionImmutable = Trigger(
-    'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
-    'media_assets_collection_immutable',
-  );
-  late final Trigger collectionsHlcChanges = Trigger(
-    'CREATE TRIGGER collections_hlc_changes BEFORE UPDATE ON collections WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'collections_hlc_changes',
-  );
-  late final Trigger decksHlcChanges = Trigger(
-    'CREATE TRIGGER decks_hlc_changes BEFORE UPDATE ON decks WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'decks_hlc_changes',
-  );
-  late final Trigger tagsHlcChanges = Trigger(
-    'CREATE TRIGGER tags_hlc_changes BEFORE UPDATE ON tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'tags_hlc_changes',
-  );
-  late final Trigger noteTypesHlcChanges = Trigger(
-    'CREATE TRIGGER note_types_hlc_changes BEFORE UPDATE ON note_types WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'note_types_hlc_changes',
-  );
+  late final VisibleNoteTypes visibleNoteTypes = VisibleNoteTypes(this);
   late final $FieldDefinitionsTable fieldDefinitions = $FieldDefinitionsTable(
     this,
   );
-  late final Trigger fieldDefinitionsHlcChanges = Trigger(
-    'CREATE TRIGGER field_definitions_hlc_changes BEFORE UPDATE ON field_definitions WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'field_definitions_hlc_changes',
-  );
-  late final Trigger studyCardTemplatesHlcChanges = Trigger(
-    'CREATE TRIGGER study_card_templates_hlc_changes BEFORE UPDATE ON study_card_templates WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'study_card_templates_hlc_changes',
-  );
-  late final Trigger notesHlcChanges = Trigger(
-    'CREATE TRIGGER notes_hlc_changes BEFORE UPDATE ON notes WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'notes_hlc_changes',
-  );
+  late final VisibleFieldDefinitions visibleFieldDefinitions =
+      VisibleFieldDefinitions(this);
+  late final $StudyCardTemplatesTable studyCardTemplates =
+      $StudyCardTemplatesTable(this);
+  late final VisibleStudyCardTemplates visibleStudyCardTemplates =
+      VisibleStudyCardTemplates(this);
+  late final $NotesTable notes = $NotesTable(this);
+  late final $StudyCardsTable studyCards = $StudyCardsTable(this);
+  late final VisibleStudyCards visibleStudyCards = VisibleStudyCards(this);
+  late final VisibleNotes visibleNotes = VisibleNotes(this);
   late final $NoteFieldsTable noteFields = $NoteFieldsTable(this);
-  late final Trigger noteFieldsHlcChanges = Trigger(
-    'CREATE TRIGGER note_fields_hlc_changes BEFORE UPDATE ON note_fields WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'note_fields_hlc_changes',
-  );
-  late final Trigger noteTagsHlcChanges = Trigger(
-    'CREATE TRIGGER note_tags_hlc_changes BEFORE UPDATE ON note_tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'note_tags_hlc_changes',
-  );
-  late final Trigger studyCardsHlcChanges = Trigger(
-    'CREATE TRIGGER study_cards_hlc_changes BEFORE UPDATE ON study_cards WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'study_cards_hlc_changes',
-  );
-  late final Trigger mediaAssetsHlcChanges = Trigger(
-    'CREATE TRIGGER media_assets_hlc_changes BEFORE UPDATE ON media_assets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
-    'media_assets_hlc_changes',
-  );
-  late final $ReviewEventsTable reviewEvents = $ReviewEventsTable(this);
-  late final Trigger reviewEventsAppendOnly = Trigger(
-    'CREATE TRIGGER review_events_append_only BEFORE UPDATE ON review_events BEGIN SELECT RAISE (ABORT, \'review events are append-only\');END',
-    'review_events_append_only',
-  );
+  late final VisibleNoteFields visibleNoteFields = VisibleNoteFields(this);
+  late final $NoteTagsTable noteTags = $NoteTagsTable(this);
+  late final VisibleNoteTags visibleNoteTags = VisibleNoteTags(this);
   late final $DeviceTable device = $DeviceTable(this);
   late final $OutboxTable outbox = $OutboxTable(this);
   late final Index outboxHlc = Index(
@@ -6656,6 +7535,7 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'study_cards_hlc',
     'CREATE INDEX study_cards_hlc ON study_cards (hlc)',
   );
+  late final $ReviewEventsTable reviewEvents = $ReviewEventsTable(this);
   late final $SchedulingStatesTable schedulingStates = $SchedulingStatesTable(
     this,
   );
@@ -6731,6 +7611,7 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'note_tags_hlc',
     'CREATE INDEX note_tags_hlc ON note_tags (hlc)',
   );
+  late final $MediaAssetsTable mediaAssets = $MediaAssetsTable(this);
   late final Index mediaAssetsHlc = Index(
     'media_assets_hlc',
     'CREATE INDEX media_assets_hlc ON media_assets (hlc)',
@@ -6747,48 +7628,114 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'decks_hlc',
     'CREATE INDEX decks_hlc ON decks (hlc)',
   );
+  late final Trigger decksCollectionImmutable = Trigger(
+    'CREATE TRIGGER decks_collection_immutable BEFORE UPDATE OF collection_id ON decks WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'decks_collection_immutable',
+  );
+  late final Trigger tagsCollectionImmutable = Trigger(
+    'CREATE TRIGGER tags_collection_immutable BEFORE UPDATE OF collection_id ON tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'tags_collection_immutable',
+  );
+  late final Trigger noteTypesCollectionImmutable = Trigger(
+    'CREATE TRIGGER note_types_collection_immutable BEFORE UPDATE OF collection_id ON note_types WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'note_types_collection_immutable',
+  );
+  late final Trigger notesCollectionImmutable = Trigger(
+    'CREATE TRIGGER notes_collection_immutable BEFORE UPDATE OF collection_id ON notes WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'notes_collection_immutable',
+  );
+  late final Trigger noteTagsCollectionImmutable = Trigger(
+    'CREATE TRIGGER note_tags_collection_immutable BEFORE UPDATE OF collection_id ON note_tags WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'note_tags_collection_immutable',
+  );
+  late final Trigger studyCardsCollectionImmutable = Trigger(
+    'CREATE TRIGGER study_cards_collection_immutable BEFORE UPDATE OF collection_id ON study_cards WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'study_cards_collection_immutable',
+  );
+  late final Trigger mediaAssetsCollectionImmutable = Trigger(
+    'CREATE TRIGGER media_assets_collection_immutable BEFORE UPDATE OF collection_id ON media_assets WHEN NEW.collection_id IS NOT OLD.collection_id BEGIN SELECT RAISE (ABORT, \'collection_id is immutable\');END',
+    'media_assets_collection_immutable',
+  );
+  late final Trigger collectionsHlcChanges = Trigger(
+    'CREATE TRIGGER collections_hlc_changes BEFORE UPDATE ON collections WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'collections_hlc_changes',
+  );
+  late final Trigger decksHlcChanges = Trigger(
+    'CREATE TRIGGER decks_hlc_changes BEFORE UPDATE ON decks WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'decks_hlc_changes',
+  );
+  late final Trigger tagsHlcChanges = Trigger(
+    'CREATE TRIGGER tags_hlc_changes BEFORE UPDATE ON tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'tags_hlc_changes',
+  );
+  late final Trigger noteTypesHlcChanges = Trigger(
+    'CREATE TRIGGER note_types_hlc_changes BEFORE UPDATE ON note_types WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_types_hlc_changes',
+  );
+  late final Trigger fieldDefinitionsHlcChanges = Trigger(
+    'CREATE TRIGGER field_definitions_hlc_changes BEFORE UPDATE ON field_definitions WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'field_definitions_hlc_changes',
+  );
+  late final Trigger studyCardTemplatesHlcChanges = Trigger(
+    'CREATE TRIGGER study_card_templates_hlc_changes BEFORE UPDATE ON study_card_templates WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'study_card_templates_hlc_changes',
+  );
+  late final Trigger notesHlcChanges = Trigger(
+    'CREATE TRIGGER notes_hlc_changes BEFORE UPDATE ON notes WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'notes_hlc_changes',
+  );
+  late final Trigger noteFieldsHlcChanges = Trigger(
+    'CREATE TRIGGER note_fields_hlc_changes BEFORE UPDATE ON note_fields WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_fields_hlc_changes',
+  );
+  late final Trigger noteTagsHlcChanges = Trigger(
+    'CREATE TRIGGER note_tags_hlc_changes BEFORE UPDATE ON note_tags WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'note_tags_hlc_changes',
+  );
+  late final Trigger studyCardsHlcChanges = Trigger(
+    'CREATE TRIGGER study_cards_hlc_changes BEFORE UPDATE ON study_cards WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'study_cards_hlc_changes',
+  );
+  late final Trigger mediaAssetsHlcChanges = Trigger(
+    'CREATE TRIGGER media_assets_hlc_changes BEFORE UPDATE ON media_assets WHEN NEW.hlc IS OLD.hlc BEGIN SELECT RAISE (ABORT, \'hlc must change on every update\');END',
+    'media_assets_hlc_changes',
+  );
+  late final Trigger reviewEventsAppendOnly = Trigger(
+    'CREATE TRIGGER review_events_append_only BEFORE UPDATE ON review_events BEGIN SELECT RAISE (ABORT, \'review events are append-only\');END',
+    'review_events_append_only',
+  );
   @override
   Iterable<TableInfo<Table, Object?>> get allTables =>
       allSchemaEntities.whereType<TableInfo<Table, Object?>>();
   @override
   List<DatabaseSchemaEntity> get allSchemaEntities => [
     collections,
+    visibleCollections,
     decks,
-    decksCollectionImmutable,
+    visibleDecks,
     tags,
-    tagsCollectionImmutable,
+    visibleTags,
     noteTypes,
-    noteTypesCollectionImmutable,
-    notes,
-    notesCollectionImmutable,
-    noteTags,
-    noteTagsCollectionImmutable,
-    studyCardTemplates,
-    studyCards,
-    studyCardsCollectionImmutable,
-    mediaAssets,
-    mediaAssetsCollectionImmutable,
-    collectionsHlcChanges,
-    decksHlcChanges,
-    tagsHlcChanges,
-    noteTypesHlcChanges,
+    visibleNoteTypes,
     fieldDefinitions,
-    fieldDefinitionsHlcChanges,
-    studyCardTemplatesHlcChanges,
-    notesHlcChanges,
+    visibleFieldDefinitions,
+    studyCardTemplates,
+    visibleStudyCardTemplates,
+    notes,
+    studyCards,
+    visibleStudyCards,
+    visibleNotes,
     noteFields,
-    noteFieldsHlcChanges,
-    noteTagsHlcChanges,
-    studyCardsHlcChanges,
-    mediaAssetsHlcChanges,
-    reviewEvents,
-    reviewEventsAppendOnly,
+    visibleNoteFields,
+    noteTags,
+    visibleNoteTags,
     device,
     outbox,
     outboxHlc,
     studyCardsDeck,
     studyCardsTemplate,
     studyCardsHlc,
+    reviewEvents,
     schedulingStates,
     reviewEventsCard,
     reviewEventsAt,
@@ -6808,13 +7755,68 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     tagsHlc,
     noteTagsTag,
     noteTagsHlc,
+    mediaAssets,
     mediaAssetsHlc,
     collectionsHlc,
     decksParent,
     decksHlc,
+    decksCollectionImmutable,
+    tagsCollectionImmutable,
+    noteTypesCollectionImmutable,
+    notesCollectionImmutable,
+    noteTagsCollectionImmutable,
+    studyCardsCollectionImmutable,
+    mediaAssetsCollectionImmutable,
+    collectionsHlcChanges,
+    decksHlcChanges,
+    tagsHlcChanges,
+    noteTypesHlcChanges,
+    fieldDefinitionsHlcChanges,
+    studyCardTemplatesHlcChanges,
+    notesHlcChanges,
+    noteFieldsHlcChanges,
+    noteTagsHlcChanges,
+    studyCardsHlcChanges,
+    mediaAssetsHlcChanges,
+    reviewEventsAppendOnly,
   ];
   @override
   StreamQueryUpdateRules get streamUpdateRules => const StreamQueryUpdateRules([
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'note_types',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('field_definitions', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'note_types',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('study_card_templates', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'notes',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'field_definitions',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
+    ),
+    WritePropagation(
+      on: TableUpdateQuery.onTableName(
+        'study_cards',
+        limitUpdateKind: UpdateKind.delete,
+      ),
+      result: [TableUpdate('scheduling_states', kind: UpdateKind.delete)],
+    ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
         'decks',
@@ -6849,13 +7851,6 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.update,
       ),
       result: [],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'note_types',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('study_card_templates', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -6901,13 +7896,6 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
-        'note_types',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('field_definitions', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
         'field_definitions',
         limitUpdateKind: UpdateKind.update,
       ),
@@ -6926,20 +7914,6 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.update,
       ),
       result: [],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'notes',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'field_definitions',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('note_fields', kind: UpdateKind.delete)],
     ),
     WritePropagation(
       on: TableUpdateQuery.onTableName(
@@ -6975,13 +7949,6 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
         limitUpdateKind: UpdateKind.update,
       ),
       result: [],
-    ),
-    WritePropagation(
-      on: TableUpdateQuery.onTableName(
-        'study_cards',
-        limitUpdateKind: UpdateKind.delete,
-      ),
-      result: [TableUpdate('scheduling_states', kind: UpdateKind.delete)],
     ),
   ]);
 }
@@ -7078,23 +8045,6 @@ final class $$CollectionsTableReferences
     );
   }
 
-  static MultiTypedResultKey<$NoteTagsTable, List<NoteTagRow>>
-  _noteTagsRefsTable(_$MemukiDatabase db) => MultiTypedResultKey.fromTable(
-    db.noteTags,
-    aliasName: 'collections__id__note_tags__collection_id',
-  );
-
-  $$NoteTagsTableProcessedTableManager get noteTagsRefs {
-    final manager = $$NoteTagsTableTableManager($_db, $_db.noteTags).filter(
-      (f) => f.collectionId.id.sqlEquals($_itemColumn<Uint8List>('id')!),
-    );
-
-    final cache = $_typedResult.readTableOrNull(_noteTagsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
   static MultiTypedResultKey<$StudyCardsTable, List<StudyCardRow>>
   _studyCardsRefsTable(_$MemukiDatabase db) => MultiTypedResultKey.fromTable(
     db.studyCards,
@@ -7107,6 +8057,23 @@ final class $$CollectionsTableReferences
     );
 
     final cache = $_typedResult.readTableOrNull(_studyCardsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
+  static MultiTypedResultKey<$NoteTagsTable, List<NoteTagRow>>
+  _noteTagsRefsTable(_$MemukiDatabase db) => MultiTypedResultKey.fromTable(
+    db.noteTags,
+    aliasName: 'collections__id__note_tags__collection_id',
+  );
+
+  $$NoteTagsTableProcessedTableManager get noteTagsRefs {
+    final manager = $$NoteTagsTableTableManager($_db, $_db.noteTags).filter(
+      (f) => f.collectionId.id.sqlEquals($_itemColumn<Uint8List>('id')!),
+    );
+
+    final cache = $_typedResult.readTableOrNull(_noteTagsRefsTable($_db));
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
     );
@@ -7262,31 +8229,6 @@ class $$CollectionsTableFilterComposer
     return f(composer);
   }
 
-  Expression<bool> noteTagsRefs(
-    Expression<bool> Function($$NoteTagsTableFilterComposer f) f,
-  ) {
-    final $$NoteTagsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.noteTags,
-      getReferencedColumn: (t) => t.collectionId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTagsTableFilterComposer(
-            $db: $db,
-            $table: $db.noteTags,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<bool> studyCardsRefs(
     Expression<bool> Function($$StudyCardsTableFilterComposer f) f,
   ) {
@@ -7303,6 +8245,31 @@ class $$CollectionsTableFilterComposer
           }) => $$StudyCardsTableFilterComposer(
             $db: $db,
             $table: $db.studyCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> noteTagsRefs(
+    Expression<bool> Function($$NoteTagsTableFilterComposer f) f,
+  ) {
+    final $$NoteTagsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.noteTags,
+      getReferencedColumn: (t) => t.collectionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTagsTableFilterComposer(
+            $db: $db,
+            $table: $db.noteTags,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -7489,31 +8456,6 @@ class $$CollectionsTableAnnotationComposer
     return f(composer);
   }
 
-  Expression<T> noteTagsRefs<T extends Object>(
-    Expression<T> Function($$NoteTagsTableAnnotationComposer a) f,
-  ) {
-    final $$NoteTagsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.noteTags,
-      getReferencedColumn: (t) => t.collectionId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTagsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.noteTags,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<T> studyCardsRefs<T extends Object>(
     Expression<T> Function($$StudyCardsTableAnnotationComposer a) f,
   ) {
@@ -7530,6 +8472,31 @@ class $$CollectionsTableAnnotationComposer
           }) => $$StudyCardsTableAnnotationComposer(
             $db: $db,
             $table: $db.studyCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<T> noteTagsRefs<T extends Object>(
+    Expression<T> Function($$NoteTagsTableAnnotationComposer a) f,
+  ) {
+    final $$NoteTagsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.noteTags,
+      getReferencedColumn: (t) => t.collectionId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTagsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.noteTags,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -7583,8 +8550,8 @@ class $$CollectionsTableTableManager
             bool tagsRefs,
             bool noteTypesRefs,
             bool notesRefs,
-            bool noteTagsRefs,
             bool studyCardsRefs,
+            bool noteTagsRefs,
             bool mediaAssetsRefs,
           })
         > {
@@ -7641,8 +8608,8 @@ class $$CollectionsTableTableManager
                 tagsRefs = false,
                 noteTypesRefs = false,
                 notesRefs = false,
-                noteTagsRefs = false,
                 studyCardsRefs = false,
+                noteTagsRefs = false,
                 mediaAssetsRefs = false,
               }) {
                 return PrefetchHooks(
@@ -7652,8 +8619,8 @@ class $$CollectionsTableTableManager
                     if (tagsRefs) db.tags,
                     if (noteTypesRefs) db.noteTypes,
                     if (notesRefs) db.notes,
-                    if (noteTagsRefs) db.noteTags,
                     if (studyCardsRefs) db.studyCards,
+                    if (noteTagsRefs) db.noteTags,
                     if (mediaAssetsRefs) db.mediaAssets,
                   ],
                   addJoins: null,
@@ -7739,26 +8706,6 @@ class $$CollectionsTableTableManager
                           referencedColumn: 'collection_id',
                           typedResults: items,
                         ),
-                      if (noteTagsRefs)
-                        await $_getPrefetchedDataByColumns<
-                          CollectionRow,
-                          $CollectionsTable,
-                          NoteTagRow,
-                          $NoteTagsTable
-                        >(
-                          currentTable: table,
-                          referencedTable: $$CollectionsTableReferences
-                              ._noteTagsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$CollectionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).noteTagsRefs,
-                          currentColumn: 'id',
-                          referencedColumn: 'collection_id',
-                          typedResults: items,
-                        ),
                       if (studyCardsRefs)
                         await $_getPrefetchedDataByColumns<
                           CollectionRow,
@@ -7775,6 +8722,26 @@ class $$CollectionsTableTableManager
                                 table,
                                 p0,
                               ).studyCardsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'collection_id',
+                          typedResults: items,
+                        ),
+                      if (noteTagsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          CollectionRow,
+                          $CollectionsTable,
+                          NoteTagRow,
+                          $NoteTagsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$CollectionsTableReferences
+                              ._noteTagsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$CollectionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).noteTagsRefs,
                           currentColumn: 'id',
                           referencedColumn: 'collection_id',
                           typedResults: items,
@@ -7824,8 +8791,8 @@ typedef $$CollectionsTableProcessedTableManager =
         bool tagsRefs,
         bool noteTypesRefs,
         bool notesRefs,
-        bool noteTagsRefs,
         bool studyCardsRefs,
+        bool noteTagsRefs,
         bool mediaAssetsRefs,
       })
     >;
@@ -8536,6 +9503,27 @@ final class $$NoteTypesTableReferences
     );
   }
 
+  static MultiTypedResultKey<$FieldDefinitionsTable, List<FieldDefinitionRow>>
+  _fieldDefinitionsRefsTable(_$MemukiDatabase db) =>
+      MultiTypedResultKey.fromTable(
+        db.fieldDefinitions,
+        aliasName: 'note_types__id__field_definitions__note_type_id',
+      );
+
+  $$FieldDefinitionsTableProcessedTableManager get fieldDefinitionsRefs {
+    final manager = $$FieldDefinitionsTableTableManager(
+      $_db,
+      $_db.fieldDefinitions,
+    ).filter((f) => f.noteTypeId.id.sqlEquals($_itemColumn<Uint8List>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(
+      _fieldDefinitionsRefsTable($_db),
+    );
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+
   static MultiTypedResultKey<
     $StudyCardTemplatesTable,
     List<StudyCardTemplateRow>
@@ -8554,27 +9542,6 @@ final class $$NoteTypesTableReferences
 
     final cache = $_typedResult.readTableOrNull(
       _studyCardTemplatesRefsTable($_db),
-    );
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-
-  static MultiTypedResultKey<$FieldDefinitionsTable, List<FieldDefinitionRow>>
-  _fieldDefinitionsRefsTable(_$MemukiDatabase db) =>
-      MultiTypedResultKey.fromTable(
-        db.fieldDefinitions,
-        aliasName: 'note_types__id__field_definitions__note_type_id',
-      );
-
-  $$FieldDefinitionsTableProcessedTableManager get fieldDefinitionsRefs {
-    final manager = $$FieldDefinitionsTableTableManager(
-      $_db,
-      $_db.fieldDefinitions,
-    ).filter((f) => f.noteTypeId.id.sqlEquals($_itemColumn<Uint8List>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(
-      _fieldDefinitionsRefsTable($_db),
     );
     return ProcessedTableManager(
       manager.$state.copyWith(prefetchedData: cache),
@@ -8636,31 +9603,6 @@ class $$NoteTypesTableFilterComposer
     return composer;
   }
 
-  Expression<bool> studyCardTemplatesRefs(
-    Expression<bool> Function($$StudyCardTemplatesTableFilterComposer f) f,
-  ) {
-    final $$StudyCardTemplatesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.studyCardTemplates,
-      getReferencedColumn: (t) => t.noteTypeId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$StudyCardTemplatesTableFilterComposer(
-            $db: $db,
-            $table: $db.studyCardTemplates,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-
   Expression<bool> fieldDefinitionsRefs(
     Expression<bool> Function($$FieldDefinitionsTableFilterComposer f) f,
   ) {
@@ -8677,6 +9619,31 @@ class $$NoteTypesTableFilterComposer
           }) => $$FieldDefinitionsTableFilterComposer(
             $db: $db,
             $table: $db.fieldDefinitions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
+  Expression<bool> studyCardTemplatesRefs(
+    Expression<bool> Function($$StudyCardTemplatesTableFilterComposer f) f,
+  ) {
+    final $$StudyCardTemplatesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studyCardTemplates,
+      getReferencedColumn: (t) => t.noteTypeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudyCardTemplatesTableFilterComposer(
+            $db: $db,
+            $table: $db.studyCardTemplates,
             $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
             joinBuilder: joinBuilder,
             $removeJoinBuilderFromRootComposer:
@@ -8784,6 +9751,31 @@ class $$NoteTypesTableAnnotationComposer
     return composer;
   }
 
+  Expression<T> fieldDefinitionsRefs<T extends Object>(
+    Expression<T> Function($$FieldDefinitionsTableAnnotationComposer a) f,
+  ) {
+    final $$FieldDefinitionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.fieldDefinitions,
+      getReferencedColumn: (t) => t.noteTypeId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$FieldDefinitionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.fieldDefinitions,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+
   Expression<T> studyCardTemplatesRefs<T extends Object>(
     Expression<T> Function($$StudyCardTemplatesTableAnnotationComposer a) f,
   ) {
@@ -8809,31 +9801,6 @@ class $$NoteTypesTableAnnotationComposer
         );
     return f(composer);
   }
-
-  Expression<T> fieldDefinitionsRefs<T extends Object>(
-    Expression<T> Function($$FieldDefinitionsTableAnnotationComposer a) f,
-  ) {
-    final $$FieldDefinitionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.fieldDefinitions,
-      getReferencedColumn: (t) => t.noteTypeId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$FieldDefinitionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.fieldDefinitions,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
 }
 
 class $$NoteTypesTableTableManager
@@ -8851,8 +9818,8 @@ class $$NoteTypesTableTableManager
           NoteTypeRow,
           PrefetchHooks Function({
             bool collectionId,
-            bool studyCardTemplatesRefs,
             bool fieldDefinitionsRefs,
+            bool studyCardTemplatesRefs,
           })
         > {
   $$NoteTypesTableTableManager(_$MemukiDatabase db, $NoteTypesTable table)
@@ -8909,14 +9876,14 @@ class $$NoteTypesTableTableManager
           prefetchHooksCallback:
               ({
                 collectionId = false,
-                studyCardTemplatesRefs = false,
                 fieldDefinitionsRefs = false,
+                studyCardTemplatesRefs = false,
               }) {
                 return PrefetchHooks(
                   db: db,
                   explicitlyWatchedTables: [
-                    if (studyCardTemplatesRefs) db.studyCardTemplates,
                     if (fieldDefinitionsRefs) db.fieldDefinitions,
+                    if (studyCardTemplatesRefs) db.studyCardTemplates,
                   ],
                   addJoins:
                       <
@@ -8950,26 +9917,6 @@ class $$NoteTypesTableTableManager
                       },
                   getPrefetchedDataCallback: (items) async {
                     return [
-                      if (studyCardTemplatesRefs)
-                        await $_getPrefetchedDataByColumns<
-                          NoteTypeRow,
-                          $NoteTypesTable,
-                          StudyCardTemplateRow,
-                          $StudyCardTemplatesTable
-                        >(
-                          currentTable: table,
-                          referencedTable: $$NoteTypesTableReferences
-                              ._studyCardTemplatesRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$NoteTypesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).studyCardTemplatesRefs,
-                          currentColumn: 'id',
-                          referencedColumn: 'note_type_id',
-                          typedResults: items,
-                        ),
                       if (fieldDefinitionsRefs)
                         await $_getPrefetchedDataByColumns<
                           NoteTypeRow,
@@ -8986,6 +9933,26 @@ class $$NoteTypesTableTableManager
                                 table,
                                 p0,
                               ).fieldDefinitionsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'note_type_id',
+                          typedResults: items,
+                        ),
+                      if (studyCardTemplatesRefs)
+                        await $_getPrefetchedDataByColumns<
+                          NoteTypeRow,
+                          $NoteTypesTable,
+                          StudyCardTemplateRow,
+                          $StudyCardTemplatesTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$NoteTypesTableReferences
+                              ._studyCardTemplatesRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$NoteTypesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).studyCardTemplatesRefs,
                           currentColumn: 'id',
                           referencedColumn: 'note_type_id',
                           typedResults: items,
@@ -9012,9 +9979,919 @@ typedef $$NoteTypesTableProcessedTableManager =
       NoteTypeRow,
       PrefetchHooks Function({
         bool collectionId,
-        bool studyCardTemplatesRefs,
         bool fieldDefinitionsRefs,
+        bool studyCardTemplatesRefs,
       })
+    >;
+typedef $$FieldDefinitionsTableCreateCompanionBuilder =
+    FieldDefinitionsCompanion Function({
+      required Hlc hlc,
+      Value<bool> deleted,
+      required FieldDefinitionId id,
+      required NoteTypeId noteTypeId,
+      required int position,
+      required String name,
+      required FieldType type,
+      Value<int> rowid,
+    });
+typedef $$FieldDefinitionsTableUpdateCompanionBuilder =
+    FieldDefinitionsCompanion Function({
+      Value<Hlc> hlc,
+      Value<bool> deleted,
+      Value<FieldDefinitionId> id,
+      Value<NoteTypeId> noteTypeId,
+      Value<int> position,
+      Value<String> name,
+      Value<FieldType> type,
+      Value<int> rowid,
+    });
+
+final class $$FieldDefinitionsTableReferences
+    extends
+        BaseReferences<
+          _$MemukiDatabase,
+          $FieldDefinitionsTable,
+          FieldDefinitionRow
+        > {
+  $$FieldDefinitionsTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $NoteTypesTable _noteTypeIdTable(_$MemukiDatabase db) => db.noteTypes
+      .createAlias('field_definitions__note_type_id__note_types__id');
+
+  $$NoteTypesTableProcessedTableManager get noteTypeId {
+    final $_column = $_itemColumn<Uint8List>('note_type_id')!;
+
+    final manager = $$NoteTypesTableTableManager(
+      $_db,
+      $_db.noteTypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_noteTypeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$NoteFieldsTable, List<NoteFieldRow>>
+  _noteFieldsRefsTable(_$MemukiDatabase db) => MultiTypedResultKey.fromTable(
+    db.noteFields,
+    aliasName: 'field_definitions__id__note_fields__field_id',
+  );
+
+  $$NoteFieldsTableProcessedTableManager get noteFieldsRefs {
+    final manager = $$NoteFieldsTableTableManager(
+      $_db,
+      $_db.noteFields,
+    ).filter((f) => f.fieldId.id.sqlEquals($_itemColumn<Uint8List>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_noteFieldsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$FieldDefinitionsTableFilterComposer
+    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
+  $$FieldDefinitionsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    FieldDefinitionId,
+    FieldDefinitionId,
+    Uint8List
+  >
+  get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<FieldType, FieldType, String> get type =>
+      $composableBuilder(
+        column: $table.type,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  $$NoteTypesTableFilterComposer get noteTypeId {
+    final $$NoteTypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteTypeId,
+      referencedTable: $db.noteTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTypesTableFilterComposer(
+            $db: $db,
+            $table: $db.noteTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> noteFieldsRefs(
+    Expression<bool> Function($$NoteFieldsTableFilterComposer f) f,
+  ) {
+    final $$NoteFieldsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.noteFields,
+      getReferencedColumn: (t) => t.fieldId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteFieldsTableFilterComposer(
+            $db: $db,
+            $table: $db.noteFields,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$FieldDefinitionsTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
+  $$FieldDefinitionsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get type => $composableBuilder(
+    column: $table.type,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$NoteTypesTableOrderingComposer get noteTypeId {
+    final $$NoteTypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteTypeId,
+      referencedTable: $db.noteTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.noteTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$FieldDefinitionsTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
+  $$FieldDefinitionsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<FieldType, String> get type =>
+      $composableBuilder(column: $table.type, builder: (column) => column);
+
+  $$NoteTypesTableAnnotationComposer get noteTypeId {
+    final $$NoteTypesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteTypeId,
+      referencedTable: $db.noteTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTypesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.noteTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> noteFieldsRefs<T extends Object>(
+    Expression<T> Function($$NoteFieldsTableAnnotationComposer a) f,
+  ) {
+    final $$NoteFieldsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.noteFields,
+      getReferencedColumn: (t) => t.fieldId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteFieldsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.noteFields,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$FieldDefinitionsTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $FieldDefinitionsTable,
+          FieldDefinitionRow,
+          $$FieldDefinitionsTableFilterComposer,
+          $$FieldDefinitionsTableOrderingComposer,
+          $$FieldDefinitionsTableAnnotationComposer,
+          $$FieldDefinitionsTableCreateCompanionBuilder,
+          $$FieldDefinitionsTableUpdateCompanionBuilder,
+          (FieldDefinitionRow, $$FieldDefinitionsTableReferences),
+          FieldDefinitionRow,
+          PrefetchHooks Function({bool noteTypeId, bool noteFieldsRefs})
+        > {
+  $$FieldDefinitionsTableTableManager(
+    _$MemukiDatabase db,
+    $FieldDefinitionsTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$FieldDefinitionsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$FieldDefinitionsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$FieldDefinitionsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<FieldDefinitionId> id = const Value.absent(),
+                Value<NoteTypeId> noteTypeId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<FieldType> type = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => FieldDefinitionsCompanion(
+                hlc: hlc,
+                deleted: deleted,
+                id: id,
+                noteTypeId: noteTypeId,
+                position: position,
+                name: name,
+                type: type,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
+                required FieldDefinitionId id,
+                required NoteTypeId noteTypeId,
+                required int position,
+                required String name,
+                required FieldType type,
+                Value<int> rowid = const Value.absent(),
+              }) => FieldDefinitionsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
+                id: id,
+                noteTypeId: noteTypeId,
+                position: position,
+                name: name,
+                type: type,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$FieldDefinitionsTable, FieldDefinitionRow>(
+                    table,
+                  ),
+                  $$FieldDefinitionsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({noteTypeId = false, noteFieldsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [if (noteFieldsRefs) db.noteFields],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (noteTypeId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.noteTypeId,
+                            referencedTable: $$FieldDefinitionsTableReferences
+                                ._noteTypeIdTable(db),
+                            referencedColumn: $$FieldDefinitionsTableReferences
+                                ._noteTypeIdTable(db)
+                                .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (noteFieldsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          FieldDefinitionRow,
+                          $FieldDefinitionsTable,
+                          NoteFieldRow,
+                          $NoteFieldsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$FieldDefinitionsTableReferences
+                              ._noteFieldsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$FieldDefinitionsTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).noteFieldsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'field_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$FieldDefinitionsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $FieldDefinitionsTable,
+      FieldDefinitionRow,
+      $$FieldDefinitionsTableFilterComposer,
+      $$FieldDefinitionsTableOrderingComposer,
+      $$FieldDefinitionsTableAnnotationComposer,
+      $$FieldDefinitionsTableCreateCompanionBuilder,
+      $$FieldDefinitionsTableUpdateCompanionBuilder,
+      (FieldDefinitionRow, $$FieldDefinitionsTableReferences),
+      FieldDefinitionRow,
+      PrefetchHooks Function({bool noteTypeId, bool noteFieldsRefs})
+    >;
+typedef $$StudyCardTemplatesTableCreateCompanionBuilder =
+    StudyCardTemplatesCompanion Function({
+      required Hlc hlc,
+      Value<bool> deleted,
+      required StudyCardTemplateId id,
+      required NoteTypeId noteTypeId,
+      required int position,
+      required String name,
+      Value<int> rowid,
+    });
+typedef $$StudyCardTemplatesTableUpdateCompanionBuilder =
+    StudyCardTemplatesCompanion Function({
+      Value<Hlc> hlc,
+      Value<bool> deleted,
+      Value<StudyCardTemplateId> id,
+      Value<NoteTypeId> noteTypeId,
+      Value<int> position,
+      Value<String> name,
+      Value<int> rowid,
+    });
+
+final class $$StudyCardTemplatesTableReferences
+    extends
+        BaseReferences<
+          _$MemukiDatabase,
+          $StudyCardTemplatesTable,
+          StudyCardTemplateRow
+        > {
+  $$StudyCardTemplatesTableReferences(
+    super.$_db,
+    super.$_table,
+    super.$_typedResult,
+  );
+
+  static $NoteTypesTable _noteTypeIdTable(_$MemukiDatabase db) => db.noteTypes
+      .createAlias('study_card_templates__note_type_id__note_types__id');
+
+  $$NoteTypesTableProcessedTableManager get noteTypeId {
+    final $_column = $_itemColumn<Uint8List>('note_type_id')!;
+
+    final manager = $$NoteTypesTableTableManager(
+      $_db,
+      $_db.noteTypes,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_noteTypeIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+
+  static MultiTypedResultKey<$StudyCardsTable, List<StudyCardRow>>
+  _studyCardsRefsTable(_$MemukiDatabase db) => MultiTypedResultKey.fromTable(
+    db.studyCards,
+    aliasName: 'study_card_templates__id__study_cards__template_id',
+  );
+
+  $$StudyCardsTableProcessedTableManager get studyCardsRefs {
+    final manager = $$StudyCardsTableTableManager(
+      $_db,
+      $_db.studyCards,
+    ).filter((f) => f.templateId.id.sqlEquals($_itemColumn<Uint8List>('id')!));
+
+    final cache = $_typedResult.readTableOrNull(_studyCardsRefsTable($_db));
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: cache),
+    );
+  }
+}
+
+class $$StudyCardTemplatesTableFilterComposer
+    extends Composer<_$MemukiDatabase, $StudyCardTemplatesTable> {
+  $$StudyCardTemplatesTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    StudyCardTemplateId,
+    StudyCardTemplateId,
+    Uint8List
+  >
+  get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$NoteTypesTableFilterComposer get noteTypeId {
+    final $$NoteTypesTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteTypeId,
+      referencedTable: $db.noteTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTypesTableFilterComposer(
+            $db: $db,
+            $table: $db.noteTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<bool> studyCardsRefs(
+    Expression<bool> Function($$StudyCardsTableFilterComposer f) f,
+  ) {
+    final $$StudyCardsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studyCards,
+      getReferencedColumn: (t) => t.templateId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudyCardsTableFilterComposer(
+            $db: $db,
+            $table: $db.studyCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$StudyCardTemplatesTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $StudyCardTemplatesTable> {
+  $$StudyCardTemplatesTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get position => $composableBuilder(
+    column: $table.position,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get name => $composableBuilder(
+    column: $table.name,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$NoteTypesTableOrderingComposer get noteTypeId {
+    final $$NoteTypesTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteTypeId,
+      referencedTable: $db.noteTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTypesTableOrderingComposer(
+            $db: $db,
+            $table: $db.noteTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$StudyCardTemplatesTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $StudyCardTemplatesTable> {
+  $$StudyCardTemplatesTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<StudyCardTemplateId, Uint8List> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<int> get position =>
+      $composableBuilder(column: $table.position, builder: (column) => column);
+
+  GeneratedColumn<String> get name =>
+      $composableBuilder(column: $table.name, builder: (column) => column);
+
+  $$NoteTypesTableAnnotationComposer get noteTypeId {
+    final $$NoteTypesTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.noteTypeId,
+      referencedTable: $db.noteTypes,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$NoteTypesTableAnnotationComposer(
+            $db: $db,
+            $table: $db.noteTypes,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+
+  Expression<T> studyCardsRefs<T extends Object>(
+    Expression<T> Function($$StudyCardsTableAnnotationComposer a) f,
+  ) {
+    final $$StudyCardsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.id,
+      referencedTable: $db.studyCards,
+      getReferencedColumn: (t) => t.templateId,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$StudyCardsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.studyCards,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return f(composer);
+  }
+}
+
+class $$StudyCardTemplatesTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $StudyCardTemplatesTable,
+          StudyCardTemplateRow,
+          $$StudyCardTemplatesTableFilterComposer,
+          $$StudyCardTemplatesTableOrderingComposer,
+          $$StudyCardTemplatesTableAnnotationComposer,
+          $$StudyCardTemplatesTableCreateCompanionBuilder,
+          $$StudyCardTemplatesTableUpdateCompanionBuilder,
+          (StudyCardTemplateRow, $$StudyCardTemplatesTableReferences),
+          StudyCardTemplateRow,
+          PrefetchHooks Function({bool noteTypeId, bool studyCardsRefs})
+        > {
+  $$StudyCardTemplatesTableTableManager(
+    _$MemukiDatabase db,
+    $StudyCardTemplatesTable table,
+  ) : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$StudyCardTemplatesTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$StudyCardTemplatesTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$StudyCardTemplatesTableAnnotationComposer(
+                $db: db,
+                $table: table,
+              ),
+          updateCompanionCallback:
+              ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<StudyCardTemplateId> id = const Value.absent(),
+                Value<NoteTypeId> noteTypeId = const Value.absent(),
+                Value<int> position = const Value.absent(),
+                Value<String> name = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => StudyCardTemplatesCompanion(
+                hlc: hlc,
+                deleted: deleted,
+                id: id,
+                noteTypeId: noteTypeId,
+                position: position,
+                name: name,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
+                required StudyCardTemplateId id,
+                required NoteTypeId noteTypeId,
+                required int position,
+                required String name,
+                Value<int> rowid = const Value.absent(),
+              }) => StudyCardTemplatesCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
+                id: id,
+                noteTypeId: noteTypeId,
+                position: position,
+                name: name,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$StudyCardTemplatesTable, StudyCardTemplateRow>(
+                    table,
+                  ),
+                  $$StudyCardTemplatesTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback:
+              ({noteTypeId = false, studyCardsRefs = false}) {
+                return PrefetchHooks(
+                  db: db,
+                  explicitlyWatchedTables: [if (studyCardsRefs) db.studyCards],
+                  addJoins:
+                      <
+                        T extends TableManagerState<
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic,
+                          dynamic
+                        >
+                      >(state) {
+                        if (noteTypeId) {
+                          state = state.withJoin(
+                            currentTable: table,
+                            currentColumn: table.noteTypeId,
+                            referencedTable: $$StudyCardTemplatesTableReferences
+                                ._noteTypeIdTable(db),
+                            referencedColumn:
+                                $$StudyCardTemplatesTableReferences
+                                    ._noteTypeIdTable(db)
+                                    .id,
+                          ) as T;
+                        }
+
+                        return state;
+                      },
+                  getPrefetchedDataCallback: (items) async {
+                    return [
+                      if (studyCardsRefs)
+                        await $_getPrefetchedDataByColumns<
+                          StudyCardTemplateRow,
+                          $StudyCardTemplatesTable,
+                          StudyCardRow,
+                          $StudyCardsTable
+                        >(
+                          currentTable: table,
+                          referencedTable: $$StudyCardTemplatesTableReferences
+                              ._studyCardsRefsTable(db),
+                          managerFromTypedResult: (p0) =>
+                              $$StudyCardTemplatesTableReferences(
+                                db,
+                                table,
+                                p0,
+                              ).studyCardsRefs,
+                          currentColumn: 'id',
+                          referencedColumn: 'template_id',
+                          typedResults: items,
+                        ),
+                    ];
+                  },
+                );
+              },
+        ),
+      );
+}
+
+typedef $$StudyCardTemplatesTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $StudyCardTemplatesTable,
+      StudyCardTemplateRow,
+      $$StudyCardTemplatesTableFilterComposer,
+      $$StudyCardTemplatesTableOrderingComposer,
+      $$StudyCardTemplatesTableAnnotationComposer,
+      $$StudyCardTemplatesTableCreateCompanionBuilder,
+      $$StudyCardTemplatesTableUpdateCompanionBuilder,
+      (StudyCardTemplateRow, $$StudyCardTemplatesTableReferences),
+      StudyCardTemplateRow,
+      PrefetchHooks Function({bool noteTypeId, bool studyCardsRefs})
     >;
 typedef $$NotesTableCreateCompanionBuilder = NotesCompanion Function({
   required Hlc hlc,
@@ -9468,769 +11345,6 @@ typedef $$NotesTableProcessedTableManager =
       (NoteRow, $$NotesTableReferences),
       NoteRow,
       PrefetchHooks Function({bool collectionId, bool noteFieldsRefs})
-    >;
-typedef $$NoteTagsTableCreateCompanionBuilder = NoteTagsCompanion Function({
-  required Hlc hlc,
-  Value<bool> deleted,
-  required CollectionId collectionId,
-  required NoteId noteId,
-  required TagId tagId,
-  Value<int> rowid,
-});
-typedef $$NoteTagsTableUpdateCompanionBuilder = NoteTagsCompanion Function({
-  Value<Hlc> hlc,
-  Value<bool> deleted,
-  Value<CollectionId> collectionId,
-  Value<NoteId> noteId,
-  Value<TagId> tagId,
-  Value<int> rowid,
-});
-
-final class $$NoteTagsTableReferences
-    extends BaseReferences<_$MemukiDatabase, $NoteTagsTable, NoteTagRow> {
-  $$NoteTagsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $CollectionsTable _collectionIdTable(_$MemukiDatabase db) =>
-      db.collections.createAlias('note_tags__collection_id__collections__id');
-
-  $$CollectionsTableProcessedTableManager get collectionId {
-    final $_column = $_itemColumn<Uint8List>('collection_id')!;
-
-    final manager = $$CollectionsTableTableManager(
-      $_db,
-      $_db.collections,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_collectionIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$NoteTagsTableFilterComposer
-    extends Composer<_$MemukiDatabase, $NoteTagsTable> {
-  $$NoteTagsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
-      $composableBuilder(
-        column: $table.hlc,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  ColumnFilters<bool> get deleted => $composableBuilder(
-    column: $table.deleted,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<NoteId, NoteId, Uint8List> get noteId =>
-      $composableBuilder(
-        column: $table.noteId,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  ColumnWithTypeConverterFilters<TagId, TagId, Uint8List> get tagId =>
-      $composableBuilder(
-        column: $table.tagId,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  $$CollectionsTableFilterComposer get collectionId {
-    final $$CollectionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.collectionId,
-      referencedTable: $db.collections,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CollectionsTableFilterComposer(
-            $db: $db,
-            $table: $db.collections,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$NoteTagsTableOrderingComposer
-    extends Composer<_$MemukiDatabase, $NoteTagsTable> {
-  $$NoteTagsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get hlc => $composableBuilder(
-    column: $table.hlc,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get deleted => $composableBuilder(
-    column: $table.deleted,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<Uint8List> get noteId => $composableBuilder(
-    column: $table.noteId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<Uint8List> get tagId => $composableBuilder(
-    column: $table.tagId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$CollectionsTableOrderingComposer get collectionId {
-    final $$CollectionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.collectionId,
-      referencedTable: $db.collections,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CollectionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.collections,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$NoteTagsTableAnnotationComposer
-    extends Composer<_$MemukiDatabase, $NoteTagsTable> {
-  $$NoteTagsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
-      $composableBuilder(column: $table.hlc, builder: (column) => column);
-
-  GeneratedColumn<bool> get deleted =>
-      $composableBuilder(column: $table.deleted, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<NoteId, Uint8List> get noteId =>
-      $composableBuilder(column: $table.noteId, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<TagId, Uint8List> get tagId =>
-      $composableBuilder(column: $table.tagId, builder: (column) => column);
-
-  $$CollectionsTableAnnotationComposer get collectionId {
-    final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.collectionId,
-      referencedTable: $db.collections,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CollectionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.collections,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$NoteTagsTableTableManager
-    extends
-        RootTableManager<
-          _$MemukiDatabase,
-          $NoteTagsTable,
-          NoteTagRow,
-          $$NoteTagsTableFilterComposer,
-          $$NoteTagsTableOrderingComposer,
-          $$NoteTagsTableAnnotationComposer,
-          $$NoteTagsTableCreateCompanionBuilder,
-          $$NoteTagsTableUpdateCompanionBuilder,
-          (NoteTagRow, $$NoteTagsTableReferences),
-          NoteTagRow,
-          PrefetchHooks Function({bool collectionId})
-        > {
-  $$NoteTagsTableTableManager(_$MemukiDatabase db, $NoteTagsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$NoteTagsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$NoteTagsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$NoteTagsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<Hlc> hlc = const Value.absent(),
-                Value<bool> deleted = const Value.absent(),
-                Value<CollectionId> collectionId = const Value.absent(),
-                Value<NoteId> noteId = const Value.absent(),
-                Value<TagId> tagId = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => NoteTagsCompanion(
-                hlc: hlc,
-                deleted: deleted,
-                collectionId: collectionId,
-                noteId: noteId,
-                tagId: tagId,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required Hlc hlc,
-                Value<bool> deleted = const Value.absent(),
-                required CollectionId collectionId,
-                required NoteId noteId,
-                required TagId tagId,
-                Value<int> rowid = const Value.absent(),
-              }) => NoteTagsCompanion.insert(
-                hlc: hlc,
-                deleted: deleted,
-                collectionId: collectionId,
-                noteId: noteId,
-                tagId: tagId,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$NoteTagsTable, NoteTagRow>(table),
-                  $$NoteTagsTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({collectionId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (collectionId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.collectionId,
-                        referencedTable: $$NoteTagsTableReferences
-                            ._collectionIdTable(db),
-                        referencedColumn: $$NoteTagsTableReferences
-                            ._collectionIdTable(db)
-                            .id,
-                      ) as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$NoteTagsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$MemukiDatabase,
-      $NoteTagsTable,
-      NoteTagRow,
-      $$NoteTagsTableFilterComposer,
-      $$NoteTagsTableOrderingComposer,
-      $$NoteTagsTableAnnotationComposer,
-      $$NoteTagsTableCreateCompanionBuilder,
-      $$NoteTagsTableUpdateCompanionBuilder,
-      (NoteTagRow, $$NoteTagsTableReferences),
-      NoteTagRow,
-      PrefetchHooks Function({bool collectionId})
-    >;
-typedef $$StudyCardTemplatesTableCreateCompanionBuilder =
-    StudyCardTemplatesCompanion Function({
-      required Hlc hlc,
-      Value<bool> deleted,
-      required StudyCardTemplateId id,
-      required NoteTypeId noteTypeId,
-      required int position,
-      required String name,
-      Value<int> rowid,
-    });
-typedef $$StudyCardTemplatesTableUpdateCompanionBuilder =
-    StudyCardTemplatesCompanion Function({
-      Value<Hlc> hlc,
-      Value<bool> deleted,
-      Value<StudyCardTemplateId> id,
-      Value<NoteTypeId> noteTypeId,
-      Value<int> position,
-      Value<String> name,
-      Value<int> rowid,
-    });
-
-final class $$StudyCardTemplatesTableReferences
-    extends
-        BaseReferences<
-          _$MemukiDatabase,
-          $StudyCardTemplatesTable,
-          StudyCardTemplateRow
-        > {
-  $$StudyCardTemplatesTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $NoteTypesTable _noteTypeIdTable(_$MemukiDatabase db) => db.noteTypes
-      .createAlias('study_card_templates__note_type_id__note_types__id');
-
-  $$NoteTypesTableProcessedTableManager get noteTypeId {
-    final $_column = $_itemColumn<Uint8List>('note_type_id')!;
-
-    final manager = $$NoteTypesTableTableManager(
-      $_db,
-      $_db.noteTypes,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_noteTypeIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<$StudyCardsTable, List<StudyCardRow>>
-  _studyCardsRefsTable(_$MemukiDatabase db) => MultiTypedResultKey.fromTable(
-    db.studyCards,
-    aliasName: 'study_card_templates__id__study_cards__template_id',
-  );
-
-  $$StudyCardsTableProcessedTableManager get studyCardsRefs {
-    final manager = $$StudyCardsTableTableManager(
-      $_db,
-      $_db.studyCards,
-    ).filter((f) => f.templateId.id.sqlEquals($_itemColumn<Uint8List>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_studyCardsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$StudyCardTemplatesTableFilterComposer
-    extends Composer<_$MemukiDatabase, $StudyCardTemplatesTable> {
-  $$StudyCardTemplatesTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
-      $composableBuilder(
-        column: $table.hlc,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  ColumnFilters<bool> get deleted => $composableBuilder(
-    column: $table.deleted,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<
-    StudyCardTemplateId,
-    StudyCardTemplateId,
-    Uint8List
-  >
-  get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
-  );
-
-  ColumnFilters<int> get position => $composableBuilder(
-    column: $table.position,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$NoteTypesTableFilterComposer get noteTypeId {
-    final $$NoteTypesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteTypeId,
-      referencedTable: $db.noteTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTypesTableFilterComposer(
-            $db: $db,
-            $table: $db.noteTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> studyCardsRefs(
-    Expression<bool> Function($$StudyCardsTableFilterComposer f) f,
-  ) {
-    final $$StudyCardsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.studyCards,
-      getReferencedColumn: (t) => t.templateId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$StudyCardsTableFilterComposer(
-            $db: $db,
-            $table: $db.studyCards,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$StudyCardTemplatesTableOrderingComposer
-    extends Composer<_$MemukiDatabase, $StudyCardTemplatesTable> {
-  $$StudyCardTemplatesTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get hlc => $composableBuilder(
-    column: $table.hlc,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get deleted => $composableBuilder(
-    column: $table.deleted,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<Uint8List> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get position => $composableBuilder(
-    column: $table.position,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$NoteTypesTableOrderingComposer get noteTypeId {
-    final $$NoteTypesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteTypeId,
-      referencedTable: $db.noteTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTypesTableOrderingComposer(
-            $db: $db,
-            $table: $db.noteTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$StudyCardTemplatesTableAnnotationComposer
-    extends Composer<_$MemukiDatabase, $StudyCardTemplatesTable> {
-  $$StudyCardTemplatesTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
-      $composableBuilder(column: $table.hlc, builder: (column) => column);
-
-  GeneratedColumn<bool> get deleted =>
-      $composableBuilder(column: $table.deleted, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<StudyCardTemplateId, Uint8List> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get position =>
-      $composableBuilder(column: $table.position, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  $$NoteTypesTableAnnotationComposer get noteTypeId {
-    final $$NoteTypesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteTypeId,
-      referencedTable: $db.noteTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTypesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.noteTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> studyCardsRefs<T extends Object>(
-    Expression<T> Function($$StudyCardsTableAnnotationComposer a) f,
-  ) {
-    final $$StudyCardsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.studyCards,
-      getReferencedColumn: (t) => t.templateId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$StudyCardsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.studyCards,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$StudyCardTemplatesTableTableManager
-    extends
-        RootTableManager<
-          _$MemukiDatabase,
-          $StudyCardTemplatesTable,
-          StudyCardTemplateRow,
-          $$StudyCardTemplatesTableFilterComposer,
-          $$StudyCardTemplatesTableOrderingComposer,
-          $$StudyCardTemplatesTableAnnotationComposer,
-          $$StudyCardTemplatesTableCreateCompanionBuilder,
-          $$StudyCardTemplatesTableUpdateCompanionBuilder,
-          (StudyCardTemplateRow, $$StudyCardTemplatesTableReferences),
-          StudyCardTemplateRow,
-          PrefetchHooks Function({bool noteTypeId, bool studyCardsRefs})
-        > {
-  $$StudyCardTemplatesTableTableManager(
-    _$MemukiDatabase db,
-    $StudyCardTemplatesTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$StudyCardTemplatesTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$StudyCardTemplatesTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$StudyCardTemplatesTableAnnotationComposer(
-                $db: db,
-                $table: table,
-              ),
-          updateCompanionCallback:
-              ({
-                Value<Hlc> hlc = const Value.absent(),
-                Value<bool> deleted = const Value.absent(),
-                Value<StudyCardTemplateId> id = const Value.absent(),
-                Value<NoteTypeId> noteTypeId = const Value.absent(),
-                Value<int> position = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => StudyCardTemplatesCompanion(
-                hlc: hlc,
-                deleted: deleted,
-                id: id,
-                noteTypeId: noteTypeId,
-                position: position,
-                name: name,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required Hlc hlc,
-                Value<bool> deleted = const Value.absent(),
-                required StudyCardTemplateId id,
-                required NoteTypeId noteTypeId,
-                required int position,
-                required String name,
-                Value<int> rowid = const Value.absent(),
-              }) => StudyCardTemplatesCompanion.insert(
-                hlc: hlc,
-                deleted: deleted,
-                id: id,
-                noteTypeId: noteTypeId,
-                position: position,
-                name: name,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$StudyCardTemplatesTable, StudyCardTemplateRow>(
-                    table,
-                  ),
-                  $$StudyCardTemplatesTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback:
-              ({noteTypeId = false, studyCardsRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [if (studyCardsRefs) db.studyCards],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (noteTypeId) {
-                          state = state.withJoin(
-                            currentTable: table,
-                            currentColumn: table.noteTypeId,
-                            referencedTable: $$StudyCardTemplatesTableReferences
-                                ._noteTypeIdTable(db),
-                            referencedColumn:
-                                $$StudyCardTemplatesTableReferences
-                                    ._noteTypeIdTable(db)
-                                    .id,
-                          ) as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (studyCardsRefs)
-                        await $_getPrefetchedDataByColumns<
-                          StudyCardTemplateRow,
-                          $StudyCardTemplatesTable,
-                          StudyCardRow,
-                          $StudyCardsTable
-                        >(
-                          currentTable: table,
-                          referencedTable: $$StudyCardTemplatesTableReferences
-                              ._studyCardsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$StudyCardTemplatesTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).studyCardsRefs,
-                          currentColumn: 'id',
-                          referencedColumn: 'template_id',
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
-        ),
-      );
-}
-
-typedef $$StudyCardTemplatesTableProcessedTableManager =
-    ProcessedTableManager<
-      _$MemukiDatabase,
-      $StudyCardTemplatesTable,
-      StudyCardTemplateRow,
-      $$StudyCardTemplatesTableFilterComposer,
-      $$StudyCardTemplatesTableOrderingComposer,
-      $$StudyCardTemplatesTableAnnotationComposer,
-      $$StudyCardTemplatesTableCreateCompanionBuilder,
-      $$StudyCardTemplatesTableUpdateCompanionBuilder,
-      (StudyCardTemplateRow, $$StudyCardTemplatesTableReferences),
-      StudyCardTemplateRow,
-      PrefetchHooks Function({bool noteTypeId, bool studyCardsRefs})
     >;
 typedef $$StudyCardsTableCreateCompanionBuilder = StudyCardsCompanion Function({
   required Hlc hlc,
@@ -10872,827 +11986,6 @@ typedef $$StudyCardsTableProcessedTableManager =
         bool schedulingStatesRefs,
       })
     >;
-typedef $$MediaAssetsTableCreateCompanionBuilder =
-    MediaAssetsCompanion Function({
-      required Hlc hlc,
-      Value<bool> deleted,
-      required CollectionId collectionId,
-      required ContentHash hash,
-      required String mimeType,
-      required int sizeBytes,
-      Value<String?> originalName,
-      Value<int> rowid,
-    });
-typedef $$MediaAssetsTableUpdateCompanionBuilder =
-    MediaAssetsCompanion Function({
-      Value<Hlc> hlc,
-      Value<bool> deleted,
-      Value<CollectionId> collectionId,
-      Value<ContentHash> hash,
-      Value<String> mimeType,
-      Value<int> sizeBytes,
-      Value<String?> originalName,
-      Value<int> rowid,
-    });
-
-final class $$MediaAssetsTableReferences
-    extends BaseReferences<_$MemukiDatabase, $MediaAssetsTable, MediaAssetRow> {
-  $$MediaAssetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $CollectionsTable _collectionIdTable(_$MemukiDatabase db) => db
-      .collections
-      .createAlias('media_assets__collection_id__collections__id');
-
-  $$CollectionsTableProcessedTableManager get collectionId {
-    final $_column = $_itemColumn<Uint8List>('collection_id')!;
-
-    final manager = $$CollectionsTableTableManager(
-      $_db,
-      $_db.collections,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_collectionIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$MediaAssetsTableFilterComposer
-    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
-  $$MediaAssetsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
-      $composableBuilder(
-        column: $table.hlc,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  ColumnFilters<bool> get deleted => $composableBuilder(
-    column: $table.deleted,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<ContentHash, ContentHash, Uint8List>
-  get hash => $composableBuilder(
-    column: $table.hash,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
-  );
-
-  ColumnFilters<String> get mimeType => $composableBuilder(
-    column: $table.mimeType,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get sizeBytes => $composableBuilder(
-    column: $table.sizeBytes,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get originalName => $composableBuilder(
-    column: $table.originalName,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$CollectionsTableFilterComposer get collectionId {
-    final $$CollectionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.collectionId,
-      referencedTable: $db.collections,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CollectionsTableFilterComposer(
-            $db: $db,
-            $table: $db.collections,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$MediaAssetsTableOrderingComposer
-    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
-  $$MediaAssetsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get hlc => $composableBuilder(
-    column: $table.hlc,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get deleted => $composableBuilder(
-    column: $table.deleted,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<Uint8List> get hash => $composableBuilder(
-    column: $table.hash,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get mimeType => $composableBuilder(
-    column: $table.mimeType,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get sizeBytes => $composableBuilder(
-    column: $table.sizeBytes,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get originalName => $composableBuilder(
-    column: $table.originalName,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$CollectionsTableOrderingComposer get collectionId {
-    final $$CollectionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.collectionId,
-      referencedTable: $db.collections,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CollectionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.collections,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$MediaAssetsTableAnnotationComposer
-    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
-  $$MediaAssetsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
-      $composableBuilder(column: $table.hlc, builder: (column) => column);
-
-  GeneratedColumn<bool> get deleted =>
-      $composableBuilder(column: $table.deleted, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<ContentHash, Uint8List> get hash =>
-      $composableBuilder(column: $table.hash, builder: (column) => column);
-
-  GeneratedColumn<String> get mimeType =>
-      $composableBuilder(column: $table.mimeType, builder: (column) => column);
-
-  GeneratedColumn<int> get sizeBytes =>
-      $composableBuilder(column: $table.sizeBytes, builder: (column) => column);
-
-  GeneratedColumn<String> get originalName => $composableBuilder(
-    column: $table.originalName,
-    builder: (column) => column,
-  );
-
-  $$CollectionsTableAnnotationComposer get collectionId {
-    final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.collectionId,
-      referencedTable: $db.collections,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CollectionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.collections,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$MediaAssetsTableTableManager
-    extends
-        RootTableManager<
-          _$MemukiDatabase,
-          $MediaAssetsTable,
-          MediaAssetRow,
-          $$MediaAssetsTableFilterComposer,
-          $$MediaAssetsTableOrderingComposer,
-          $$MediaAssetsTableAnnotationComposer,
-          $$MediaAssetsTableCreateCompanionBuilder,
-          $$MediaAssetsTableUpdateCompanionBuilder,
-          (MediaAssetRow, $$MediaAssetsTableReferences),
-          MediaAssetRow,
-          PrefetchHooks Function({bool collectionId})
-        > {
-  $$MediaAssetsTableTableManager(_$MemukiDatabase db, $MediaAssetsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$MediaAssetsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$MediaAssetsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$MediaAssetsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<Hlc> hlc = const Value.absent(),
-                Value<bool> deleted = const Value.absent(),
-                Value<CollectionId> collectionId = const Value.absent(),
-                Value<ContentHash> hash = const Value.absent(),
-                Value<String> mimeType = const Value.absent(),
-                Value<int> sizeBytes = const Value.absent(),
-                Value<String?> originalName = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => MediaAssetsCompanion(
-                hlc: hlc,
-                deleted: deleted,
-                collectionId: collectionId,
-                hash: hash,
-                mimeType: mimeType,
-                sizeBytes: sizeBytes,
-                originalName: originalName,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required Hlc hlc,
-                Value<bool> deleted = const Value.absent(),
-                required CollectionId collectionId,
-                required ContentHash hash,
-                required String mimeType,
-                required int sizeBytes,
-                Value<String?> originalName = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => MediaAssetsCompanion.insert(
-                hlc: hlc,
-                deleted: deleted,
-                collectionId: collectionId,
-                hash: hash,
-                mimeType: mimeType,
-                sizeBytes: sizeBytes,
-                originalName: originalName,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$MediaAssetsTable, MediaAssetRow>(table),
-                  $$MediaAssetsTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({collectionId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (collectionId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.collectionId,
-                        referencedTable: $$MediaAssetsTableReferences
-                            ._collectionIdTable(db),
-                        referencedColumn: $$MediaAssetsTableReferences
-                            ._collectionIdTable(db)
-                            .id,
-                      ) as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$MediaAssetsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$MemukiDatabase,
-      $MediaAssetsTable,
-      MediaAssetRow,
-      $$MediaAssetsTableFilterComposer,
-      $$MediaAssetsTableOrderingComposer,
-      $$MediaAssetsTableAnnotationComposer,
-      $$MediaAssetsTableCreateCompanionBuilder,
-      $$MediaAssetsTableUpdateCompanionBuilder,
-      (MediaAssetRow, $$MediaAssetsTableReferences),
-      MediaAssetRow,
-      PrefetchHooks Function({bool collectionId})
-    >;
-typedef $$FieldDefinitionsTableCreateCompanionBuilder =
-    FieldDefinitionsCompanion Function({
-      required Hlc hlc,
-      Value<bool> deleted,
-      required FieldDefinitionId id,
-      required NoteTypeId noteTypeId,
-      required int position,
-      required String name,
-      required FieldType type,
-      Value<int> rowid,
-    });
-typedef $$FieldDefinitionsTableUpdateCompanionBuilder =
-    FieldDefinitionsCompanion Function({
-      Value<Hlc> hlc,
-      Value<bool> deleted,
-      Value<FieldDefinitionId> id,
-      Value<NoteTypeId> noteTypeId,
-      Value<int> position,
-      Value<String> name,
-      Value<FieldType> type,
-      Value<int> rowid,
-    });
-
-final class $$FieldDefinitionsTableReferences
-    extends
-        BaseReferences<
-          _$MemukiDatabase,
-          $FieldDefinitionsTable,
-          FieldDefinitionRow
-        > {
-  $$FieldDefinitionsTableReferences(
-    super.$_db,
-    super.$_table,
-    super.$_typedResult,
-  );
-
-  static $NoteTypesTable _noteTypeIdTable(_$MemukiDatabase db) => db.noteTypes
-      .createAlias('field_definitions__note_type_id__note_types__id');
-
-  $$NoteTypesTableProcessedTableManager get noteTypeId {
-    final $_column = $_itemColumn<Uint8List>('note_type_id')!;
-
-    final manager = $$NoteTypesTableTableManager(
-      $_db,
-      $_db.noteTypes,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_noteTypeIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-
-  static MultiTypedResultKey<$NoteFieldsTable, List<NoteFieldRow>>
-  _noteFieldsRefsTable(_$MemukiDatabase db) => MultiTypedResultKey.fromTable(
-    db.noteFields,
-    aliasName: 'field_definitions__id__note_fields__field_id',
-  );
-
-  $$NoteFieldsTableProcessedTableManager get noteFieldsRefs {
-    final manager = $$NoteFieldsTableTableManager(
-      $_db,
-      $_db.noteFields,
-    ).filter((f) => f.fieldId.id.sqlEquals($_itemColumn<Uint8List>('id')!));
-
-    final cache = $_typedResult.readTableOrNull(_noteFieldsRefsTable($_db));
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: cache),
-    );
-  }
-}
-
-class $$FieldDefinitionsTableFilterComposer
-    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
-  $$FieldDefinitionsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
-      $composableBuilder(
-        column: $table.hlc,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  ColumnFilters<bool> get deleted => $composableBuilder(
-    column: $table.deleted,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<
-    FieldDefinitionId,
-    FieldDefinitionId,
-    Uint8List
-  >
-  get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
-  );
-
-  ColumnFilters<int> get position => $composableBuilder(
-    column: $table.position,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<FieldType, FieldType, String> get type =>
-      $composableBuilder(
-        column: $table.type,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  $$NoteTypesTableFilterComposer get noteTypeId {
-    final $$NoteTypesTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteTypeId,
-      referencedTable: $db.noteTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTypesTableFilterComposer(
-            $db: $db,
-            $table: $db.noteTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<bool> noteFieldsRefs(
-    Expression<bool> Function($$NoteFieldsTableFilterComposer f) f,
-  ) {
-    final $$NoteFieldsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.noteFields,
-      getReferencedColumn: (t) => t.fieldId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteFieldsTableFilterComposer(
-            $db: $db,
-            $table: $db.noteFields,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$FieldDefinitionsTableOrderingComposer
-    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
-  $$FieldDefinitionsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get hlc => $composableBuilder(
-    column: $table.hlc,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get deleted => $composableBuilder(
-    column: $table.deleted,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<Uint8List> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get position => $composableBuilder(
-    column: $table.position,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get name => $composableBuilder(
-    column: $table.name,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get type => $composableBuilder(
-    column: $table.type,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$NoteTypesTableOrderingComposer get noteTypeId {
-    final $$NoteTypesTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteTypeId,
-      referencedTable: $db.noteTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTypesTableOrderingComposer(
-            $db: $db,
-            $table: $db.noteTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$FieldDefinitionsTableAnnotationComposer
-    extends Composer<_$MemukiDatabase, $FieldDefinitionsTable> {
-  $$FieldDefinitionsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
-      $composableBuilder(column: $table.hlc, builder: (column) => column);
-
-  GeneratedColumn<bool> get deleted =>
-      $composableBuilder(column: $table.deleted, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<FieldDefinitionId, Uint8List> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<int> get position =>
-      $composableBuilder(column: $table.position, builder: (column) => column);
-
-  GeneratedColumn<String> get name =>
-      $composableBuilder(column: $table.name, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<FieldType, String> get type =>
-      $composableBuilder(column: $table.type, builder: (column) => column);
-
-  $$NoteTypesTableAnnotationComposer get noteTypeId {
-    final $$NoteTypesTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.noteTypeId,
-      referencedTable: $db.noteTypes,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteTypesTableAnnotationComposer(
-            $db: $db,
-            $table: $db.noteTypes,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-
-  Expression<T> noteFieldsRefs<T extends Object>(
-    Expression<T> Function($$NoteFieldsTableAnnotationComposer a) f,
-  ) {
-    final $$NoteFieldsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.id,
-      referencedTable: $db.noteFields,
-      getReferencedColumn: (t) => t.fieldId,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$NoteFieldsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.noteFields,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return f(composer);
-  }
-}
-
-class $$FieldDefinitionsTableTableManager
-    extends
-        RootTableManager<
-          _$MemukiDatabase,
-          $FieldDefinitionsTable,
-          FieldDefinitionRow,
-          $$FieldDefinitionsTableFilterComposer,
-          $$FieldDefinitionsTableOrderingComposer,
-          $$FieldDefinitionsTableAnnotationComposer,
-          $$FieldDefinitionsTableCreateCompanionBuilder,
-          $$FieldDefinitionsTableUpdateCompanionBuilder,
-          (FieldDefinitionRow, $$FieldDefinitionsTableReferences),
-          FieldDefinitionRow,
-          PrefetchHooks Function({bool noteTypeId, bool noteFieldsRefs})
-        > {
-  $$FieldDefinitionsTableTableManager(
-    _$MemukiDatabase db,
-    $FieldDefinitionsTable table,
-  ) : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$FieldDefinitionsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$FieldDefinitionsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$FieldDefinitionsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<Hlc> hlc = const Value.absent(),
-                Value<bool> deleted = const Value.absent(),
-                Value<FieldDefinitionId> id = const Value.absent(),
-                Value<NoteTypeId> noteTypeId = const Value.absent(),
-                Value<int> position = const Value.absent(),
-                Value<String> name = const Value.absent(),
-                Value<FieldType> type = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => FieldDefinitionsCompanion(
-                hlc: hlc,
-                deleted: deleted,
-                id: id,
-                noteTypeId: noteTypeId,
-                position: position,
-                name: name,
-                type: type,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required Hlc hlc,
-                Value<bool> deleted = const Value.absent(),
-                required FieldDefinitionId id,
-                required NoteTypeId noteTypeId,
-                required int position,
-                required String name,
-                required FieldType type,
-                Value<int> rowid = const Value.absent(),
-              }) => FieldDefinitionsCompanion.insert(
-                hlc: hlc,
-                deleted: deleted,
-                id: id,
-                noteTypeId: noteTypeId,
-                position: position,
-                name: name,
-                type: type,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$FieldDefinitionsTable, FieldDefinitionRow>(
-                    table,
-                  ),
-                  $$FieldDefinitionsTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback:
-              ({noteTypeId = false, noteFieldsRefs = false}) {
-                return PrefetchHooks(
-                  db: db,
-                  explicitlyWatchedTables: [if (noteFieldsRefs) db.noteFields],
-                  addJoins:
-                      <
-                        T extends TableManagerState<
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic,
-                          dynamic
-                        >
-                      >(state) {
-                        if (noteTypeId) {
-                          state = state.withJoin(
-                            currentTable: table,
-                            currentColumn: table.noteTypeId,
-                            referencedTable: $$FieldDefinitionsTableReferences
-                                ._noteTypeIdTable(db),
-                            referencedColumn: $$FieldDefinitionsTableReferences
-                                ._noteTypeIdTable(db)
-                                .id,
-                          ) as T;
-                        }
-
-                        return state;
-                      },
-                  getPrefetchedDataCallback: (items) async {
-                    return [
-                      if (noteFieldsRefs)
-                        await $_getPrefetchedDataByColumns<
-                          FieldDefinitionRow,
-                          $FieldDefinitionsTable,
-                          NoteFieldRow,
-                          $NoteFieldsTable
-                        >(
-                          currentTable: table,
-                          referencedTable: $$FieldDefinitionsTableReferences
-                              ._noteFieldsRefsTable(db),
-                          managerFromTypedResult: (p0) =>
-                              $$FieldDefinitionsTableReferences(
-                                db,
-                                table,
-                                p0,
-                              ).noteFieldsRefs,
-                          currentColumn: 'id',
-                          referencedColumn: 'field_id',
-                          typedResults: items,
-                        ),
-                    ];
-                  },
-                );
-              },
-        ),
-      );
-}
-
-typedef $$FieldDefinitionsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$MemukiDatabase,
-      $FieldDefinitionsTable,
-      FieldDefinitionRow,
-      $$FieldDefinitionsTableFilterComposer,
-      $$FieldDefinitionsTableOrderingComposer,
-      $$FieldDefinitionsTableAnnotationComposer,
-      $$FieldDefinitionsTableCreateCompanionBuilder,
-      $$FieldDefinitionsTableUpdateCompanionBuilder,
-      (FieldDefinitionRow, $$FieldDefinitionsTableReferences),
-      FieldDefinitionRow,
-      PrefetchHooks Function({bool noteTypeId, bool noteFieldsRefs})
-    >;
 typedef $$NoteFieldsTableCreateCompanionBuilder = NoteFieldsCompanion Function({
   required Hlc hlc,
   Value<bool> deleted,
@@ -12091,6 +12384,665 @@ typedef $$NoteFieldsTableProcessedTableManager =
       (NoteFieldRow, $$NoteFieldsTableReferences),
       NoteFieldRow,
       PrefetchHooks Function({bool noteId, bool fieldId})
+    >;
+typedef $$NoteTagsTableCreateCompanionBuilder = NoteTagsCompanion Function({
+  required Hlc hlc,
+  Value<bool> deleted,
+  required CollectionId collectionId,
+  required NoteId noteId,
+  required TagId tagId,
+  Value<int> rowid,
+});
+typedef $$NoteTagsTableUpdateCompanionBuilder = NoteTagsCompanion Function({
+  Value<Hlc> hlc,
+  Value<bool> deleted,
+  Value<CollectionId> collectionId,
+  Value<NoteId> noteId,
+  Value<TagId> tagId,
+  Value<int> rowid,
+});
+
+final class $$NoteTagsTableReferences
+    extends BaseReferences<_$MemukiDatabase, $NoteTagsTable, NoteTagRow> {
+  $$NoteTagsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CollectionsTable _collectionIdTable(_$MemukiDatabase db) =>
+      db.collections.createAlias('note_tags__collection_id__collections__id');
+
+  $$CollectionsTableProcessedTableManager get collectionId {
+    final $_column = $_itemColumn<Uint8List>('collection_id')!;
+
+    final manager = $$CollectionsTableTableManager(
+      $_db,
+      $_db.collections,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_collectionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$NoteTagsTableFilterComposer
+    extends Composer<_$MemukiDatabase, $NoteTagsTable> {
+  $$NoteTagsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<NoteId, NoteId, Uint8List> get noteId =>
+      $composableBuilder(
+        column: $table.noteId,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnWithTypeConverterFilters<TagId, TagId, Uint8List> get tagId =>
+      $composableBuilder(
+        column: $table.tagId,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  $$CollectionsTableFilterComposer get collectionId {
+    final $$CollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteTagsTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $NoteTagsTable> {
+  $$NoteTagsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get noteId => $composableBuilder(
+    column: $table.noteId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get tagId => $composableBuilder(
+    column: $table.tagId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CollectionsTableOrderingComposer get collectionId {
+    final $$CollectionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteTagsTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $NoteTagsTable> {
+  $$NoteTagsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<NoteId, Uint8List> get noteId =>
+      $composableBuilder(column: $table.noteId, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<TagId, Uint8List> get tagId =>
+      $composableBuilder(column: $table.tagId, builder: (column) => column);
+
+  $$CollectionsTableAnnotationComposer get collectionId {
+    final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$NoteTagsTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $NoteTagsTable,
+          NoteTagRow,
+          $$NoteTagsTableFilterComposer,
+          $$NoteTagsTableOrderingComposer,
+          $$NoteTagsTableAnnotationComposer,
+          $$NoteTagsTableCreateCompanionBuilder,
+          $$NoteTagsTableUpdateCompanionBuilder,
+          (NoteTagRow, $$NoteTagsTableReferences),
+          NoteTagRow,
+          PrefetchHooks Function({bool collectionId})
+        > {
+  $$NoteTagsTableTableManager(_$MemukiDatabase db, $NoteTagsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$NoteTagsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$NoteTagsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$NoteTagsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<CollectionId> collectionId = const Value.absent(),
+                Value<NoteId> noteId = const Value.absent(),
+                Value<TagId> tagId = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => NoteTagsCompanion(
+                hlc: hlc,
+                deleted: deleted,
+                collectionId: collectionId,
+                noteId: noteId,
+                tagId: tagId,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
+                required CollectionId collectionId,
+                required NoteId noteId,
+                required TagId tagId,
+                Value<int> rowid = const Value.absent(),
+              }) => NoteTagsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
+                collectionId: collectionId,
+                noteId: noteId,
+                tagId: tagId,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$NoteTagsTable, NoteTagRow>(table),
+                  $$NoteTagsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({collectionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (collectionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.collectionId,
+                        referencedTable: $$NoteTagsTableReferences
+                            ._collectionIdTable(db),
+                        referencedColumn: $$NoteTagsTableReferences
+                            ._collectionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$NoteTagsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $NoteTagsTable,
+      NoteTagRow,
+      $$NoteTagsTableFilterComposer,
+      $$NoteTagsTableOrderingComposer,
+      $$NoteTagsTableAnnotationComposer,
+      $$NoteTagsTableCreateCompanionBuilder,
+      $$NoteTagsTableUpdateCompanionBuilder,
+      (NoteTagRow, $$NoteTagsTableReferences),
+      NoteTagRow,
+      PrefetchHooks Function({bool collectionId})
+    >;
+typedef $$DeviceTableCreateCompanionBuilder = DeviceCompanion Function({
+  Value<int> id,
+  required String node,
+  Value<Hlc?> lastHlc,
+});
+typedef $$DeviceTableUpdateCompanionBuilder = DeviceCompanion Function({
+  Value<int> id,
+  Value<String> node,
+  Value<Hlc?> lastHlc,
+});
+
+class $$DeviceTableFilterComposer
+    extends Composer<_$MemukiDatabase, $DeviceTable> {
+  $$DeviceTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnFilters<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get node => $composableBuilder(
+    column: $table.node,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Hlc?, Hlc, String> get lastHlc =>
+      $composableBuilder(
+        column: $table.lastHlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+}
+
+class $$DeviceTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $DeviceTable> {
+  $$DeviceTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<int> get id => $composableBuilder(
+    column: $table.id,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get node => $composableBuilder(
+    column: $table.node,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get lastHlc => $composableBuilder(
+    column: $table.lastHlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$DeviceTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $DeviceTable> {
+  $$DeviceTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumn<int> get id =>
+      $composableBuilder(column: $table.id, builder: (column) => column);
+
+  GeneratedColumn<String> get node =>
+      $composableBuilder(column: $table.node, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Hlc?, String> get lastHlc =>
+      $composableBuilder(column: $table.lastHlc, builder: (column) => column);
+}
+
+class $$DeviceTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $DeviceTable,
+          DeviceRow,
+          $$DeviceTableFilterComposer,
+          $$DeviceTableOrderingComposer,
+          $$DeviceTableAnnotationComposer,
+          $$DeviceTableCreateCompanionBuilder,
+          $$DeviceTableUpdateCompanionBuilder,
+          (
+            DeviceRow,
+            BaseReferences<_$MemukiDatabase, $DeviceTable, DeviceRow>,
+          ),
+          DeviceRow,
+          PrefetchHooks Function()
+        > {
+  $$DeviceTableTableManager(_$MemukiDatabase db, $DeviceTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$DeviceTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$DeviceTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$DeviceTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            Value<String> node = const Value.absent(),
+            Value<Hlc?> lastHlc = const Value.absent(),
+          }) => DeviceCompanion(id: id, node: node, lastHlc: lastHlc),
+          createCompanionCallback: ({
+            Value<int> id = const Value.absent(),
+            required String node,
+            Value<Hlc?> lastHlc = const Value.absent(),
+          }) => DeviceCompanion.insert(id: id, node: node, lastHlc: lastHlc),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$DeviceTable, DeviceRow>(table),
+                  BaseReferences<_$MemukiDatabase, $DeviceTable, DeviceRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$DeviceTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $DeviceTable,
+      DeviceRow,
+      $$DeviceTableFilterComposer,
+      $$DeviceTableOrderingComposer,
+      $$DeviceTableAnnotationComposer,
+      $$DeviceTableCreateCompanionBuilder,
+      $$DeviceTableUpdateCompanionBuilder,
+      (DeviceRow, BaseReferences<_$MemukiDatabase, $DeviceTable, DeviceRow>),
+      DeviceRow,
+      PrefetchHooks Function()
+    >;
+typedef $$OutboxTableCreateCompanionBuilder = OutboxCompanion Function({
+  required CollectionId collectionId,
+  required String entityTable,
+  required Uint8List entityKey,
+  required Hlc hlc,
+  Value<int> rowid,
+});
+typedef $$OutboxTableUpdateCompanionBuilder = OutboxCompanion Function({
+  Value<CollectionId> collectionId,
+  Value<String> entityTable,
+  Value<Uint8List> entityKey,
+  Value<Hlc> hlc,
+  Value<int> rowid,
+});
+
+class $$OutboxTableFilterComposer
+    extends Composer<_$MemukiDatabase, $OutboxTable> {
+  $$OutboxTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<CollectionId, CollectionId, Uint8List>
+  get collectionId => $composableBuilder(
+    column: $table.collectionId,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get entityTable => $composableBuilder(
+    column: $table.entityTable,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<Uint8List> get entityKey => $composableBuilder(
+    column: $table.entityKey,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+}
+
+class $$OutboxTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $OutboxTable> {
+  $$OutboxTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<Uint8List> get collectionId => $composableBuilder(
+    column: $table.collectionId,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get entityTable => $composableBuilder(
+    column: $table.entityTable,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get entityKey => $composableBuilder(
+    column: $table.entityKey,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+}
+
+class $$OutboxTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $OutboxTable> {
+  $$OutboxTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<CollectionId, Uint8List> get collectionId =>
+      $composableBuilder(
+        column: $table.collectionId,
+        builder: (column) => column,
+      );
+
+  GeneratedColumn<String> get entityTable => $composableBuilder(
+    column: $table.entityTable,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<Uint8List> get entityKey =>
+      $composableBuilder(column: $table.entityKey, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+}
+
+class $$OutboxTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $OutboxTable,
+          OutboxRow,
+          $$OutboxTableFilterComposer,
+          $$OutboxTableOrderingComposer,
+          $$OutboxTableAnnotationComposer,
+          $$OutboxTableCreateCompanionBuilder,
+          $$OutboxTableUpdateCompanionBuilder,
+          (
+            OutboxRow,
+            BaseReferences<_$MemukiDatabase, $OutboxTable, OutboxRow>,
+          ),
+          OutboxRow,
+          PrefetchHooks Function()
+        > {
+  $$OutboxTableTableManager(_$MemukiDatabase db, $OutboxTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$OutboxTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$OutboxTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$OutboxTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<CollectionId> collectionId = const Value.absent(),
+                Value<String> entityTable = const Value.absent(),
+                Value<Uint8List> entityKey = const Value.absent(),
+                Value<Hlc> hlc = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => OutboxCompanion(
+                collectionId: collectionId,
+                entityTable: entityTable,
+                entityKey: entityKey,
+                hlc: hlc,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required CollectionId collectionId,
+                required String entityTable,
+                required Uint8List entityKey,
+                required Hlc hlc,
+                Value<int> rowid = const Value.absent(),
+              }) => OutboxCompanion.insert(
+                collectionId: collectionId,
+                entityTable: entityTable,
+                entityKey: entityKey,
+                hlc: hlc,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$OutboxTable, OutboxRow>(table),
+                  BaseReferences<_$MemukiDatabase, $OutboxTable, OutboxRow>(
+                    db,
+                    table,
+                    e,
+                  ),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: null,
+        ),
+      );
+}
+
+typedef $$OutboxTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $OutboxTable,
+      OutboxRow,
+      $$OutboxTableFilterComposer,
+      $$OutboxTableOrderingComposer,
+      $$OutboxTableAnnotationComposer,
+      $$OutboxTableCreateCompanionBuilder,
+      $$OutboxTableUpdateCompanionBuilder,
+      (OutboxRow, BaseReferences<_$MemukiDatabase, $OutboxTable, OutboxRow>),
+      OutboxRow,
+      PrefetchHooks Function()
     >;
 typedef $$ReviewEventsTableCreateCompanionBuilder =
     ReviewEventsCompanion Function({
@@ -12770,349 +13722,6 @@ typedef $$ReviewEventsTableProcessedTableManager =
         bool schedulingStatesRefs,
       })
     >;
-typedef $$DeviceTableCreateCompanionBuilder = DeviceCompanion Function({
-  Value<int> id,
-  required String node,
-  Value<Hlc?> lastHlc,
-});
-typedef $$DeviceTableUpdateCompanionBuilder = DeviceCompanion Function({
-  Value<int> id,
-  Value<String> node,
-  Value<Hlc?> lastHlc,
-});
-
-class $$DeviceTableFilterComposer
-    extends Composer<_$MemukiDatabase, $DeviceTable> {
-  $$DeviceTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnFilters<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get node => $composableBuilder(
-    column: $table.node,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<Hlc?, Hlc, String> get lastHlc =>
-      $composableBuilder(
-        column: $table.lastHlc,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-}
-
-class $$DeviceTableOrderingComposer
-    extends Composer<_$MemukiDatabase, $DeviceTable> {
-  $$DeviceTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<int> get id => $composableBuilder(
-    column: $table.id,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get node => $composableBuilder(
-    column: $table.node,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get lastHlc => $composableBuilder(
-    column: $table.lastHlc,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$DeviceTableAnnotationComposer
-    extends Composer<_$MemukiDatabase, $DeviceTable> {
-  $$DeviceTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumn<int> get id =>
-      $composableBuilder(column: $table.id, builder: (column) => column);
-
-  GeneratedColumn<String> get node =>
-      $composableBuilder(column: $table.node, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<Hlc?, String> get lastHlc =>
-      $composableBuilder(column: $table.lastHlc, builder: (column) => column);
-}
-
-class $$DeviceTableTableManager
-    extends
-        RootTableManager<
-          _$MemukiDatabase,
-          $DeviceTable,
-          DeviceRow,
-          $$DeviceTableFilterComposer,
-          $$DeviceTableOrderingComposer,
-          $$DeviceTableAnnotationComposer,
-          $$DeviceTableCreateCompanionBuilder,
-          $$DeviceTableUpdateCompanionBuilder,
-          (
-            DeviceRow,
-            BaseReferences<_$MemukiDatabase, $DeviceTable, DeviceRow>,
-          ),
-          DeviceRow,
-          PrefetchHooks Function()
-        > {
-  $$DeviceTableTableManager(_$MemukiDatabase db, $DeviceTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$DeviceTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$DeviceTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$DeviceTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            Value<String> node = const Value.absent(),
-            Value<Hlc?> lastHlc = const Value.absent(),
-          }) => DeviceCompanion(id: id, node: node, lastHlc: lastHlc),
-          createCompanionCallback: ({
-            Value<int> id = const Value.absent(),
-            required String node,
-            Value<Hlc?> lastHlc = const Value.absent(),
-          }) => DeviceCompanion.insert(id: id, node: node, lastHlc: lastHlc),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$DeviceTable, DeviceRow>(table),
-                  BaseReferences<_$MemukiDatabase, $DeviceTable, DeviceRow>(
-                    db,
-                    table,
-                    e,
-                  ),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$DeviceTableProcessedTableManager =
-    ProcessedTableManager<
-      _$MemukiDatabase,
-      $DeviceTable,
-      DeviceRow,
-      $$DeviceTableFilterComposer,
-      $$DeviceTableOrderingComposer,
-      $$DeviceTableAnnotationComposer,
-      $$DeviceTableCreateCompanionBuilder,
-      $$DeviceTableUpdateCompanionBuilder,
-      (DeviceRow, BaseReferences<_$MemukiDatabase, $DeviceTable, DeviceRow>),
-      DeviceRow,
-      PrefetchHooks Function()
-    >;
-typedef $$OutboxTableCreateCompanionBuilder = OutboxCompanion Function({
-  required CollectionId collectionId,
-  required String entityTable,
-  required Uint8List entityKey,
-  required Hlc hlc,
-  Value<int> rowid,
-});
-typedef $$OutboxTableUpdateCompanionBuilder = OutboxCompanion Function({
-  Value<CollectionId> collectionId,
-  Value<String> entityTable,
-  Value<Uint8List> entityKey,
-  Value<Hlc> hlc,
-  Value<int> rowid,
-});
-
-class $$OutboxTableFilterComposer
-    extends Composer<_$MemukiDatabase, $OutboxTable> {
-  $$OutboxTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnWithTypeConverterFilters<CollectionId, CollectionId, Uint8List>
-  get collectionId => $composableBuilder(
-    column: $table.collectionId,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
-  );
-
-  ColumnFilters<String> get entityTable => $composableBuilder(
-    column: $table.entityTable,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<Uint8List> get entityKey => $composableBuilder(
-    column: $table.entityKey,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
-      $composableBuilder(
-        column: $table.hlc,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-}
-
-class $$OutboxTableOrderingComposer
-    extends Composer<_$MemukiDatabase, $OutboxTable> {
-  $$OutboxTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<Uint8List> get collectionId => $composableBuilder(
-    column: $table.collectionId,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get entityTable => $composableBuilder(
-    column: $table.entityTable,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<Uint8List> get entityKey => $composableBuilder(
-    column: $table.entityKey,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get hlc => $composableBuilder(
-    column: $table.hlc,
-    builder: (column) => ColumnOrderings(column),
-  );
-}
-
-class $$OutboxTableAnnotationComposer
-    extends Composer<_$MemukiDatabase, $OutboxTable> {
-  $$OutboxTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumnWithTypeConverter<CollectionId, Uint8List> get collectionId =>
-      $composableBuilder(
-        column: $table.collectionId,
-        builder: (column) => column,
-      );
-
-  GeneratedColumn<String> get entityTable => $composableBuilder(
-    column: $table.entityTable,
-    builder: (column) => column,
-  );
-
-  GeneratedColumn<Uint8List> get entityKey =>
-      $composableBuilder(column: $table.entityKey, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
-      $composableBuilder(column: $table.hlc, builder: (column) => column);
-}
-
-class $$OutboxTableTableManager
-    extends
-        RootTableManager<
-          _$MemukiDatabase,
-          $OutboxTable,
-          OutboxRow,
-          $$OutboxTableFilterComposer,
-          $$OutboxTableOrderingComposer,
-          $$OutboxTableAnnotationComposer,
-          $$OutboxTableCreateCompanionBuilder,
-          $$OutboxTableUpdateCompanionBuilder,
-          (
-            OutboxRow,
-            BaseReferences<_$MemukiDatabase, $OutboxTable, OutboxRow>,
-          ),
-          OutboxRow,
-          PrefetchHooks Function()
-        > {
-  $$OutboxTableTableManager(_$MemukiDatabase db, $OutboxTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$OutboxTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$OutboxTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$OutboxTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<CollectionId> collectionId = const Value.absent(),
-                Value<String> entityTable = const Value.absent(),
-                Value<Uint8List> entityKey = const Value.absent(),
-                Value<Hlc> hlc = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => OutboxCompanion(
-                collectionId: collectionId,
-                entityTable: entityTable,
-                entityKey: entityKey,
-                hlc: hlc,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required CollectionId collectionId,
-                required String entityTable,
-                required Uint8List entityKey,
-                required Hlc hlc,
-                Value<int> rowid = const Value.absent(),
-              }) => OutboxCompanion.insert(
-                collectionId: collectionId,
-                entityTable: entityTable,
-                entityKey: entityKey,
-                hlc: hlc,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$OutboxTable, OutboxRow>(table),
-                  BaseReferences<_$MemukiDatabase, $OutboxTable, OutboxRow>(
-                    db,
-                    table,
-                    e,
-                  ),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: null,
-        ),
-      );
-}
-
-typedef $$OutboxTableProcessedTableManager =
-    ProcessedTableManager<
-      _$MemukiDatabase,
-      $OutboxTable,
-      OutboxRow,
-      $$OutboxTableFilterComposer,
-      $$OutboxTableOrderingComposer,
-      $$OutboxTableAnnotationComposer,
-      $$OutboxTableCreateCompanionBuilder,
-      $$OutboxTableUpdateCompanionBuilder,
-      (OutboxRow, BaseReferences<_$MemukiDatabase, $OutboxTable, OutboxRow>),
-      OutboxRow,
-      PrefetchHooks Function()
-    >;
 typedef $$SchedulingStatesTableCreateCompanionBuilder =
     SchedulingStatesCompanion Function({
       required StudyCardId studyCardId,
@@ -13608,6 +14217,364 @@ typedef $$SchedulingStatesTableProcessedTableManager =
       SchedulingStateRow,
       PrefetchHooks Function({bool studyCardId, bool lastEventId})
     >;
+typedef $$MediaAssetsTableCreateCompanionBuilder =
+    MediaAssetsCompanion Function({
+      required Hlc hlc,
+      Value<bool> deleted,
+      required CollectionId collectionId,
+      required ContentHash hash,
+      required String mimeType,
+      required int sizeBytes,
+      Value<String?> originalName,
+      Value<int> rowid,
+    });
+typedef $$MediaAssetsTableUpdateCompanionBuilder =
+    MediaAssetsCompanion Function({
+      Value<Hlc> hlc,
+      Value<bool> deleted,
+      Value<CollectionId> collectionId,
+      Value<ContentHash> hash,
+      Value<String> mimeType,
+      Value<int> sizeBytes,
+      Value<String?> originalName,
+      Value<int> rowid,
+    });
+
+final class $$MediaAssetsTableReferences
+    extends BaseReferences<_$MemukiDatabase, $MediaAssetsTable, MediaAssetRow> {
+  $$MediaAssetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CollectionsTable _collectionIdTable(_$MemukiDatabase db) => db
+      .collections
+      .createAlias('media_assets__collection_id__collections__id');
+
+  $$CollectionsTableProcessedTableManager get collectionId {
+    final $_column = $_itemColumn<Uint8List>('collection_id')!;
+
+    final manager = $$CollectionsTableTableManager(
+      $_db,
+      $_db.collections,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_collectionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MediaAssetsTableFilterComposer
+    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
+  $$MediaAssetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<ContentHash, ContentHash, Uint8List>
+  get hash => $composableBuilder(
+    column: $table.hash,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sizeBytes => $composableBuilder(
+    column: $table.sizeBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CollectionsTableFilterComposer get collectionId {
+    final $$CollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MediaAssetsTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
+  $$MediaAssetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get hash => $composableBuilder(
+    column: $table.hash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sizeBytes => $composableBuilder(
+    column: $table.sizeBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CollectionsTableOrderingComposer get collectionId {
+    final $$CollectionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MediaAssetsTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
+  $$MediaAssetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ContentHash, Uint8List> get hash =>
+      $composableBuilder(column: $table.hash, builder: (column) => column);
+
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
+
+  GeneratedColumn<int> get sizeBytes =>
+      $composableBuilder(column: $table.sizeBytes, builder: (column) => column);
+
+  GeneratedColumn<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => column,
+  );
+
+  $$CollectionsTableAnnotationComposer get collectionId {
+    final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MediaAssetsTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $MediaAssetsTable,
+          MediaAssetRow,
+          $$MediaAssetsTableFilterComposer,
+          $$MediaAssetsTableOrderingComposer,
+          $$MediaAssetsTableAnnotationComposer,
+          $$MediaAssetsTableCreateCompanionBuilder,
+          $$MediaAssetsTableUpdateCompanionBuilder,
+          (MediaAssetRow, $$MediaAssetsTableReferences),
+          MediaAssetRow,
+          PrefetchHooks Function({bool collectionId})
+        > {
+  $$MediaAssetsTableTableManager(_$MemukiDatabase db, $MediaAssetsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MediaAssetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MediaAssetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MediaAssetsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<CollectionId> collectionId = const Value.absent(),
+                Value<ContentHash> hash = const Value.absent(),
+                Value<String> mimeType = const Value.absent(),
+                Value<int> sizeBytes = const Value.absent(),
+                Value<String?> originalName = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MediaAssetsCompanion(
+                hlc: hlc,
+                deleted: deleted,
+                collectionId: collectionId,
+                hash: hash,
+                mimeType: mimeType,
+                sizeBytes: sizeBytes,
+                originalName: originalName,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
+                required CollectionId collectionId,
+                required ContentHash hash,
+                required String mimeType,
+                required int sizeBytes,
+                Value<String?> originalName = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MediaAssetsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
+                collectionId: collectionId,
+                hash: hash,
+                mimeType: mimeType,
+                sizeBytes: sizeBytes,
+                originalName: originalName,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$MediaAssetsTable, MediaAssetRow>(table),
+                  $$MediaAssetsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({collectionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (collectionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.collectionId,
+                        referencedTable: $$MediaAssetsTableReferences
+                            ._collectionIdTable(db),
+                        referencedColumn: $$MediaAssetsTableReferences
+                            ._collectionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MediaAssetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $MediaAssetsTable,
+      MediaAssetRow,
+      $$MediaAssetsTableFilterComposer,
+      $$MediaAssetsTableOrderingComposer,
+      $$MediaAssetsTableAnnotationComposer,
+      $$MediaAssetsTableCreateCompanionBuilder,
+      $$MediaAssetsTableUpdateCompanionBuilder,
+      (MediaAssetRow, $$MediaAssetsTableReferences),
+      MediaAssetRow,
+      PrefetchHooks Function({bool collectionId})
+    >;
 
 class $MemukiDatabaseManager {
   final _$MemukiDatabase _db;
@@ -13619,26 +14586,26 @@ class $MemukiDatabaseManager {
   $$TagsTableTableManager get tags => $$TagsTableTableManager(_db, _db.tags);
   $$NoteTypesTableTableManager get noteTypes =>
       $$NoteTypesTableTableManager(_db, _db.noteTypes);
-  $$NotesTableTableManager get notes =>
-      $$NotesTableTableManager(_db, _db.notes);
-  $$NoteTagsTableTableManager get noteTags =>
-      $$NoteTagsTableTableManager(_db, _db.noteTags);
-  $$StudyCardTemplatesTableTableManager get studyCardTemplates =>
-      $$StudyCardTemplatesTableTableManager(_db, _db.studyCardTemplates);
-  $$StudyCardsTableTableManager get studyCards =>
-      $$StudyCardsTableTableManager(_db, _db.studyCards);
-  $$MediaAssetsTableTableManager get mediaAssets =>
-      $$MediaAssetsTableTableManager(_db, _db.mediaAssets);
   $$FieldDefinitionsTableTableManager get fieldDefinitions =>
       $$FieldDefinitionsTableTableManager(_db, _db.fieldDefinitions);
+  $$StudyCardTemplatesTableTableManager get studyCardTemplates =>
+      $$StudyCardTemplatesTableTableManager(_db, _db.studyCardTemplates);
+  $$NotesTableTableManager get notes =>
+      $$NotesTableTableManager(_db, _db.notes);
+  $$StudyCardsTableTableManager get studyCards =>
+      $$StudyCardsTableTableManager(_db, _db.studyCards);
   $$NoteFieldsTableTableManager get noteFields =>
       $$NoteFieldsTableTableManager(_db, _db.noteFields);
-  $$ReviewEventsTableTableManager get reviewEvents =>
-      $$ReviewEventsTableTableManager(_db, _db.reviewEvents);
+  $$NoteTagsTableTableManager get noteTags =>
+      $$NoteTagsTableTableManager(_db, _db.noteTags);
   $$DeviceTableTableManager get device =>
       $$DeviceTableTableManager(_db, _db.device);
   $$OutboxTableTableManager get outbox =>
       $$OutboxTableTableManager(_db, _db.outbox);
+  $$ReviewEventsTableTableManager get reviewEvents =>
+      $$ReviewEventsTableTableManager(_db, _db.reviewEvents);
   $$SchedulingStatesTableTableManager get schedulingStates =>
       $$SchedulingStatesTableTableManager(_db, _db.schedulingStates);
+  $$MediaAssetsTableTableManager get mediaAssets =>
+      $$MediaAssetsTableTableManager(_db, _db.mediaAssets);
 }
