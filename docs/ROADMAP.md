@@ -199,6 +199,8 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Grading a burned card | Pass: stays burned; Again: returns to relearning | Proposed |
 | Sub-day vs. day steps | Steps under 1d are exact durations; steps of 1d or more fall due at the start of the study day | Proposed |
 | Configuration scope | Per deck, via shared presets | Proposed |
+| Studying a parent deck | Includes the cards of all its subdecks; studying a subdeck includes only that subdeck and the decks below it | Proposed |
+| Daily limits in nested decks | How a parent's and its subdecks' limits combine, e.g. a parent's limit capping its subdecks' total as in Anki | Open |
 | FSRS | Separate later phase; placement TBD | Decided |
 
 ### Acceptance Criteria
