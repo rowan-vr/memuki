@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 import 'package:uuid/uuid.dart';
 
 import '../domain/ids.dart';
+import 'sync/hlc.dart';
 
 /// Stores an entity ID as its 16 UUID bytes.
 ///
@@ -71,3 +72,14 @@ const noteIdConverter = IdConverter<NoteId>(NoteId.parse);
 const tagIdConverter = IdConverter<TagId>(TagId.parse);
 const studyCardIdConverter = IdConverter<StudyCardId>(StudyCardId.parse);
 const reviewEventIdConverter = IdConverter<ReviewEventId>(ReviewEventId.parse);
+
+/// Stores an [Hlc] as its fixed-width text form, which sorts in HLC order.
+class HlcConverter extends TypeConverter<Hlc, String> {
+  const HlcConverter();
+
+  @override
+  Hlc fromSql(String fromDb) => Hlc.parse(fromDb);
+
+  @override
+  String toSql(Hlc value) => value.toString();
+}

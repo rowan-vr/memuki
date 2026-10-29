@@ -9,9 +9,12 @@ import 'package:memuki/domain/note_type.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/storage/database.dart';
 import 'package:memuki/storage/database_exceptions.dart';
+import 'package:memuki/storage/sync/hlc.dart';
 import 'package:sqlite3/sqlite3.dart' show sqlite3;
 
-import 'generated_migrations/schema.dart';
+import 'generated_migrations/memuki/generated/schema.dart';
+
+final _hlc = Hlc(0, 0, '0000000000000000');
 
 /// A collection with one deck, note type, and note.
 class _Seed {
@@ -33,11 +36,16 @@ class _Seed {
   Future<void> insertInto(MemukiDatabase db) => db.batch((b) {
     b.insert(
       db.collections,
-      CollectionsCompanion.insert(id: collectionId, name: 'Japanese'),
+      CollectionsCompanion.insert(
+        hlc: _hlc,
+        id: collectionId,
+        name: 'Japanese',
+      ),
     );
     b.insert(
       db.decks,
       DecksCompanion.insert(
+        hlc: _hlc,
         id: deckId,
         collectionId: collectionId,
         name: 'Vocab',
@@ -46,6 +54,7 @@ class _Seed {
     b.insert(
       db.noteTypes,
       NoteTypesCompanion.insert(
+        hlc: _hlc,
         id: noteTypeId,
         collectionId: collectionId,
         name: 'Basic',
@@ -54,6 +63,7 @@ class _Seed {
     b.insert(
       db.fieldDefinitions,
       FieldDefinitionsCompanion.insert(
+        hlc: _hlc,
         id: fieldId,
         noteTypeId: noteTypeId,
         position: 0,
@@ -64,6 +74,7 @@ class _Seed {
     b.insert(
       db.studyCardTemplates,
       StudyCardTemplatesCompanion.insert(
+        hlc: _hlc,
         id: templateId,
         noteTypeId: noteTypeId,
         position: 0,
@@ -73,6 +84,7 @@ class _Seed {
     b.insert(
       db.notes,
       NotesCompanion.insert(
+        hlc: _hlc,
         id: noteId,
         collectionId: collectionId,
         noteTypeId: noteTypeId,
@@ -90,7 +102,7 @@ class _NextVersionDatabase extends MemukiDatabase {
   final Future<void> Function(MemukiDatabase db) steps;
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   @override
   Future<void> upgradeSchema(Migrator m, int from, int to) => steps(this);
@@ -114,11 +126,13 @@ void main() {
   setUp(() => db = MemukiDatabase(NativeDatabase.memory()));
   tearDown(() => db.close());
 
-  test('matches the v1 schema snapshot', () async {
+  test('matches the snapshot of the current schema', () async {
     final verifier = SchemaVerifier(GeneratedHelper());
-    final connection = await verifier.startAt(1);
+    final current = GeneratedHelper.versions.last;
+    final connection = await verifier.startAt(current);
     final migrated = MemukiDatabase(connection);
-    await verifier.migrateAndValidate(migrated, 1);
+    expect(migrated.schemaVersion, current);
+    await verifier.migrateAndValidate(migrated, current);
     await migrated.close();
   });
 
@@ -133,6 +147,7 @@ void main() {
         .into(db.studyCards)
         .insert(
           StudyCardsCompanion.insert(
+            hlc: _hlc,
             id: cardId,
             collectionId: seed.collectionId,
             noteId: seed.noteId,
@@ -144,6 +159,7 @@ void main() {
         .into(db.reviewEvents)
         .insert(
           ReviewEventsCompanion.insert(
+            hlc: _hlc,
             id: eventId,
             studyCardId: cardId,
             kind: ReviewEventKind.review,
@@ -175,6 +191,7 @@ void main() {
         .into(db.mediaAssets)
         .insert(
           MediaAssetsCompanion.insert(
+            hlc: _hlc,
             collectionId: seed.collectionId,
             hash: hash,
             mimeType: 'audio/mpeg',
@@ -201,6 +218,7 @@ void main() {
             .into(db.decks)
             .insert(
               DecksCompanion.insert(
+                hlc: _hlc,
                 id: DeckId.generate(),
                 collectionId: seed.collectionId,
                 parentId: Value(other.deckId),
@@ -217,6 +235,7 @@ void main() {
           .into(db.tags)
           .insert(
             TagsCompanion.insert(
+              hlc: _hlc,
               id: otherTag,
               collectionId: other.collectionId,
               name: 'grammar',
@@ -227,6 +246,7 @@ void main() {
             .into(db.tags)
             .insert(
               TagsCompanion.insert(
+                hlc: _hlc,
                 id: TagId.generate(),
                 collectionId: seed.collectionId,
                 parentId: Value(otherTag),
@@ -243,6 +263,7 @@ void main() {
             .into(db.notes)
             .insert(
               NotesCompanion.insert(
+                hlc: _hlc,
                 id: NoteId.generate(),
                 collectionId: seed.collectionId,
                 noteTypeId: other.noteTypeId,
@@ -258,6 +279,7 @@ void main() {
             .into(db.studyCards)
             .insert(
               StudyCardsCompanion.insert(
+                hlc: _hlc,
                 id: StudyCardId.derive(seed.noteId, seed.templateId),
                 collectionId: seed.collectionId,
                 noteId: seed.noteId,
@@ -275,6 +297,7 @@ void main() {
           .into(db.tags)
           .insert(
             TagsCompanion.insert(
+              hlc: _hlc,
               id: otherTag,
               collectionId: other.collectionId,
               name: 'grammar',
@@ -285,6 +308,7 @@ void main() {
             .into(db.noteTags)
             .insert(
               NoteTagsCompanion.insert(
+                hlc: _hlc,
                 collectionId: seed.collectionId,
                 noteId: seed.noteId,
                 tagId: otherTag,
@@ -301,6 +325,7 @@ void main() {
             .into(db.decks)
             .insert(
               DecksCompanion.insert(
+                hlc: _hlc,
                 id: DeckId.generate(),
                 collectionId: seed.collectionId,
                 parentId: Value(parent),
@@ -311,6 +336,7 @@ void main() {
             .into(db.decks)
             .insert(
               DecksCompanion.insert(
+                hlc: _hlc,
                 id: parent,
                 collectionId: seed.collectionId,
                 name: 'Parent',
@@ -327,6 +353,7 @@ void main() {
               .into(db.decks)
               .insert(
                 DecksCompanion.insert(
+                  hlc: _hlc,
                   id: DeckId.generate(),
                   collectionId: seed.collectionId,
                   parentId: Value(DeckId.generate()),
@@ -348,7 +375,10 @@ void main() {
 
     await expectLater(
       (db.update(db.decks)..where((d) => d.id.equalsValue(seed.deckId))).write(
-        DecksCompanion(collectionId: Value(other.collectionId)),
+        DecksCompanion(
+          collectionId: Value(other.collectionId),
+          hlc: Value(Hlc(1, 0, _hlc.node)),
+        ),
       ),
       throwsA(
         isA<SqliteException>().having(
@@ -359,8 +389,14 @@ void main() {
       ),
     );
     // Updating other columns still works.
-    await (db.update(db.decks)..where((d) => d.id.equalsValue(seed.deckId)))
-        .write(const DecksCompanion(name: Value('Renamed')));
+    await (db.update(
+      db.decks,
+    )..where((d) => d.id.equalsValue(seed.deckId))).write(
+      DecksCompanion(
+        name: const Value('Renamed'),
+        hlc: Value(Hlc(1, 0, _hlc.node)),
+      ),
+    );
   });
 
   group('opening', () {
@@ -402,12 +438,12 @@ void main() {
         current.customSelect('SELECT 1').get(),
         throwsA(
           isA<DatabaseTooNewException>()
-              .having((e) => e.found, 'found', 2)
-              .having((e) => e.supported, 'supported', 1),
+              .having((e) => e.found, 'found', 3)
+              .having((e) => e.supported, 'supported', 2),
         ),
       );
       await current.close();
-      expect(_userVersion(file), 2);
+      expect(_userVersion(file), 3);
     });
 
     test('upgrades and writes a backup first', () async {
@@ -419,12 +455,12 @@ void main() {
       await next.customSelect('SELECT 1').get();
       await next.close();
 
-      expect(_userVersion(file), 2);
+      expect(_userVersion(file), 3);
       final backups = dir.listSync().whereType<File>().where(
-        (f) => f.path.contains('memuki-v1-'),
+        (f) => f.path.contains('memuki-v2-'),
       );
       expect(backups, hasLength(1));
-      expect(_userVersion(backups.single), 1);
+      expect(_userVersion(backups.single), 2);
     });
 
     test('rolls back a failed upgrade', () async {
@@ -436,13 +472,13 @@ void main() {
         failing.customSelect('SELECT 1').get(),
         throwsA(
           isA<DatabaseMigrationException>()
-              .having((e) => e.from, 'from', 1)
-              .having((e) => e.to, 'to', 2),
+              .having((e) => e.from, 'from', 2)
+              .having((e) => e.to, 'to', 3),
         ),
       );
       await failing.close();
 
-      expect(_userVersion(file), 1);
+      expect(_userVersion(file), 2);
       final reopened = MemukiDatabase(NativeDatabase(file));
       expect(await reopened.select(reopened.notes).get(), hasLength(1));
       await reopened.close();

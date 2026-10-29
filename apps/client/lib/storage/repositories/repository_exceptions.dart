@@ -14,6 +14,11 @@ class EntityNotFoundException extends RepositoryException {
   const EntityNotFoundException(super.message);
 }
 
+/// An entity with this identity already exists.
+class DuplicateEntityException extends RepositoryException {
+  const DuplicateEntityException(super.message);
+}
+
 /// The operation would reference or move an entity across collections.
 class CrossCollectionException extends RepositoryException {
   const CrossCollectionException(super.message);

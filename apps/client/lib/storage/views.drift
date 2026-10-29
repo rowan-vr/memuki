@@ -1,0 +1,92 @@
+import 'tables/tables.dart';
+
+-- Which rows are visible. A delete tombstones only the row it targets; the
+-- rows below it stay live and are hidden here, because a row is only visible
+-- while its parents are. Undoing a delete (including through sync) brings
+-- the whole subtree back, and concurrent changes to the rows below are not
+-- overwritten by the delete.
+--
+-- Reads and existence checks go through these views instead of checking
+-- `deleted` themselves. Checks are correlated EXISTS lookups, so checking one
+-- row uses the indexes instead of building the whole view; only the deck and
+-- tag trees, which are small, are walked as a whole. Purging tombstones (Phase 8) must remove the rows
+-- below a purged row by the same rules.
+
+CREATE VIEW visible_collections AS
+SELECT id FROM collections WHERE deleted = 0;
+
+-- Walks down from the root decks of visible collections. A deck below a
+-- tombstoned deck is never reached; neither is a cycle, which has no root.
+CREATE VIEW visible_decks AS
+WITH RECURSIVE visible(id) AS (
+  SELECT id FROM decks
+  WHERE parent_id IS NULL AND deleted = 0
+    AND collection_id IN (SELECT id FROM visible_collections)
+  UNION
+  SELECT d.id FROM decks d JOIN visible v ON d.parent_id = v.id
+  WHERE d.deleted = 0
+)
+SELECT id FROM visible;
+
+CREATE VIEW visible_tags AS
+WITH RECURSIVE visible(id) AS (
+  SELECT id FROM tags
+  WHERE parent_id IS NULL AND deleted = 0
+    AND collection_id IN (SELECT id FROM visible_collections)
+  UNION
+  SELECT t.id FROM tags t JOIN visible v ON t.parent_id = v.id
+  WHERE t.deleted = 0
+)
+SELECT id FROM visible;
+
+CREATE VIEW visible_note_types AS
+SELECT t.id FROM note_types t
+WHERE t.deleted = 0
+  AND EXISTS (SELECT 1 FROM visible_collections c WHERE c.id = t.collection_id);
+
+CREATE VIEW visible_field_definitions AS
+SELECT f.id FROM field_definitions f
+WHERE f.deleted = 0
+  AND EXISTS (SELECT 1 FROM visible_note_types t WHERE t.id = f.note_type_id);
+
+CREATE VIEW visible_study_card_templates AS
+SELECT s.id FROM study_card_templates s
+WHERE s.deleted = 0
+  AND EXISTS (SELECT 1 FROM visible_note_types t WHERE t.id = s.note_type_id);
+
+-- A card is visible while its note, deck, and template are. Only the note's
+-- own flag is checked here, since a note's visibility depends on its cards.
+CREATE VIEW visible_study_cards AS
+SELECT c.id, c.note_id FROM study_cards c
+WHERE c.deleted = 0
+  AND EXISTS (SELECT 1 FROM notes n WHERE n.id = c.note_id AND n.deleted = 0)
+  AND EXISTS (
+    SELECT 1 FROM visible_study_card_templates s WHERE s.id = c.template_id
+  )
+  AND EXISTS (SELECT 1 FROM visible_decks d WHERE d.id = c.deck_id);
+
+-- A note that has cards is visible while one of them is, so deleting a deck
+-- or a note's last card hides the note. A note without any cards yet (just
+-- created) is visible.
+CREATE VIEW visible_notes AS
+SELECT n.id FROM notes n
+WHERE n.deleted = 0
+  AND EXISTS (SELECT 1 FROM visible_note_types t WHERE t.id = n.note_type_id)
+  AND (
+    EXISTS (SELECT 1 FROM visible_study_cards c WHERE c.note_id = n.id)
+    OR NOT EXISTS (SELECT 1 FROM study_cards c WHERE c.note_id = n.id)
+  );
+
+CREATE VIEW visible_note_fields AS
+SELECT v.note_id, v.field_id, v.value FROM note_fields v
+WHERE v.deleted = 0
+  AND EXISTS (SELECT 1 FROM visible_notes n WHERE n.id = v.note_id)
+  AND EXISTS (
+    SELECT 1 FROM visible_field_definitions f WHERE f.id = v.field_id
+  );
+
+CREATE VIEW visible_note_tags AS
+SELECT l.note_id, l.tag_id FROM note_tags l
+WHERE l.deleted = 0
+  AND EXISTS (SELECT 1 FROM visible_notes n WHERE n.id = l.note_id)
+  AND EXISTS (SELECT 1 FROM visible_tags t WHERE t.id = l.tag_id);

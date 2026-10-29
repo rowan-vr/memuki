@@ -3,16 +3,20 @@ import 'package:drift/drift.dart';
 import '../../domain/ids.dart';
 import '../../domain/review.dart';
 import '../database.dart';
+import '../sync/change_recorder.dart';
 import 'repository_exceptions.dart';
+import 'visibility.dart';
 
 /// The append-only review history. Events are never changed or removed;
 /// an undo is a new event.
 class ReviewRepository {
-  ReviewRepository(this._db);
+  ReviewRepository(this._db) : _changes = ChangeRecorder(_db);
 
   final MemukiDatabase _db;
+  final ChangeRecorder _changes;
 
-  /// A card's events in the order they happened.
+  /// A card's events in the order they happened, including events of a
+  /// deleted card.
   Future<List<ReviewEvent>> history(StudyCardId studyCardId) =>
       (_db.select(_db.reviewEvents)
             ..where((e) => e.studyCardId.equalsValue(studyCardId))
@@ -24,10 +28,13 @@ class ReviewRepository {
           .get();
 
   /// Appends an event. An undo event must undo an event of the same card.
-  Future<void> append(ReviewEvent event) => _db.transaction(() async {
-    final card = await (_db.select(
-      _db.studyCards,
-    )..where((c) => c.id.equalsValue(event.studyCardId))).getSingleOrNull();
+  Future<void> append(ReviewEvent event) => _changes.write((hlc) async {
+    final card =
+        await (_db.select(_db.studyCards)..where(
+              (c) =>
+                  c.id.equalsValue(event.studyCardId) & _db.isVisibleCard(c.id),
+            ))
+            .getSingleOrNull();
     if (card == null) {
       throw EntityNotFoundException('Card ${event.studyCardId} does not exist');
     }
@@ -57,6 +64,7 @@ class ReviewRepository {
             schedulerId: event.schedulerId,
             schedulerVersion: event.schedulerVersion,
             configVersion: event.configVersion,
+            hlc: hlc,
           ),
         );
   });

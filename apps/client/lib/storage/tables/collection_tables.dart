@@ -1,9 +1,11 @@
 import 'package:drift/drift.dart';
 
 import '../converters.dart';
+import 'sync_tables.dart';
 
+@TableIndex(name: 'collections_hlc', columns: {#hlc})
 @DataClassName('CollectionRow')
-class Collections extends Table {
+class Collections extends Table with SyncedColumns {
   BlobColumn get id => blob().map(collectionIdConverter)();
   TextColumn get name => text()();
 
@@ -12,8 +14,9 @@ class Collections extends Table {
 }
 
 @TableIndex(name: 'decks_parent', columns: {#collectionId, #parentId})
+@TableIndex(name: 'decks_hlc', columns: {#hlc})
 @DataClassName('DeckRow')
-class Decks extends Table {
+class Decks extends Table with SyncedColumns {
   BlobColumn get id => blob().map(deckIdConverter)();
   BlobColumn get collectionId =>
       blob().map(collectionIdConverter).references(Collections, #id)();

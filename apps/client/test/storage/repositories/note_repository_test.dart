@@ -80,7 +80,7 @@ void main() {
     );
   });
 
-  test('deleting one removes its cards and their history', () async {
+  test('deleting one removes its cards and keeps their history', () async {
     final (note, card) = await japanese.addNote('猫');
     await repos.reviews.append(
       ReviewEvent(
@@ -96,7 +96,8 @@ void main() {
     );
     await repos.notes.deleteNote(note.id);
     expect(await repos.cards.card(card.id), isNull);
-    expect(await repos.reviews.history(card.id), isEmpty);
+    expect(await repos.notes.note(note.id), isNull);
+    expect(await repos.reviews.history(card.id), hasLength(1));
   });
 
   group('tags', () {
@@ -132,6 +133,20 @@ void main() {
 
       expect(await repos.notes.notesWithTag(grammar.id), [tagged]);
     });
+  });
+
+  test('watching emits when a note is hidden by deleting its deck', () async {
+    final (note, _) = await japanese.addNote('猫');
+    final notes = repos.notes.watchNotes(japanese.id);
+    expect(
+      notes,
+      emitsInOrder([
+        [note],
+        isEmpty,
+      ]),
+    );
+    await pumpEventQueue();
+    await repos.collections.deleteDeck(japanese.deck.id);
   });
 
   test('watching emits when a field changes', () async {

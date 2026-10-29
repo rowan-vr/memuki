@@ -19,3 +19,4 @@ export 'note_tables.dart';
 export 'note_type_tables.dart';
 export 'review_tables.dart';
 export 'study_card_tables.dart';
+export 'sync_tables.dart';

@@ -179,7 +179,7 @@ void main() {
       final b = await japanese.addDeck('B', parentId: a.id);
       // Corrupt data: make A a child of B, bypassing the repository.
       await repos.db.customStatement(
-        'UPDATE decks SET parent_id = ? WHERE id = ?',
+        "UPDATE decks SET parent_id = ?, hlc = hlc || 'x' WHERE id = ?",
         [deckIdConverter.toSql(b.id), deckIdConverter.toSql(a.id)],
       );
 
@@ -187,8 +187,11 @@ void main() {
       final sub = Logger('memuki.storage').onRecord.listen(logs.add);
       addTearDown(sub.cancel);
 
-      expect(await repos.collections.deckSubtree(a.id), {a.id, b.id});
+      final tree = TreeQueries(repos.db, repos.db.decks, deckIdConverter);
+      expect(await tree.subtree(a.id), {a.id, b.id});
       expect(logs.single.message, contains('reached depth $maxTreeDepth'));
+      // A cycle has no root deck, so it is not visible.
+      expect(await repos.collections.decks(japanese.id), [japanese.deck]);
     });
   });
 

@@ -4,16 +4,20 @@ import '../../domain/ids.dart';
 import '../../domain/note.dart';
 import '../converters.dart';
 import '../database.dart';
+import '../sync/change_recorder.dart';
 import 'repository_exceptions.dart';
 import 'tree_queries.dart';
+import 'visibility.dart';
 
 /// Tags of a collection. Tags are attached to notes through
 /// `NoteRepository`.
 class TagRepository {
   TagRepository(this._db)
-    : _tagTree = TreeQueries(_db, _db.tags, tagIdConverter);
+    : _changes = ChangeRecorder(_db),
+      _tagTree = TreeQueries(_db, _db.tags, tagIdConverter);
 
   final MemukiDatabase _db;
+  final ChangeRecorder _changes;
   final TreeQueries<TagId> _tagTree;
 
   Future<Tag?> tag(TagId id) async {
@@ -29,15 +33,20 @@ class TagRepository {
   Stream<List<Tag>> watchTags(CollectionId collectionId) =>
       _tagsQuery(collectionId).map(_tag).watch();
 
-  /// The IDs of [id] and all tags below it.
-  Future<Set<TagId>> tagSubtree(TagId id) => _tagTree.subtree(id);
+  /// The IDs of [id] and all tags below it; empty if [id] is not visible.
+  Future<Set<TagId>> tagSubtree(TagId id) async =>
+      await _tagRow(id) == null ? const {} : _tagTree.subtree(id);
 
   /// Creates a tag. Its name must be unique among its siblings, ignoring
   /// case.
-  Future<void> createTag(Tag tag) => _db.transaction(() async {
-    final collection = await (_db.select(
-      _db.collections,
-    )..where((c) => c.id.equalsValue(tag.collectionId))).getSingleOrNull();
+  Future<void> createTag(Tag tag) => _changes.write((hlc) async {
+    final collection =
+        await (_db.select(_db.collections)..where(
+              (c) =>
+                  c.id.equalsValue(tag.collectionId) &
+                  _db.isVisibleCollection(c.id),
+            ))
+            .getSingleOrNull();
     if (collection == null) {
       throw EntityNotFoundException(
         'Collection ${tag.collectionId} does not exist',
@@ -55,13 +64,14 @@ class TagRepository {
             collectionId: tag.collectionId,
             parentId: Value(tag.parentId),
             name: tag.name,
+            hlc: hlc,
           ),
         );
   });
 
   /// Renames or moves a tag. Moving a tag below itself or one of its
   /// descendants is rejected.
-  Future<void> updateTag(Tag tag) => _db.transaction(() async {
+  Future<void> updateTag(Tag tag) => _changes.write((hlc) async {
     final current = await _tagRow(tag.id);
     if (current == null) throw _tagNotFound(tag.id);
     if (current.collectionId != tag.collectionId) {
@@ -78,23 +88,27 @@ class TagRepository {
     }
     await _requireUniqueName(tag);
     await (_db.update(_db.tags)..where((t) => t.id.equalsValue(tag.id))).write(
-      TagsCompanion(parentId: Value(parentId), name: Value(tag.name)),
+      TagsCompanion(
+        parentId: Value(parentId),
+        name: Value(tag.name),
+        hlc: Value(hlc),
+      ),
     );
   });
 
-  /// Deletes a tag with the tags below it, and removes them from all notes.
-  Future<void> deleteTag(TagId id) => _db.transaction(() async {
+  /// Deletes a tag. The tags below it are hidden with it, and all of them
+  /// disappear from notes.
+  Future<void> deleteTag(TagId id) => _changes.write((hlc) async {
     if (await _tagRow(id) == null) throw _tagNotFound(id);
-    final tagIds = (await _tagTree.subtree(id)).toList();
-    await (_db.delete(
-      _db.noteTags,
-    )..where((n) => n.tagId.isInValues(tagIds))).go();
-    await (_db.delete(_db.tags)..where((t) => t.id.isInValues(tagIds))).go();
+    await (_db.update(_db.tags)..where((t) => t.id.equalsValue(id))).write(
+      TagsCompanion(deleted: const Value(true), hlc: Value(hlc)),
+    );
   });
 
-  Future<TagRow?> _tagRow(TagId id) => (_db.select(
-    _db.tags,
-  )..where((t) => t.id.equalsValue(id))).getSingleOrNull();
+  Future<TagRow?> _tagRow(TagId id) =>
+      (_db.select(_db.tags)
+            ..where((t) => t.id.equalsValue(id) & _db.isVisibleTag(t.id)))
+          .getSingleOrNull();
 
   Future<void> _requireParent(CollectionId collectionId, TagId parentId) async {
     final parent = await _tagRow(parentId);
@@ -116,7 +130,8 @@ class TagRepository {
                   (parentId == null
                       ? t.parentId.isNull()
                       : t.parentId.equalsValue(parentId)) &
-                  t.id.equalsValue(tag.id).not(),
+                  t.id.equalsValue(tag.id).not() &
+                  _db.isVisibleTag(t.id),
             ))
             .get();
     final name = tag.name.toLowerCase();
@@ -130,7 +145,9 @@ class TagRepository {
   SimpleSelectStatement<$TagsTable, TagRow> _tagsQuery(
     CollectionId collectionId,
   ) => _db.select(_db.tags)
-    ..where((t) => t.collectionId.equalsValue(collectionId))
+    ..where(
+      (t) => t.collectionId.equalsValue(collectionId) & _db.isVisibleTag(t.id),
+    )
     ..orderBy([(t) => OrderingTerm(expression: t.name)]);
 }
 
