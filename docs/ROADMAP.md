@@ -194,13 +194,16 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Default step values | Learning 1m → 4h → 12h → 1d → 2d; graduating 3d; easy 14d; relearning 10m → 1h → 12h → 2d; minimum 2d; leech at 8 lapses | Decided |
 | Review-phase algorithm | SM-2-style ease multiplier | Decided |
 | Step grade semantics | Again: first step; Hard: repeat current step; Good: next step, graduating after the last; Easy: graduate immediately with the easy interval | Decided |
+| Grades | Again, Hard, Good, and Easy are all stored and shown | Decided |
+| Ease recovery | In review, Good raises ease slightly, up to the starting ease; the amount is set per preset | Decided |
 | Burned state | Cards whose next interval reaches a configurable threshold are burned and leave normal scheduling | Decided |
-| Burn threshold | Per preset, can be disabled; default 1 year | Proposed |
-| Grading a burned card | Pass: stays burned; Again: returns to relearning | Proposed |
-| Sub-day vs. day steps | Steps under 1d are exact durations; steps of 1d or more fall due at the start of the study day | Proposed |
-| Configuration scope | Per deck, via shared presets | Proposed |
-| Studying a parent deck | Includes the cards of all its subdecks; studying a subdeck includes only that subdeck and the decks below it | Proposed |
-| Daily limits in nested decks | How a parent's and its subdecks' limits combine, e.g. a parent's limit capping its subdecks' total as in Anki | Open |
+| Burn threshold | Per preset, can be disabled; default 1 year | Decided |
+| Grading a burned card | Pass: stays burned; Again: returns to relearning | Decided |
+| Sub-day vs. day steps | Steps under 1d are exact durations; steps of 1d or more fall due at the start of the study day | Decided |
+| Start of study day | Per collection; default 03:00 local time | Decided |
+| Configuration scope | Per deck, via shared presets; a deck without its own preset inherits its parent's | Decided |
+| Studying a parent deck | Includes the cards of all its subdecks; studying a subdeck includes only that subdeck and the decks below it | Decided |
+| Daily limits in nested decks | Each subdeck's own limit applies, and the studied deck's limit caps the combined total | Decided |
 | FSRS | Separate later phase; placement TBD | Decided |
 
 ### Acceptance Criteria
