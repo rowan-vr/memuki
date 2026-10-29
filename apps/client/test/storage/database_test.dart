@@ -16,6 +16,10 @@ import 'generated_migrations/memuki/generated/schema.dart';
 
 final _hlc = Hlc(0, 0, '0000000000000000');
 
+/// The current schema version, and the one after it.
+final _current = GeneratedHelper.versions.last;
+final _next = _current + 1;
+
 /// A collection with one deck, note type, and note.
 class _Seed {
   _Seed()
@@ -102,7 +106,7 @@ class _NextVersionDatabase extends MemukiDatabase {
   final Future<void> Function(MemukiDatabase db) steps;
 
   @override
-  int get schemaVersion => 3;
+  int get schemaVersion => super.schemaVersion + 1;
 
   @override
   Future<void> upgradeSchema(Migrator m, int from, int to) => steps(this);
@@ -406,9 +410,9 @@ void main() {
     setUp(() async {
       dir = await Directory.systemTemp.createTemp('memuki_db_test');
       file = File('${dir.path}/memuki.sqlite');
-      final v1 = MemukiDatabase(NativeDatabase(file));
-      await _Seed().insertInto(v1);
-      await v1.close();
+      final db = MemukiDatabase(NativeDatabase(file));
+      await _Seed().insertInto(db);
+      await db.close();
     });
 
     tearDown(() => dir.delete(recursive: true));
@@ -438,12 +442,12 @@ void main() {
         current.customSelect('SELECT 1').get(),
         throwsA(
           isA<DatabaseTooNewException>()
-              .having((e) => e.found, 'found', 3)
-              .having((e) => e.supported, 'supported', 2),
+              .having((e) => e.found, 'found', _next)
+              .having((e) => e.supported, 'supported', _current),
         ),
       );
       await current.close();
-      expect(_userVersion(file), 3);
+      expect(_userVersion(file), _next);
     });
 
     test('upgrades and writes a backup first', () async {
@@ -455,12 +459,12 @@ void main() {
       await next.customSelect('SELECT 1').get();
       await next.close();
 
-      expect(_userVersion(file), 3);
+      expect(_userVersion(file), _next);
       final backups = dir.listSync().whereType<File>().where(
-        (f) => f.path.contains('memuki-v2-'),
+        (f) => f.path.contains('memuki-v$_current-'),
       );
       expect(backups, hasLength(1));
-      expect(_userVersion(backups.single), 2);
+      expect(_userVersion(backups.single), _current);
     });
 
     test('rolls back a failed upgrade', () async {
@@ -472,13 +476,13 @@ void main() {
         failing.customSelect('SELECT 1').get(),
         throwsA(
           isA<DatabaseMigrationException>()
-              .having((e) => e.from, 'from', 2)
-              .having((e) => e.to, 'to', 3),
+              .having((e) => e.from, 'from', _current)
+              .having((e) => e.to, 'to', _next),
         ),
       );
       await failing.close();
 
-      expect(_userVersion(file), 2);
+      expect(_userVersion(file), _current);
       final reopened = MemukiDatabase(NativeDatabase(file));
       expect(await reopened.select(reopened.notes).get(), hasLength(1));
       await reopened.close();

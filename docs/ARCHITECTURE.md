@@ -110,7 +110,7 @@ With this model, merging concurrent reviews from different devices reduces to me
 - **Repositories:** one per aggregate (collections and decks, tags, note types, notes, cards, review history). They map rows to domain models and enforce invariants that span entities: parent changes cannot create cycles, tag names are unique among siblings ignoring case, and a note's fields and cards match its note type. Each write runs in a transaction; callers group several writes by wrapping them in one. Hierarchy walks use recursive queries with `UNION` and a depth limit of 64, so a cycle in corrupt data is logged instead of hanging the app.
 - **Migrations:** the schema is versioned, with a snapshot of each version and generated migration tests. An upgrade runs in one transaction and is rejected if it leaves foreign key violations; native builds copy the database before upgrading. A database from a newer schema version is not opened.
 - Measurements and limits are in the [browser storage spike](spikes/browser-storage.md).
-- **Media:** stored outside the main database, content-addressed by hash, so identical media is stored once and sync can verify integrity.
+- **Media:** stored outside the main database, content-addressed by SHA-256 hash, so sync can verify integrity. Each collection has its own folder (`media/<collection ID>/<hash>`), so identical media is stored once per collection and a collection's media can be synced, shared, or exported on its own. A file is written to a temporary file while it is hashed, flushed, and renamed into place before its `media_assets` row is written, so a row never points to a missing or partial file. Deleting media tombstones the row and keeps the file until tombstones are purged (Phase 8). The MIME type is detected from the file's first bytes and name, falling back to the type the caller gives. Storage goes through a `MediaStore` interface; native builds use the file system, and the web store is part of Milestone E.
 - **Dictionaries:** each installed package is stored and indexed separately from the user's collections, and can be removed without touching study data. **Proposed:** packages ship as prebuilt SQLite databases, so installing one is a file copy rather than a row-by-row import.
 
 ## Dictionaries and mining
@@ -219,6 +219,7 @@ memuki/
 | D32 | HLC timestamps stored as fixed-width hex text; stamped and recorded by repositories | Decided | 1 |
 | D33 | Scheduling state is not synced; each device rebuilds it from synced review events | Decided | 1 |
 | D34 | A delete tombstones only its target; rows below it are hidden by views over their parents' tombstones | Decided | 1 |
+| D35 | Media files in a folder per collection, named by hash, written before their row | Decided | 1 |
 
 ## Open questions
 

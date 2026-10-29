@@ -1,6 +1,10 @@
+import 'dart:io';
+
 import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:logging/logging.dart';
+import 'package:path/path.dart' as p;
+import 'package:path_provider/path_provider.dart';
 
 import 'app.dart';
 import 'core/error_handling.dart';
@@ -8,6 +12,7 @@ import 'core/logging.dart';
 import 'presentation/startup/startup_error_app.dart';
 import 'storage/database.dart';
 import 'storage/database_exceptions.dart';
+import 'storage/media/io_media_store.dart';
 import 'storage/providers.dart';
 
 final _log = Logger('memuki.startup');
@@ -19,10 +24,13 @@ Future<void> main() async {
   // Opening creates or upgrades the schema, so a database that cannot be used
   // is reported before the app starts.
   final database = MemukiDatabase.open();
+  final IoMediaStore media;
   try {
     await database.ensureOpen();
+    final support = await getApplicationSupportDirectory();
+    media = await IoMediaStore.open(Directory(p.join(support.path, 'media')));
   } catch (error, stackTrace) {
-    _log.shout('Could not open the database', error, stackTrace);
+    _log.shout('Could not open storage', error, stackTrace);
     await database.close();
     runApp(
       StartupErrorApp(
@@ -39,7 +47,10 @@ Future<void> main() async {
 
   runApp(
     ProviderScope(
-      overrides: [databaseProvider.overrideWithValue(database)],
+      overrides: [
+        databaseProvider.overrideWithValue(database),
+        mediaStoreProvider.overrideWithValue(media),
+      ],
       child: const MemukiApp(),
     ),
   );

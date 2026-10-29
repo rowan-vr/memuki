@@ -5058,6 +5058,660 @@ class VisibleNoteTags extends ViewInfo<VisibleNoteTags, VisibleNoteTag>
   };
 }
 
+class $MediaAssetsTable extends MediaAssets
+    with TableInfo<$MediaAssetsTable, MediaAssetRow> {
+  @override
+  final GeneratedDatabase attachedDatabase;
+  final String? _alias;
+  $MediaAssetsTable(this.attachedDatabase, [this._alias]);
+  @override
+  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
+      GeneratedColumn<String>(
+        'hlc',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<Hlc>($MediaAssetsTable.$converterhlc);
+  static const VerificationMeta _deletedMeta = const VerificationMeta(
+    'deleted',
+  );
+  @override
+  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
+    'deleted',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("deleted" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
+  collectionId = GeneratedColumn<Uint8List>(
+    'collection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+    requiredDuringInsert: true,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'REFERENCES collections (id)',
+    ),
+  ).withConverter<CollectionId>($MediaAssetsTable.$convertercollectionId);
+  @override
+  late final GeneratedColumnWithTypeConverter<ContentHash, Uint8List> hash =
+      GeneratedColumn<Uint8List>(
+        'hash',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: true,
+      ).withConverter<ContentHash>($MediaAssetsTable.$converterhash);
+  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
+    'mimeType',
+  );
+  @override
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _sizeBytesMeta = const VerificationMeta(
+    'sizeBytes',
+  );
+  @override
+  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
+    'size_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+    requiredDuringInsert: true,
+  );
+  static const VerificationMeta _originalNameMeta = const VerificationMeta(
+    'originalName',
+  );
+  @override
+  late final GeneratedColumn<String> originalName = GeneratedColumn<String>(
+    'original_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    collectionId,
+    hash,
+    mimeType,
+    sizeBytes,
+    originalName,
+  ];
+  @override
+  String get aliasedName => _alias ?? actualTableName;
+  @override
+  String get actualTableName => $name;
+  static const String $name = 'media_assets';
+  @override
+  VerificationContext validateIntegrity(
+    Insertable<MediaAssetRow> instance, {
+    bool isInserting = false,
+  }) {
+    final context = VerificationContext();
+    final data = instance.toColumns(true);
+    if (data.containsKey('deleted')) {
+      context.handle(
+        _deletedMeta,
+        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('mime_type')) {
+      context.handle(
+        _mimeTypeMeta,
+        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_mimeTypeMeta);
+    }
+    if (data.containsKey('size_bytes')) {
+      context.handle(
+        _sizeBytesMeta,
+        sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta),
+      );
+    } else if (isInserting) {
+      context.missing(_sizeBytesMeta);
+    }
+    if (data.containsKey('original_name')) {
+      context.handle(
+        _originalNameMeta,
+        originalName.isAcceptableOrUnknown(
+          data['original_name']!,
+          _originalNameMeta,
+        ),
+      );
+    }
+    return context;
+  }
+
+  @override
+  Set<GeneratedColumn> get $primaryKey => {collectionId, hash};
+  @override
+  MediaAssetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return MediaAssetRow(
+      hlc: $MediaAssetsTable.$converterhlc.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}hlc'],
+        )!,
+      ),
+      deleted: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}deleted'],
+      )!,
+      collectionId: $MediaAssetsTable.$convertercollectionId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}collection_id'],
+        )!,
+      ),
+      hash: $MediaAssetsTable.$converterhash.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}hash'],
+        )!,
+      ),
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      )!,
+      sizeBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size_bytes'],
+      )!,
+      originalName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}original_name'],
+      ),
+    );
+  }
+
+  @override
+  $MediaAssetsTable createAlias(String alias) {
+    return $MediaAssetsTable(attachedDatabase, alias);
+  }
+
+  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
+  static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
+      collectionIdConverter;
+  static TypeConverter<ContentHash, Uint8List> $converterhash =
+      const ContentHashConverter();
+}
+
+class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
+  final Hlc hlc;
+  final bool deleted;
+  final CollectionId collectionId;
+  final ContentHash hash;
+  final String mimeType;
+  final int sizeBytes;
+  final String? originalName;
+  const MediaAssetRow({
+    required this.hlc,
+    required this.deleted,
+    required this.collectionId,
+    required this.hash,
+    required this.mimeType,
+    required this.sizeBytes,
+    this.originalName,
+  });
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    {
+      map['hlc'] = Variable<String>($MediaAssetsTable.$converterhlc.toSql(hlc));
+    }
+    map['deleted'] = Variable<bool>(deleted);
+    {
+      map['collection_id'] = Variable<Uint8List>(
+        $MediaAssetsTable.$convertercollectionId.toSql(collectionId),
+      );
+    }
+    {
+      map['hash'] = Variable<Uint8List>(
+        $MediaAssetsTable.$converterhash.toSql(hash),
+      );
+    }
+    map['mime_type'] = Variable<String>(mimeType);
+    map['size_bytes'] = Variable<int>(sizeBytes);
+    if (!nullToAbsent || originalName != null) {
+      map['original_name'] = Variable<String>(originalName);
+    }
+    return map;
+  }
+
+  MediaAssetsCompanion toCompanion(bool nullToAbsent) {
+    return MediaAssetsCompanion(
+      hlc: Value(hlc),
+      deleted: Value(deleted),
+      collectionId: Value(collectionId),
+      hash: Value(hash),
+      mimeType: Value(mimeType),
+      sizeBytes: Value(sizeBytes),
+      originalName: originalName == null && nullToAbsent
+          ? const Value.absent()
+          : Value(originalName),
+    );
+  }
+
+  factory MediaAssetRow.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return MediaAssetRow(
+      hlc: serializer.fromJson<Hlc>(json['hlc']),
+      deleted: serializer.fromJson<bool>(json['deleted']),
+      collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
+      hash: serializer.fromJson<ContentHash>(json['hash']),
+      mimeType: serializer.fromJson<String>(json['mimeType']),
+      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
+      originalName: serializer.fromJson<String?>(json['originalName']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'hlc': serializer.toJson<Hlc>(hlc),
+      'deleted': serializer.toJson<bool>(deleted),
+      'collectionId': serializer.toJson<CollectionId>(collectionId),
+      'hash': serializer.toJson<ContentHash>(hash),
+      'mimeType': serializer.toJson<String>(mimeType),
+      'sizeBytes': serializer.toJson<int>(sizeBytes),
+      'originalName': serializer.toJson<String?>(originalName),
+    };
+  }
+
+  MediaAssetRow copyWith({
+    Hlc? hlc,
+    bool? deleted,
+    CollectionId? collectionId,
+    ContentHash? hash,
+    String? mimeType,
+    int? sizeBytes,
+    Value<String?> originalName = const Value.absent(),
+  }) => MediaAssetRow(
+    hlc: hlc ?? this.hlc,
+    deleted: deleted ?? this.deleted,
+    collectionId: collectionId ?? this.collectionId,
+    hash: hash ?? this.hash,
+    mimeType: mimeType ?? this.mimeType,
+    sizeBytes: sizeBytes ?? this.sizeBytes,
+    originalName: originalName.present ? originalName.value : this.originalName,
+  );
+  MediaAssetRow copyWithCompanion(MediaAssetsCompanion data) {
+    return MediaAssetRow(
+      hlc: data.hlc.present ? data.hlc.value : this.hlc,
+      deleted: data.deleted.present ? data.deleted.value : this.deleted,
+      collectionId: data.collectionId.present
+          ? data.collectionId.value
+          : this.collectionId,
+      hash: data.hash.present ? data.hash.value : this.hash,
+      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
+      sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
+      originalName: data.originalName.present
+          ? data.originalName.value
+          : this.originalName,
+    );
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaAssetRow(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('hash: $hash, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('originalName: $originalName')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode => Object.hash(
+    hlc,
+    deleted,
+    collectionId,
+    hash,
+    mimeType,
+    sizeBytes,
+    originalName,
+  );
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is MediaAssetRow &&
+          other.hlc == this.hlc &&
+          other.deleted == this.deleted &&
+          other.collectionId == this.collectionId &&
+          other.hash == this.hash &&
+          other.mimeType == this.mimeType &&
+          other.sizeBytes == this.sizeBytes &&
+          other.originalName == this.originalName);
+}
+
+class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
+  final Value<Hlc> hlc;
+  final Value<bool> deleted;
+  final Value<CollectionId> collectionId;
+  final Value<ContentHash> hash;
+  final Value<String> mimeType;
+  final Value<int> sizeBytes;
+  final Value<String?> originalName;
+  final Value<int> rowid;
+  const MediaAssetsCompanion({
+    this.hlc = const Value.absent(),
+    this.deleted = const Value.absent(),
+    this.collectionId = const Value.absent(),
+    this.hash = const Value.absent(),
+    this.mimeType = const Value.absent(),
+    this.sizeBytes = const Value.absent(),
+    this.originalName = const Value.absent(),
+    this.rowid = const Value.absent(),
+  });
+  MediaAssetsCompanion.insert({
+    required Hlc hlc,
+    this.deleted = const Value.absent(),
+    required CollectionId collectionId,
+    required ContentHash hash,
+    required String mimeType,
+    required int sizeBytes,
+    this.originalName = const Value.absent(),
+    this.rowid = const Value.absent(),
+  }) : hlc = Value(hlc),
+       collectionId = Value(collectionId),
+       hash = Value(hash),
+       mimeType = Value(mimeType),
+       sizeBytes = Value(sizeBytes);
+  static Insertable<MediaAssetRow> custom({
+    Expression<String>? hlc,
+    Expression<bool>? deleted,
+    Expression<Uint8List>? collectionId,
+    Expression<Uint8List>? hash,
+    Expression<String>? mimeType,
+    Expression<int>? sizeBytes,
+    Expression<String>? originalName,
+    Expression<int>? rowid,
+  }) {
+    return RawValuesInsertable({
+      if (hlc != null) 'hlc': hlc,
+      if (deleted != null) 'deleted': deleted,
+      if (collectionId != null) 'collection_id': collectionId,
+      if (hash != null) 'hash': hash,
+      if (mimeType != null) 'mime_type': mimeType,
+      if (sizeBytes != null) 'size_bytes': sizeBytes,
+      if (originalName != null) 'original_name': originalName,
+      if (rowid != null) 'rowid': rowid,
+    });
+  }
+
+  MediaAssetsCompanion copyWith({
+    Value<Hlc>? hlc,
+    Value<bool>? deleted,
+    Value<CollectionId>? collectionId,
+    Value<ContentHash>? hash,
+    Value<String>? mimeType,
+    Value<int>? sizeBytes,
+    Value<String?>? originalName,
+    Value<int>? rowid,
+  }) {
+    return MediaAssetsCompanion(
+      hlc: hlc ?? this.hlc,
+      deleted: deleted ?? this.deleted,
+      collectionId: collectionId ?? this.collectionId,
+      hash: hash ?? this.hash,
+      mimeType: mimeType ?? this.mimeType,
+      sizeBytes: sizeBytes ?? this.sizeBytes,
+      originalName: originalName ?? this.originalName,
+      rowid: rowid ?? this.rowid,
+    );
+  }
+
+  @override
+  Map<String, Expression> toColumns(bool nullToAbsent) {
+    final map = <String, Expression>{};
+    if (hlc.present) {
+      map['hlc'] = Variable<String>(
+        $MediaAssetsTable.$converterhlc.toSql(hlc.value),
+      );
+    }
+    if (deleted.present) {
+      map['deleted'] = Variable<bool>(deleted.value);
+    }
+    if (collectionId.present) {
+      map['collection_id'] = Variable<Uint8List>(
+        $MediaAssetsTable.$convertercollectionId.toSql(collectionId.value),
+      );
+    }
+    if (hash.present) {
+      map['hash'] = Variable<Uint8List>(
+        $MediaAssetsTable.$converterhash.toSql(hash.value),
+      );
+    }
+    if (mimeType.present) {
+      map['mime_type'] = Variable<String>(mimeType.value);
+    }
+    if (sizeBytes.present) {
+      map['size_bytes'] = Variable<int>(sizeBytes.value);
+    }
+    if (originalName.present) {
+      map['original_name'] = Variable<String>(originalName.value);
+    }
+    if (rowid.present) {
+      map['rowid'] = Variable<int>(rowid.value);
+    }
+    return map;
+  }
+
+  @override
+  String toString() {
+    return (StringBuffer('MediaAssetsCompanion(')
+          ..write('hlc: $hlc, ')
+          ..write('deleted: $deleted, ')
+          ..write('collectionId: $collectionId, ')
+          ..write('hash: $hash, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('originalName: $originalName, ')
+          ..write('rowid: $rowid')
+          ..write(')'))
+        .toString();
+  }
+}
+
+class VisibleMediaAsset extends DataClass {
+  final CollectionId collectionId;
+  final ContentHash hash;
+  final String mimeType;
+  final int sizeBytes;
+  final String? originalName;
+  const VisibleMediaAsset({
+    required this.collectionId,
+    required this.hash,
+    required this.mimeType,
+    required this.sizeBytes,
+    this.originalName,
+  });
+  factory VisibleMediaAsset.fromJson(
+    Map<String, dynamic> json, {
+    ValueSerializer? serializer,
+  }) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return VisibleMediaAsset(
+      collectionId: serializer.fromJson<CollectionId>(json['collection_id']),
+      hash: serializer.fromJson<ContentHash>(json['hash']),
+      mimeType: serializer.fromJson<String>(json['mime_type']),
+      sizeBytes: serializer.fromJson<int>(json['size_bytes']),
+      originalName: serializer.fromJson<String?>(json['original_name']),
+    );
+  }
+  @override
+  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
+    serializer ??= driftRuntimeOptions.defaultSerializer;
+    return <String, dynamic>{
+      'collection_id': serializer.toJson<CollectionId>(collectionId),
+      'hash': serializer.toJson<ContentHash>(hash),
+      'mime_type': serializer.toJson<String>(mimeType),
+      'size_bytes': serializer.toJson<int>(sizeBytes),
+      'original_name': serializer.toJson<String?>(originalName),
+    };
+  }
+
+  VisibleMediaAsset copyWith({
+    CollectionId? collectionId,
+    ContentHash? hash,
+    String? mimeType,
+    int? sizeBytes,
+    Value<String?> originalName = const Value.absent(),
+  }) => VisibleMediaAsset(
+    collectionId: collectionId ?? this.collectionId,
+    hash: hash ?? this.hash,
+    mimeType: mimeType ?? this.mimeType,
+    sizeBytes: sizeBytes ?? this.sizeBytes,
+    originalName: originalName.present ? originalName.value : this.originalName,
+  );
+  @override
+  String toString() {
+    return (StringBuffer('VisibleMediaAsset(')
+          ..write('collectionId: $collectionId, ')
+          ..write('hash: $hash, ')
+          ..write('mimeType: $mimeType, ')
+          ..write('sizeBytes: $sizeBytes, ')
+          ..write('originalName: $originalName')
+          ..write(')'))
+        .toString();
+  }
+
+  @override
+  int get hashCode =>
+      Object.hash(collectionId, hash, mimeType, sizeBytes, originalName);
+  @override
+  bool operator ==(Object other) =>
+      identical(this, other) ||
+      (other is VisibleMediaAsset &&
+          other.collectionId == this.collectionId &&
+          other.hash == this.hash &&
+          other.mimeType == this.mimeType &&
+          other.sizeBytes == this.sizeBytes &&
+          other.originalName == this.originalName);
+}
+
+class VisibleMediaAssets extends ViewInfo<VisibleMediaAssets, VisibleMediaAsset>
+    implements HasResultSet {
+  final String? _alias;
+  @override
+  final _$MemukiDatabase attachedDatabase;
+  VisibleMediaAssets(this.attachedDatabase, [this._alias]);
+  @override
+  List<GeneratedColumn> get $columns => [
+    collectionId,
+    hash,
+    mimeType,
+    sizeBytes,
+    originalName,
+  ];
+  @override
+  String get aliasedName => _alias ?? entityName;
+  @override
+  String get entityName => 'visible_media_assets';
+  @override
+  Map<SqlDialect, String> get createViewStatements => {
+    SqlDialect.sqlite: 'CREATE VIEW visible_media_assets AS SELECT m.collection_id, m.hash, m.mime_type, m.size_bytes, m.original_name FROM media_assets AS m WHERE m.deleted = 0 AND EXISTS (SELECT 1 FROM visible_collections AS c WHERE c.id = m.collection_id)',
+  };
+  @override
+  VisibleMediaAssets get asDslTable => this;
+  @override
+  VisibleMediaAsset map(Map<String, dynamic> data, {String? tablePrefix}) {
+    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
+    return VisibleMediaAsset(
+      collectionId: $MediaAssetsTable.$convertercollectionId.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}collection_id'],
+        )!,
+      ),
+      hash: $MediaAssetsTable.$converterhash.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}hash'],
+        )!,
+      ),
+      mimeType: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}mime_type'],
+      )!,
+      sizeBytes: attachedDatabase.typeMapping.read(
+        DriftSqlType.int,
+        data['${effectivePrefix}size_bytes'],
+      )!,
+      originalName: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}original_name'],
+      ),
+    );
+  }
+
+  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
+  collectionId = GeneratedColumn<Uint8List>(
+    'collection_id',
+    aliasedName,
+    false,
+    type: DriftSqlType.blob,
+  ).withConverter<CollectionId>($MediaAssetsTable.$convertercollectionId);
+  late final GeneratedColumnWithTypeConverter<ContentHash, Uint8List> hash =
+      GeneratedColumn<Uint8List>(
+        'hash',
+        aliasedName,
+        false,
+        type: DriftSqlType.blob,
+      ).withConverter<ContentHash>($MediaAssetsTable.$converterhash);
+  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
+    'mime_type',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+  );
+  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
+    'size_bytes',
+    aliasedName,
+    false,
+    type: DriftSqlType.int,
+  );
+  late final GeneratedColumn<String> originalName = GeneratedColumn<String>(
+    'original_name',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+  );
+  @override
+  VisibleMediaAssets createAlias(String alias) {
+    return VisibleMediaAssets(attachedDatabase, alias);
+  }
+
+  @override
+  Query? get query => null;
+  @override
+  Set<String> get readTables => const {'media_assets', 'collections'};
+}
+
 class $DeviceTable extends Device with TableInfo<$DeviceTable, DeviceRow> {
   @override
   final GeneratedDatabase attachedDatabase;
@@ -7033,485 +7687,6 @@ class SchedulingStatesCompanion extends UpdateCompanion<SchedulingStateRow> {
   }
 }
 
-class $MediaAssetsTable extends MediaAssets
-    with TableInfo<$MediaAssetsTable, MediaAssetRow> {
-  @override
-  final GeneratedDatabase attachedDatabase;
-  final String? _alias;
-  $MediaAssetsTable(this.attachedDatabase, [this._alias]);
-  @override
-  late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
-      GeneratedColumn<String>(
-        'hlc',
-        aliasedName,
-        false,
-        type: DriftSqlType.string,
-        requiredDuringInsert: true,
-      ).withConverter<Hlc>($MediaAssetsTable.$converterhlc);
-  static const VerificationMeta _deletedMeta = const VerificationMeta(
-    'deleted',
-  );
-  @override
-  late final GeneratedColumn<bool> deleted = GeneratedColumn<bool>(
-    'deleted',
-    aliasedName,
-    false,
-    type: DriftSqlType.bool,
-    requiredDuringInsert: false,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'CHECK ("deleted" IN (0, 1))',
-    ),
-    defaultValue: const Constant(false),
-  );
-  @override
-  late final GeneratedColumnWithTypeConverter<CollectionId, Uint8List>
-  collectionId = GeneratedColumn<Uint8List>(
-    'collection_id',
-    aliasedName,
-    false,
-    type: DriftSqlType.blob,
-    requiredDuringInsert: true,
-    defaultConstraints: GeneratedColumn.constraintIsAlways(
-      'REFERENCES collections (id)',
-    ),
-  ).withConverter<CollectionId>($MediaAssetsTable.$convertercollectionId);
-  @override
-  late final GeneratedColumnWithTypeConverter<ContentHash, Uint8List> hash =
-      GeneratedColumn<Uint8List>(
-        'hash',
-        aliasedName,
-        false,
-        type: DriftSqlType.blob,
-        requiredDuringInsert: true,
-      ).withConverter<ContentHash>($MediaAssetsTable.$converterhash);
-  static const VerificationMeta _mimeTypeMeta = const VerificationMeta(
-    'mimeType',
-  );
-  @override
-  late final GeneratedColumn<String> mimeType = GeneratedColumn<String>(
-    'mime_type',
-    aliasedName,
-    false,
-    type: DriftSqlType.string,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _sizeBytesMeta = const VerificationMeta(
-    'sizeBytes',
-  );
-  @override
-  late final GeneratedColumn<int> sizeBytes = GeneratedColumn<int>(
-    'size_bytes',
-    aliasedName,
-    false,
-    type: DriftSqlType.int,
-    requiredDuringInsert: true,
-  );
-  static const VerificationMeta _originalNameMeta = const VerificationMeta(
-    'originalName',
-  );
-  @override
-  late final GeneratedColumn<String> originalName = GeneratedColumn<String>(
-    'original_name',
-    aliasedName,
-    true,
-    type: DriftSqlType.string,
-    requiredDuringInsert: false,
-  );
-  @override
-  List<GeneratedColumn> get $columns => [
-    hlc,
-    deleted,
-    collectionId,
-    hash,
-    mimeType,
-    sizeBytes,
-    originalName,
-  ];
-  @override
-  String get aliasedName => _alias ?? actualTableName;
-  @override
-  String get actualTableName => $name;
-  static const String $name = 'media_assets';
-  @override
-  VerificationContext validateIntegrity(
-    Insertable<MediaAssetRow> instance, {
-    bool isInserting = false,
-  }) {
-    final context = VerificationContext();
-    final data = instance.toColumns(true);
-    if (data.containsKey('deleted')) {
-      context.handle(
-        _deletedMeta,
-        deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
-      );
-    }
-    if (data.containsKey('mime_type')) {
-      context.handle(
-        _mimeTypeMeta,
-        mimeType.isAcceptableOrUnknown(data['mime_type']!, _mimeTypeMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_mimeTypeMeta);
-    }
-    if (data.containsKey('size_bytes')) {
-      context.handle(
-        _sizeBytesMeta,
-        sizeBytes.isAcceptableOrUnknown(data['size_bytes']!, _sizeBytesMeta),
-      );
-    } else if (isInserting) {
-      context.missing(_sizeBytesMeta);
-    }
-    if (data.containsKey('original_name')) {
-      context.handle(
-        _originalNameMeta,
-        originalName.isAcceptableOrUnknown(
-          data['original_name']!,
-          _originalNameMeta,
-        ),
-      );
-    }
-    return context;
-  }
-
-  @override
-  Set<GeneratedColumn> get $primaryKey => {collectionId, hash};
-  @override
-  MediaAssetRow map(Map<String, dynamic> data, {String? tablePrefix}) {
-    final effectivePrefix = tablePrefix != null ? '$tablePrefix.' : '';
-    return MediaAssetRow(
-      hlc: $MediaAssetsTable.$converterhlc.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.string,
-          data['${effectivePrefix}hlc'],
-        )!,
-      ),
-      deleted: attachedDatabase.typeMapping.read(
-        DriftSqlType.bool,
-        data['${effectivePrefix}deleted'],
-      )!,
-      collectionId: $MediaAssetsTable.$convertercollectionId.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}collection_id'],
-        )!,
-      ),
-      hash: $MediaAssetsTable.$converterhash.fromSql(
-        attachedDatabase.typeMapping.read(
-          DriftSqlType.blob,
-          data['${effectivePrefix}hash'],
-        )!,
-      ),
-      mimeType: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}mime_type'],
-      )!,
-      sizeBytes: attachedDatabase.typeMapping.read(
-        DriftSqlType.int,
-        data['${effectivePrefix}size_bytes'],
-      )!,
-      originalName: attachedDatabase.typeMapping.read(
-        DriftSqlType.string,
-        data['${effectivePrefix}original_name'],
-      ),
-    );
-  }
-
-  @override
-  $MediaAssetsTable createAlias(String alias) {
-    return $MediaAssetsTable(attachedDatabase, alias);
-  }
-
-  static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
-  static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
-      collectionIdConverter;
-  static TypeConverter<ContentHash, Uint8List> $converterhash =
-      const ContentHashConverter();
-}
-
-class MediaAssetRow extends DataClass implements Insertable<MediaAssetRow> {
-  final Hlc hlc;
-  final bool deleted;
-  final CollectionId collectionId;
-  final ContentHash hash;
-  final String mimeType;
-  final int sizeBytes;
-  final String? originalName;
-  const MediaAssetRow({
-    required this.hlc,
-    required this.deleted,
-    required this.collectionId,
-    required this.hash,
-    required this.mimeType,
-    required this.sizeBytes,
-    this.originalName,
-  });
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    {
-      map['hlc'] = Variable<String>($MediaAssetsTable.$converterhlc.toSql(hlc));
-    }
-    map['deleted'] = Variable<bool>(deleted);
-    {
-      map['collection_id'] = Variable<Uint8List>(
-        $MediaAssetsTable.$convertercollectionId.toSql(collectionId),
-      );
-    }
-    {
-      map['hash'] = Variable<Uint8List>(
-        $MediaAssetsTable.$converterhash.toSql(hash),
-      );
-    }
-    map['mime_type'] = Variable<String>(mimeType);
-    map['size_bytes'] = Variable<int>(sizeBytes);
-    if (!nullToAbsent || originalName != null) {
-      map['original_name'] = Variable<String>(originalName);
-    }
-    return map;
-  }
-
-  MediaAssetsCompanion toCompanion(bool nullToAbsent) {
-    return MediaAssetsCompanion(
-      hlc: Value(hlc),
-      deleted: Value(deleted),
-      collectionId: Value(collectionId),
-      hash: Value(hash),
-      mimeType: Value(mimeType),
-      sizeBytes: Value(sizeBytes),
-      originalName: originalName == null && nullToAbsent
-          ? const Value.absent()
-          : Value(originalName),
-    );
-  }
-
-  factory MediaAssetRow.fromJson(
-    Map<String, dynamic> json, {
-    ValueSerializer? serializer,
-  }) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return MediaAssetRow(
-      hlc: serializer.fromJson<Hlc>(json['hlc']),
-      deleted: serializer.fromJson<bool>(json['deleted']),
-      collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
-      hash: serializer.fromJson<ContentHash>(json['hash']),
-      mimeType: serializer.fromJson<String>(json['mimeType']),
-      sizeBytes: serializer.fromJson<int>(json['sizeBytes']),
-      originalName: serializer.fromJson<String?>(json['originalName']),
-    );
-  }
-  @override
-  Map<String, dynamic> toJson({ValueSerializer? serializer}) {
-    serializer ??= driftRuntimeOptions.defaultSerializer;
-    return <String, dynamic>{
-      'hlc': serializer.toJson<Hlc>(hlc),
-      'deleted': serializer.toJson<bool>(deleted),
-      'collectionId': serializer.toJson<CollectionId>(collectionId),
-      'hash': serializer.toJson<ContentHash>(hash),
-      'mimeType': serializer.toJson<String>(mimeType),
-      'sizeBytes': serializer.toJson<int>(sizeBytes),
-      'originalName': serializer.toJson<String?>(originalName),
-    };
-  }
-
-  MediaAssetRow copyWith({
-    Hlc? hlc,
-    bool? deleted,
-    CollectionId? collectionId,
-    ContentHash? hash,
-    String? mimeType,
-    int? sizeBytes,
-    Value<String?> originalName = const Value.absent(),
-  }) => MediaAssetRow(
-    hlc: hlc ?? this.hlc,
-    deleted: deleted ?? this.deleted,
-    collectionId: collectionId ?? this.collectionId,
-    hash: hash ?? this.hash,
-    mimeType: mimeType ?? this.mimeType,
-    sizeBytes: sizeBytes ?? this.sizeBytes,
-    originalName: originalName.present ? originalName.value : this.originalName,
-  );
-  MediaAssetRow copyWithCompanion(MediaAssetsCompanion data) {
-    return MediaAssetRow(
-      hlc: data.hlc.present ? data.hlc.value : this.hlc,
-      deleted: data.deleted.present ? data.deleted.value : this.deleted,
-      collectionId: data.collectionId.present
-          ? data.collectionId.value
-          : this.collectionId,
-      hash: data.hash.present ? data.hash.value : this.hash,
-      mimeType: data.mimeType.present ? data.mimeType.value : this.mimeType,
-      sizeBytes: data.sizeBytes.present ? data.sizeBytes.value : this.sizeBytes,
-      originalName: data.originalName.present
-          ? data.originalName.value
-          : this.originalName,
-    );
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('MediaAssetRow(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('collectionId: $collectionId, ')
-          ..write('hash: $hash, ')
-          ..write('mimeType: $mimeType, ')
-          ..write('sizeBytes: $sizeBytes, ')
-          ..write('originalName: $originalName')
-          ..write(')'))
-        .toString();
-  }
-
-  @override
-  int get hashCode => Object.hash(
-    hlc,
-    deleted,
-    collectionId,
-    hash,
-    mimeType,
-    sizeBytes,
-    originalName,
-  );
-  @override
-  bool operator ==(Object other) =>
-      identical(this, other) ||
-      (other is MediaAssetRow &&
-          other.hlc == this.hlc &&
-          other.deleted == this.deleted &&
-          other.collectionId == this.collectionId &&
-          other.hash == this.hash &&
-          other.mimeType == this.mimeType &&
-          other.sizeBytes == this.sizeBytes &&
-          other.originalName == this.originalName);
-}
-
-class MediaAssetsCompanion extends UpdateCompanion<MediaAssetRow> {
-  final Value<Hlc> hlc;
-  final Value<bool> deleted;
-  final Value<CollectionId> collectionId;
-  final Value<ContentHash> hash;
-  final Value<String> mimeType;
-  final Value<int> sizeBytes;
-  final Value<String?> originalName;
-  final Value<int> rowid;
-  const MediaAssetsCompanion({
-    this.hlc = const Value.absent(),
-    this.deleted = const Value.absent(),
-    this.collectionId = const Value.absent(),
-    this.hash = const Value.absent(),
-    this.mimeType = const Value.absent(),
-    this.sizeBytes = const Value.absent(),
-    this.originalName = const Value.absent(),
-    this.rowid = const Value.absent(),
-  });
-  MediaAssetsCompanion.insert({
-    required Hlc hlc,
-    this.deleted = const Value.absent(),
-    required CollectionId collectionId,
-    required ContentHash hash,
-    required String mimeType,
-    required int sizeBytes,
-    this.originalName = const Value.absent(),
-    this.rowid = const Value.absent(),
-  }) : hlc = Value(hlc),
-       collectionId = Value(collectionId),
-       hash = Value(hash),
-       mimeType = Value(mimeType),
-       sizeBytes = Value(sizeBytes);
-  static Insertable<MediaAssetRow> custom({
-    Expression<String>? hlc,
-    Expression<bool>? deleted,
-    Expression<Uint8List>? collectionId,
-    Expression<Uint8List>? hash,
-    Expression<String>? mimeType,
-    Expression<int>? sizeBytes,
-    Expression<String>? originalName,
-    Expression<int>? rowid,
-  }) {
-    return RawValuesInsertable({
-      if (hlc != null) 'hlc': hlc,
-      if (deleted != null) 'deleted': deleted,
-      if (collectionId != null) 'collection_id': collectionId,
-      if (hash != null) 'hash': hash,
-      if (mimeType != null) 'mime_type': mimeType,
-      if (sizeBytes != null) 'size_bytes': sizeBytes,
-      if (originalName != null) 'original_name': originalName,
-      if (rowid != null) 'rowid': rowid,
-    });
-  }
-
-  MediaAssetsCompanion copyWith({
-    Value<Hlc>? hlc,
-    Value<bool>? deleted,
-    Value<CollectionId>? collectionId,
-    Value<ContentHash>? hash,
-    Value<String>? mimeType,
-    Value<int>? sizeBytes,
-    Value<String?>? originalName,
-    Value<int>? rowid,
-  }) {
-    return MediaAssetsCompanion(
-      hlc: hlc ?? this.hlc,
-      deleted: deleted ?? this.deleted,
-      collectionId: collectionId ?? this.collectionId,
-      hash: hash ?? this.hash,
-      mimeType: mimeType ?? this.mimeType,
-      sizeBytes: sizeBytes ?? this.sizeBytes,
-      originalName: originalName ?? this.originalName,
-      rowid: rowid ?? this.rowid,
-    );
-  }
-
-  @override
-  Map<String, Expression> toColumns(bool nullToAbsent) {
-    final map = <String, Expression>{};
-    if (hlc.present) {
-      map['hlc'] = Variable<String>(
-        $MediaAssetsTable.$converterhlc.toSql(hlc.value),
-      );
-    }
-    if (deleted.present) {
-      map['deleted'] = Variable<bool>(deleted.value);
-    }
-    if (collectionId.present) {
-      map['collection_id'] = Variable<Uint8List>(
-        $MediaAssetsTable.$convertercollectionId.toSql(collectionId.value),
-      );
-    }
-    if (hash.present) {
-      map['hash'] = Variable<Uint8List>(
-        $MediaAssetsTable.$converterhash.toSql(hash.value),
-      );
-    }
-    if (mimeType.present) {
-      map['mime_type'] = Variable<String>(mimeType.value);
-    }
-    if (sizeBytes.present) {
-      map['size_bytes'] = Variable<int>(sizeBytes.value);
-    }
-    if (originalName.present) {
-      map['original_name'] = Variable<String>(originalName.value);
-    }
-    if (rowid.present) {
-      map['rowid'] = Variable<int>(rowid.value);
-    }
-    return map;
-  }
-
-  @override
-  String toString() {
-    return (StringBuffer('MediaAssetsCompanion(')
-          ..write('hlc: $hlc, ')
-          ..write('deleted: $deleted, ')
-          ..write('collectionId: $collectionId, ')
-          ..write('hash: $hash, ')
-          ..write('mimeType: $mimeType, ')
-          ..write('sizeBytes: $sizeBytes, ')
-          ..write('originalName: $originalName, ')
-          ..write('rowid: $rowid')
-          ..write(')'))
-        .toString();
-  }
-}
-
 abstract class _$MemukiDatabase extends GeneratedDatabase {
   _$MemukiDatabase(QueryExecutor e) : super(e);
   $MemukiDatabaseManager get managers => $MemukiDatabaseManager(this);
@@ -7540,6 +7715,8 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
   late final VisibleNoteFields visibleNoteFields = VisibleNoteFields(this);
   late final $NoteTagsTable noteTags = $NoteTagsTable(this);
   late final VisibleNoteTags visibleNoteTags = VisibleNoteTags(this);
+  late final $MediaAssetsTable mediaAssets = $MediaAssetsTable(this);
+  late final VisibleMediaAssets visibleMediaAssets = VisibleMediaAssets(this);
   late final $DeviceTable device = $DeviceTable(this);
   late final $OutboxTable outbox = $OutboxTable(this);
   late final Index outboxHlc = Index(
@@ -7634,7 +7811,6 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     'note_tags_hlc',
     'CREATE INDEX note_tags_hlc ON note_tags (hlc)',
   );
-  late final $MediaAssetsTable mediaAssets = $MediaAssetsTable(this);
   late final Index mediaAssetsHlc = Index(
     'media_assets_hlc',
     'CREATE INDEX media_assets_hlc ON media_assets (hlc)',
@@ -7752,6 +7928,8 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     visibleNoteFields,
     noteTags,
     visibleNoteTags,
+    mediaAssets,
+    visibleMediaAssets,
     device,
     outbox,
     outboxHlc,
@@ -7778,7 +7956,6 @@ abstract class _$MemukiDatabase extends GeneratedDatabase {
     tagsHlc,
     noteTagsTag,
     noteTagsHlc,
-    mediaAssets,
     mediaAssetsHlc,
     collectionsHlc,
     decksParent,
@@ -12724,6 +12901,364 @@ typedef $$NoteTagsTableProcessedTableManager =
       NoteTagRow,
       PrefetchHooks Function({bool collectionId})
     >;
+typedef $$MediaAssetsTableCreateCompanionBuilder =
+    MediaAssetsCompanion Function({
+      required Hlc hlc,
+      Value<bool> deleted,
+      required CollectionId collectionId,
+      required ContentHash hash,
+      required String mimeType,
+      required int sizeBytes,
+      Value<String?> originalName,
+      Value<int> rowid,
+    });
+typedef $$MediaAssetsTableUpdateCompanionBuilder =
+    MediaAssetsCompanion Function({
+      Value<Hlc> hlc,
+      Value<bool> deleted,
+      Value<CollectionId> collectionId,
+      Value<ContentHash> hash,
+      Value<String> mimeType,
+      Value<int> sizeBytes,
+      Value<String?> originalName,
+      Value<int> rowid,
+    });
+
+final class $$MediaAssetsTableReferences
+    extends BaseReferences<_$MemukiDatabase, $MediaAssetsTable, MediaAssetRow> {
+  $$MediaAssetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
+
+  static $CollectionsTable _collectionIdTable(_$MemukiDatabase db) => db
+      .collections
+      .createAlias('media_assets__collection_id__collections__id');
+
+  $$CollectionsTableProcessedTableManager get collectionId {
+    final $_column = $_itemColumn<Uint8List>('collection_id')!;
+
+    final manager = $$CollectionsTableTableManager(
+      $_db,
+      $_db.collections,
+    ).filter((f) => f.id.sqlEquals($_column));
+    final item = $_typedResult.readTableOrNull(_collectionIdTable($_db));
+    if (item == null) return manager;
+    return ProcessedTableManager(
+      manager.$state.copyWith(prefetchedData: [item]),
+    );
+  }
+}
+
+class $$MediaAssetsTableFilterComposer
+    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
+  $$MediaAssetsTableFilterComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
+      $composableBuilder(
+        column: $table.hlc,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<ContentHash, ContentHash, Uint8List>
+  get hash => $composableBuilder(
+    column: $table.hash,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnFilters<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<int> get sizeBytes => $composableBuilder(
+    column: $table.sizeBytes,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  $$CollectionsTableFilterComposer get collectionId {
+    final $$CollectionsTableFilterComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableFilterComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MediaAssetsTableOrderingComposer
+    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
+  $$MediaAssetsTableOrderingComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  ColumnOrderings<String> get hlc => $composableBuilder(
+    column: $table.hlc,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get deleted => $composableBuilder(
+    column: $table.deleted,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<Uint8List> get hash => $composableBuilder(
+    column: $table.hash,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get mimeType => $composableBuilder(
+    column: $table.mimeType,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get sizeBytes => $composableBuilder(
+    column: $table.sizeBytes,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  $$CollectionsTableOrderingComposer get collectionId {
+    final $$CollectionsTableOrderingComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableOrderingComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MediaAssetsTableAnnotationComposer
+    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
+  $$MediaAssetsTableAnnotationComposer({
+    required super.$db,
+    required super.$table,
+    super.joinBuilder,
+    super.$addJoinBuilderToRootComposer,
+    super.$removeJoinBuilderFromRootComposer,
+  });
+  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
+      $composableBuilder(column: $table.hlc, builder: (column) => column);
+
+  GeneratedColumn<bool> get deleted =>
+      $composableBuilder(column: $table.deleted, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<ContentHash, Uint8List> get hash =>
+      $composableBuilder(column: $table.hash, builder: (column) => column);
+
+  GeneratedColumn<String> get mimeType =>
+      $composableBuilder(column: $table.mimeType, builder: (column) => column);
+
+  GeneratedColumn<int> get sizeBytes =>
+      $composableBuilder(column: $table.sizeBytes, builder: (column) => column);
+
+  GeneratedColumn<String> get originalName => $composableBuilder(
+    column: $table.originalName,
+    builder: (column) => column,
+  );
+
+  $$CollectionsTableAnnotationComposer get collectionId {
+    final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
+      composer: this,
+      getCurrentColumn: (t) => t.collectionId,
+      referencedTable: $db.collections,
+      getReferencedColumn: (t) => t.id,
+      builder:
+          (
+            joinBuilder, {
+            $addJoinBuilderToRootComposer,
+            $removeJoinBuilderFromRootComposer,
+          }) => $$CollectionsTableAnnotationComposer(
+            $db: $db,
+            $table: $db.collections,
+            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
+            joinBuilder: joinBuilder,
+            $removeJoinBuilderFromRootComposer:
+                $removeJoinBuilderFromRootComposer,
+          ),
+    );
+    return composer;
+  }
+}
+
+class $$MediaAssetsTableTableManager
+    extends
+        RootTableManager<
+          _$MemukiDatabase,
+          $MediaAssetsTable,
+          MediaAssetRow,
+          $$MediaAssetsTableFilterComposer,
+          $$MediaAssetsTableOrderingComposer,
+          $$MediaAssetsTableAnnotationComposer,
+          $$MediaAssetsTableCreateCompanionBuilder,
+          $$MediaAssetsTableUpdateCompanionBuilder,
+          (MediaAssetRow, $$MediaAssetsTableReferences),
+          MediaAssetRow,
+          PrefetchHooks Function({bool collectionId})
+        > {
+  $$MediaAssetsTableTableManager(_$MemukiDatabase db, $MediaAssetsTable table)
+    : super(
+        TableManagerState(
+          db: db,
+          table: table,
+          createFilteringComposer: () =>
+              $$MediaAssetsTableFilterComposer($db: db, $table: table),
+          createOrderingComposer: () =>
+              $$MediaAssetsTableOrderingComposer($db: db, $table: table),
+          createComputedFieldComposer: () =>
+              $$MediaAssetsTableAnnotationComposer($db: db, $table: table),
+          updateCompanionCallback:
+              ({
+                Value<Hlc> hlc = const Value.absent(),
+                Value<bool> deleted = const Value.absent(),
+                Value<CollectionId> collectionId = const Value.absent(),
+                Value<ContentHash> hash = const Value.absent(),
+                Value<String> mimeType = const Value.absent(),
+                Value<int> sizeBytes = const Value.absent(),
+                Value<String?> originalName = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MediaAssetsCompanion(
+                hlc: hlc,
+                deleted: deleted,
+                collectionId: collectionId,
+                hash: hash,
+                mimeType: mimeType,
+                sizeBytes: sizeBytes,
+                originalName: originalName,
+                rowid: rowid,
+              ),
+          createCompanionCallback:
+              ({
+                required Hlc hlc,
+                Value<bool> deleted = const Value.absent(),
+                required CollectionId collectionId,
+                required ContentHash hash,
+                required String mimeType,
+                required int sizeBytes,
+                Value<String?> originalName = const Value.absent(),
+                Value<int> rowid = const Value.absent(),
+              }) => MediaAssetsCompanion.insert(
+                hlc: hlc,
+                deleted: deleted,
+                collectionId: collectionId,
+                hash: hash,
+                mimeType: mimeType,
+                sizeBytes: sizeBytes,
+                originalName: originalName,
+                rowid: rowid,
+              ),
+          withReferenceMapper: (p0) => p0
+              .map(
+                (e) => (
+                  e.readTable<$MediaAssetsTable, MediaAssetRow>(table),
+                  $$MediaAssetsTableReferences(db, table, e),
+                ),
+              )
+              .toList(),
+          prefetchHooksCallback: ({collectionId = false}) {
+            return PrefetchHooks(
+              db: db,
+              explicitlyWatchedTables: [],
+              addJoins:
+                  <
+                    T extends TableManagerState<
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic,
+                      dynamic
+                    >
+                  >(state) {
+                    if (collectionId) {
+                      state = state.withJoin(
+                        currentTable: table,
+                        currentColumn: table.collectionId,
+                        referencedTable: $$MediaAssetsTableReferences
+                            ._collectionIdTable(db),
+                        referencedColumn: $$MediaAssetsTableReferences
+                            ._collectionIdTable(db)
+                            .id,
+                      ) as T;
+                    }
+
+                    return state;
+                  },
+              getPrefetchedDataCallback: (items) async {
+                return [];
+              },
+            );
+          },
+        ),
+      );
+}
+
+typedef $$MediaAssetsTableProcessedTableManager =
+    ProcessedTableManager<
+      _$MemukiDatabase,
+      $MediaAssetsTable,
+      MediaAssetRow,
+      $$MediaAssetsTableFilterComposer,
+      $$MediaAssetsTableOrderingComposer,
+      $$MediaAssetsTableAnnotationComposer,
+      $$MediaAssetsTableCreateCompanionBuilder,
+      $$MediaAssetsTableUpdateCompanionBuilder,
+      (MediaAssetRow, $$MediaAssetsTableReferences),
+      MediaAssetRow,
+      PrefetchHooks Function({bool collectionId})
+    >;
 typedef $$DeviceTableCreateCompanionBuilder = DeviceCompanion Function({
   Value<int> id,
   required String node,
@@ -14240,364 +14775,6 @@ typedef $$SchedulingStatesTableProcessedTableManager =
       SchedulingStateRow,
       PrefetchHooks Function({bool studyCardId, bool lastEventId})
     >;
-typedef $$MediaAssetsTableCreateCompanionBuilder =
-    MediaAssetsCompanion Function({
-      required Hlc hlc,
-      Value<bool> deleted,
-      required CollectionId collectionId,
-      required ContentHash hash,
-      required String mimeType,
-      required int sizeBytes,
-      Value<String?> originalName,
-      Value<int> rowid,
-    });
-typedef $$MediaAssetsTableUpdateCompanionBuilder =
-    MediaAssetsCompanion Function({
-      Value<Hlc> hlc,
-      Value<bool> deleted,
-      Value<CollectionId> collectionId,
-      Value<ContentHash> hash,
-      Value<String> mimeType,
-      Value<int> sizeBytes,
-      Value<String?> originalName,
-      Value<int> rowid,
-    });
-
-final class $$MediaAssetsTableReferences
-    extends BaseReferences<_$MemukiDatabase, $MediaAssetsTable, MediaAssetRow> {
-  $$MediaAssetsTableReferences(super.$_db, super.$_table, super.$_typedResult);
-
-  static $CollectionsTable _collectionIdTable(_$MemukiDatabase db) => db
-      .collections
-      .createAlias('media_assets__collection_id__collections__id');
-
-  $$CollectionsTableProcessedTableManager get collectionId {
-    final $_column = $_itemColumn<Uint8List>('collection_id')!;
-
-    final manager = $$CollectionsTableTableManager(
-      $_db,
-      $_db.collections,
-    ).filter((f) => f.id.sqlEquals($_column));
-    final item = $_typedResult.readTableOrNull(_collectionIdTable($_db));
-    if (item == null) return manager;
-    return ProcessedTableManager(
-      manager.$state.copyWith(prefetchedData: [item]),
-    );
-  }
-}
-
-class $$MediaAssetsTableFilterComposer
-    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
-  $$MediaAssetsTableFilterComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
-      $composableBuilder(
-        column: $table.hlc,
-        builder: (column) => ColumnWithTypeConverterFilters(column),
-      );
-
-  ColumnFilters<bool> get deleted => $composableBuilder(
-    column: $table.deleted,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnWithTypeConverterFilters<ContentHash, ContentHash, Uint8List>
-  get hash => $composableBuilder(
-    column: $table.hash,
-    builder: (column) => ColumnWithTypeConverterFilters(column),
-  );
-
-  ColumnFilters<String> get mimeType => $composableBuilder(
-    column: $table.mimeType,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<int> get sizeBytes => $composableBuilder(
-    column: $table.sizeBytes,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  ColumnFilters<String> get originalName => $composableBuilder(
-    column: $table.originalName,
-    builder: (column) => ColumnFilters(column),
-  );
-
-  $$CollectionsTableFilterComposer get collectionId {
-    final $$CollectionsTableFilterComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.collectionId,
-      referencedTable: $db.collections,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CollectionsTableFilterComposer(
-            $db: $db,
-            $table: $db.collections,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$MediaAssetsTableOrderingComposer
-    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
-  $$MediaAssetsTableOrderingComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  ColumnOrderings<String> get hlc => $composableBuilder(
-    column: $table.hlc,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<bool> get deleted => $composableBuilder(
-    column: $table.deleted,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<Uint8List> get hash => $composableBuilder(
-    column: $table.hash,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get mimeType => $composableBuilder(
-    column: $table.mimeType,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<int> get sizeBytes => $composableBuilder(
-    column: $table.sizeBytes,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  ColumnOrderings<String> get originalName => $composableBuilder(
-    column: $table.originalName,
-    builder: (column) => ColumnOrderings(column),
-  );
-
-  $$CollectionsTableOrderingComposer get collectionId {
-    final $$CollectionsTableOrderingComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.collectionId,
-      referencedTable: $db.collections,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CollectionsTableOrderingComposer(
-            $db: $db,
-            $table: $db.collections,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$MediaAssetsTableAnnotationComposer
-    extends Composer<_$MemukiDatabase, $MediaAssetsTable> {
-  $$MediaAssetsTableAnnotationComposer({
-    required super.$db,
-    required super.$table,
-    super.joinBuilder,
-    super.$addJoinBuilderToRootComposer,
-    super.$removeJoinBuilderFromRootComposer,
-  });
-  GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
-      $composableBuilder(column: $table.hlc, builder: (column) => column);
-
-  GeneratedColumn<bool> get deleted =>
-      $composableBuilder(column: $table.deleted, builder: (column) => column);
-
-  GeneratedColumnWithTypeConverter<ContentHash, Uint8List> get hash =>
-      $composableBuilder(column: $table.hash, builder: (column) => column);
-
-  GeneratedColumn<String> get mimeType =>
-      $composableBuilder(column: $table.mimeType, builder: (column) => column);
-
-  GeneratedColumn<int> get sizeBytes =>
-      $composableBuilder(column: $table.sizeBytes, builder: (column) => column);
-
-  GeneratedColumn<String> get originalName => $composableBuilder(
-    column: $table.originalName,
-    builder: (column) => column,
-  );
-
-  $$CollectionsTableAnnotationComposer get collectionId {
-    final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
-      composer: this,
-      getCurrentColumn: (t) => t.collectionId,
-      referencedTable: $db.collections,
-      getReferencedColumn: (t) => t.id,
-      builder:
-          (
-            joinBuilder, {
-            $addJoinBuilderToRootComposer,
-            $removeJoinBuilderFromRootComposer,
-          }) => $$CollectionsTableAnnotationComposer(
-            $db: $db,
-            $table: $db.collections,
-            $addJoinBuilderToRootComposer: $addJoinBuilderToRootComposer,
-            joinBuilder: joinBuilder,
-            $removeJoinBuilderFromRootComposer:
-                $removeJoinBuilderFromRootComposer,
-          ),
-    );
-    return composer;
-  }
-}
-
-class $$MediaAssetsTableTableManager
-    extends
-        RootTableManager<
-          _$MemukiDatabase,
-          $MediaAssetsTable,
-          MediaAssetRow,
-          $$MediaAssetsTableFilterComposer,
-          $$MediaAssetsTableOrderingComposer,
-          $$MediaAssetsTableAnnotationComposer,
-          $$MediaAssetsTableCreateCompanionBuilder,
-          $$MediaAssetsTableUpdateCompanionBuilder,
-          (MediaAssetRow, $$MediaAssetsTableReferences),
-          MediaAssetRow,
-          PrefetchHooks Function({bool collectionId})
-        > {
-  $$MediaAssetsTableTableManager(_$MemukiDatabase db, $MediaAssetsTable table)
-    : super(
-        TableManagerState(
-          db: db,
-          table: table,
-          createFilteringComposer: () =>
-              $$MediaAssetsTableFilterComposer($db: db, $table: table),
-          createOrderingComposer: () =>
-              $$MediaAssetsTableOrderingComposer($db: db, $table: table),
-          createComputedFieldComposer: () =>
-              $$MediaAssetsTableAnnotationComposer($db: db, $table: table),
-          updateCompanionCallback:
-              ({
-                Value<Hlc> hlc = const Value.absent(),
-                Value<bool> deleted = const Value.absent(),
-                Value<CollectionId> collectionId = const Value.absent(),
-                Value<ContentHash> hash = const Value.absent(),
-                Value<String> mimeType = const Value.absent(),
-                Value<int> sizeBytes = const Value.absent(),
-                Value<String?> originalName = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => MediaAssetsCompanion(
-                hlc: hlc,
-                deleted: deleted,
-                collectionId: collectionId,
-                hash: hash,
-                mimeType: mimeType,
-                sizeBytes: sizeBytes,
-                originalName: originalName,
-                rowid: rowid,
-              ),
-          createCompanionCallback:
-              ({
-                required Hlc hlc,
-                Value<bool> deleted = const Value.absent(),
-                required CollectionId collectionId,
-                required ContentHash hash,
-                required String mimeType,
-                required int sizeBytes,
-                Value<String?> originalName = const Value.absent(),
-                Value<int> rowid = const Value.absent(),
-              }) => MediaAssetsCompanion.insert(
-                hlc: hlc,
-                deleted: deleted,
-                collectionId: collectionId,
-                hash: hash,
-                mimeType: mimeType,
-                sizeBytes: sizeBytes,
-                originalName: originalName,
-                rowid: rowid,
-              ),
-          withReferenceMapper: (p0) => p0
-              .map(
-                (e) => (
-                  e.readTable<$MediaAssetsTable, MediaAssetRow>(table),
-                  $$MediaAssetsTableReferences(db, table, e),
-                ),
-              )
-              .toList(),
-          prefetchHooksCallback: ({collectionId = false}) {
-            return PrefetchHooks(
-              db: db,
-              explicitlyWatchedTables: [],
-              addJoins:
-                  <
-                    T extends TableManagerState<
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic,
-                      dynamic
-                    >
-                  >(state) {
-                    if (collectionId) {
-                      state = state.withJoin(
-                        currentTable: table,
-                        currentColumn: table.collectionId,
-                        referencedTable: $$MediaAssetsTableReferences
-                            ._collectionIdTable(db),
-                        referencedColumn: $$MediaAssetsTableReferences
-                            ._collectionIdTable(db)
-                            .id,
-                      ) as T;
-                    }
-
-                    return state;
-                  },
-              getPrefetchedDataCallback: (items) async {
-                return [];
-              },
-            );
-          },
-        ),
-      );
-}
-
-typedef $$MediaAssetsTableProcessedTableManager =
-    ProcessedTableManager<
-      _$MemukiDatabase,
-      $MediaAssetsTable,
-      MediaAssetRow,
-      $$MediaAssetsTableFilterComposer,
-      $$MediaAssetsTableOrderingComposer,
-      $$MediaAssetsTableAnnotationComposer,
-      $$MediaAssetsTableCreateCompanionBuilder,
-      $$MediaAssetsTableUpdateCompanionBuilder,
-      (MediaAssetRow, $$MediaAssetsTableReferences),
-      MediaAssetRow,
-      PrefetchHooks Function({bool collectionId})
-    >;
 
 class $MemukiDatabaseManager {
   final _$MemukiDatabase _db;
@@ -14621,6 +14798,8 @@ class $MemukiDatabaseManager {
       $$NoteFieldsTableTableManager(_db, _db.noteFields);
   $$NoteTagsTableTableManager get noteTags =>
       $$NoteTagsTableTableManager(_db, _db.noteTags);
+  $$MediaAssetsTableTableManager get mediaAssets =>
+      $$MediaAssetsTableTableManager(_db, _db.mediaAssets);
   $$DeviceTableTableManager get device =>
       $$DeviceTableTableManager(_db, _db.device);
   $$OutboxTableTableManager get outbox =>
@@ -14629,6 +14808,4 @@ class $MemukiDatabaseManager {
       $$ReviewEventsTableTableManager(_db, _db.reviewEvents);
   $$SchedulingStatesTableTableManager get schedulingStates =>
       $$SchedulingStatesTableTableManager(_db, _db.schedulingStates);
-  $$MediaAssetsTableTableManager get mediaAssets =>
-      $$MediaAssetsTableTableManager(_db, _db.mediaAssets);
 }

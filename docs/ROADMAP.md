@@ -132,6 +132,7 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Scheduling state | Materialized cache, rebuildable by replaying review events | Decided |
 | Undo | Compensating event; original event is kept | Decided |
 | Media addressing | Content-addressed by hash | Decided |
+| Media layout | A folder per collection, files named by SHA-256 hash; the file is written before its row | Decided |
 | Database access library | Drift | Decided |
 | Collection/deck model | Several collections per user, each with decks | Decided |
 | Note type scope | Per collection; reuse elsewhere by copying | Decided |

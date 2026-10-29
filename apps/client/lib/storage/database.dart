@@ -76,7 +76,7 @@ class MemukiDatabase extends _$MemukiDatabase {
   HlcClock get clock => _clock;
 
   @override
-  int get schemaVersion => 2;
+  int get schemaVersion => 3;
 
   /// Opens the database now rather than on the first query, creating or
   /// upgrading the schema. Throws [DatabaseTooNewException] or
@@ -143,7 +143,7 @@ class MemukiDatabase extends _$MemukiDatabase {
       m.runMigrationSteps(
         from: from,
         to: to,
-        steps: migrationSteps(from1To2: _from1To2),
+        steps: migrationSteps(from1To2: _from1To2, from2To3: _from2To3),
       );
 
   /// Adds HLC timestamps and tombstones, the device table, the outbox, the
@@ -226,4 +226,8 @@ class MemukiDatabase extends _$MemukiDatabase {
       await m.createView(view);
     }
   }
+
+  /// Adds the view that hides tombstoned media.
+  Future<void> _from2To3(Migrator m, Schema3 schema) =>
+      m.createView(schema.visibleMediaAssets);
 }
