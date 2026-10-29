@@ -31,6 +31,13 @@ void main() {
       expect(() => DeckId.parse('not-a-uuid'), throwsFormatException);
       expect(() => DeckId.parse(''), throwsFormatException);
     });
+
+    test('rejects UUIDs with an invalid variant', () {
+      expect(
+        () => DeckId.parse('018f4a2b-1c3d-7e4f-0a5b-6c7d8e9f0a1b'),
+        throwsFormatException,
+      );
+    });
   });
 
   group('StudyCardId.derive', () {

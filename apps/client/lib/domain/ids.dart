@@ -10,20 +10,15 @@ import 'dart:typed_data';
 
 import 'package:crypto/crypto.dart';
 import 'package:uuid/uuid.dart';
+import 'package:uuid/validation.dart';
 
 const _uuid = Uuid();
-final _canonical = RegExp(
-  r'^[0-9a-f]{8}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{4}-[0-9a-f]{12}$',
-);
 
 String _generate() => _uuid.v7();
 
 String _parse(String value) {
-  final lower = value.toLowerCase();
-  if (!_canonical.hasMatch(lower)) {
-    throw FormatException('Not a UUID', value);
-  }
-  return lower;
+  UuidValidation.isValidOrThrow(fromString: value);
+  return value.toLowerCase();
 }
 
 extension type const CollectionId._(String value) implements Object {
