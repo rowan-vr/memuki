@@ -85,8 +85,11 @@ With this model, merging concurrent reviews from different devices reduces to me
 ## Scheduling
 
 - Schedulers implement a versioned interface in the `scheduler` module. More than one scheduler can exist; configuration presets select which one a deck uses.
-- **Default:** deterministic learning steps for new cards and relearning steps after lapses, with an SM-2-style ease multiplier for review intervals of graduated cards. Default steps: learning 1m → 4h → 12h → 1d → 2d; relearning 10m → 1h → 12h → 2d.
+- **Default:** deterministic learning steps for new cards and relearning steps after lapses, with an SM-2-style ease multiplier for review intervals of graduated cards. Good slowly raises ease back towards the starting ease, so repeated Hard and Again grades do not keep intervals short permanently. Default steps: learning 1m → 4h → 12h → 1d → 2d; relearning 10m → 1h → 12h → 2d.
 - **Burning:** independent of the review algorithm. When a grade produces a next interval at or above the preset's burn threshold, the card enters the Burned state with no due date and is excluded from normal queues. Burned cards have a separate review session; failing one returns it to relearning. Manual burn and unburn are recorded as events so replay and sync reproduce the state.
+- **Configuration:** decks select a shared preset; a deck without its own preset inherits its parent's. Presets set the scheduler, steps, limits, and burn threshold (default 1 year, can be disabled).
+- **Study day:** starts at a per-collection hour (default 03:00 local time). Steps under 1d are exact durations; steps of 1d or more fall due at the start of a study day.
+- **Nested decks:** studying a deck includes all decks below it. Each subdeck's daily limit applies, and the studied deck's limit caps the combined total.
 - **FSRS:** added in a later phase as an alternative review-phase algorithm; learning and relearning steps remain. Review events store grade, timestamps, due times, and response time from the start, so FSRS memory state can be computed from existing history when it is introduced.
 
 ## Card rendering
@@ -220,6 +223,9 @@ memuki/
 | D33 | Scheduling state is not synced; each device rebuilds it from synced review events | Decided | 1 |
 | D34 | A delete tombstones only its target; rows below it are hidden by views over their parents' tombstones | Decided | 1 |
 | D35 | Media files in a folder per collection, named by hash, written before their row | Decided | 1 |
+| D36 | Scheduler presets assigned per deck and inherited by subdecks without their own | Decided | 2 |
+| D37 | Study day starts at a per-collection hour (default 03:00); steps of 1d or more fall due at its start | Decided | 2 |
+| D38 | Studying a deck includes its subdecks; the studied deck's daily limit caps the subdecks' combined total | Decided | 2 |
 
 ## Open questions
 
