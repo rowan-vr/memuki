@@ -1,7 +1,6 @@
 import 'dart:io';
 
 import 'package:drift/drift.dart';
-import 'package:drift/internal/versioned_schema.dart' show VersionedTable;
 import 'package:drift_flutter/drift_flutter.dart';
 import 'package:flutter/foundation.dart';
 import 'package:logging/logging.dart';
@@ -162,7 +161,7 @@ class MemukiDatabase extends _$MemukiDatabase {
     );
 
     Future<void> addColumns(
-      VersionedTable table,
+      TableInfo<Table, dynamic> table,
       Index hlcIndex, {
       bool tombstones = true,
     }) async {
