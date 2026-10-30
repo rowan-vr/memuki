@@ -290,7 +290,7 @@ Initial templates:
 | Visual direction | "Study desk": warm and calm, cute but polished. Cream paper surfaces in light mode, neutral charcoal in dark mode, muted accents (coral, mustard, sage, dusty blue) with deep navy for primary actions, notecard-style cards, and stationery-inspired details. Light, dark, and sepia palettes are tuned separately | Decided |
 | Appearance settings | Mode (system, light, dark, sepia), accent colour from a curated palette, card style (default, notecard, minimal), and density (comfortable, compact). Components read all of them from tokens | Proposed |
 | Selectable styles | Further styles with their own shape language and palette (paper, stationery, chunky) are added later through the same tokens | Proposed |
-| Grade and card-state styling | Again, Hard, Good, Easy, and burned cards are part of the palette, distinguished by more than colour | Proposed |
+| Grade and card-state styling | Again, Hard, Good, Easy, and burned cards are part of the palette, distinguished by more than colour. Grade buttons are tonal: a soft tint of the grade's colour with text in that colour, not solid fills | Proposed |
 | Heading typeface | Zen Maru Gothic, a rounded face, for headings; Japanese and other scripts it lacks fall back to Noto Sans JP | Decided |
 | Content format | One construct, `{key arg … name="value" \| content}`, for both field values and templates; quoted values for arguments with spaces; content can nest further marks | Decided |
 | Marks | Marks say what text is (reading, emphasis, cloze, language), never how it looks; the design system styles each kind. Each kind is a registry entry with its arguments, rendering, editing controls, Anki mapping, and plain-text fallback. Unknown kinds show their content | Decided |

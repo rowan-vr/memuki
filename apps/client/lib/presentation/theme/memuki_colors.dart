@@ -29,7 +29,9 @@ class ToneColors {
 
   /// Derives the other colours from [base] for a palette with [background]
   /// and [text]: [soft] is [base] mixed into the background, and the colours
-  /// drawn on each are the nearest that read at WCAG AA contrast.
+  /// drawn on each are the nearest that read at WCAG AA contrast. On paper,
+  /// text on [soft] is a darker shade of [base] rather than a mix with
+  /// [text], so it keeps its hue.
   factory ToneColors.of(
     Color base, {
     required Color background,
@@ -46,7 +48,13 @@ class ToneColors {
       base: base,
       onBase: onBase,
       soft: soft,
-      onSoft: readableOn(soft, base, text),
+      onSoft: readableOn(
+        soft,
+        base,
+        text.computeLuminance() < 0.5
+            ? HSLColor.fromColor(base).withLightness(0.2).toColor()
+            : text,
+      ),
     );
   }
 
@@ -97,13 +105,16 @@ class MemukiColors extends ThemeExtension<MemukiColors> {
   factory MemukiColors.of(ColorMode mode, MemukiAccent accent) {
     final n = _neutrals[mode]!;
     final hues = _hues[mode]!;
-    final softness = mode == ColorMode.dark ? 0.24 : 0.16;
-    ToneColors tone(Color base) => ToneColors.of(
+    final dark = mode == ColorMode.dark;
+    ToneColors tone(Color base, {double? softness}) => ToneColors.of(
       base,
       background: n.surface,
       text: n.text,
-      softness: softness,
+      softness: softness ?? (dark ? 0.24 : 0.16),
     );
+    // Grade buttons are large tinted areas on paper, so they take a stronger
+    // tint than chips to read as their colour.
+    ToneColors grade(Color base) => tone(base, softness: dark ? 0.24 : 0.34);
     return MemukiColors(
       mode: mode,
       background: n.background,
@@ -116,11 +127,11 @@ class MemukiColors extends ThemeExtension<MemukiColors> {
       textFaint: n.faint,
       accent: tone(hues.accents[accent]!),
       danger: hues.accents[MemukiAccent.coral]!,
-      again: tone(hues.again),
-      hard: tone(hues.hard),
-      good: tone(hues.good),
-      easy: tone(hues.easy),
-      burned: tone(hues.burned),
+      again: grade(hues.again),
+      hard: grade(hues.hard),
+      good: grade(hues.good),
+      easy: grade(hues.easy),
+      burned: grade(hues.burned),
       swatches: {
         for (final MapEntry(:key, :value) in hues.accents.entries)
           key: tone(value),
@@ -275,7 +286,7 @@ const _hues = <ColorMode, _Hues>{
     again: Color(0xFFD9725F),
     hard: Color(0xFFDDAA48),
     good: Color(0xFF79AE86),
-    easy: Color(0xFF86A8D2),
+    easy: Color(0xFF6E9AD6),
     burned: Color(0xFFE08A3C),
   ),
   ColorMode.sepia: (
@@ -283,7 +294,7 @@ const _hues = <ColorMode, _Hues>{
     again: Color(0xFFD9725F),
     hard: Color(0xFFDDAA48),
     good: Color(0xFF79AE86),
-    easy: Color(0xFF86A8D2),
+    easy: Color(0xFF6E9AD6),
     burned: Color(0xFFE08A3C),
   ),
   ColorMode.dark: (
