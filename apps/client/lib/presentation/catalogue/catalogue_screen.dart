@@ -1053,7 +1053,12 @@ class _NotecardPainter extends CustomPainter {
       ..quadraticBezierTo(size.width - fold, fold, size.width - fold + 3, fold)
       ..lineTo(size.width, fold)
       ..close();
-    canvas.drawPath(flap, Paint()..color = colors.surfaceSunken);
+    // The back of the paper: a shade towards the ink, so lighter in dark
+    // mode and darker on paper.
+    canvas.drawPath(
+      flap,
+      Paint()..color = Color.lerp(colors.surface, colors.text, 0.08)!,
+    );
     canvas.drawPath(
       flap,
       Paint()
