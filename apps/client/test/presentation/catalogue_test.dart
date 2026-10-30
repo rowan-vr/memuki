@@ -7,8 +7,14 @@ import 'package:memuki/presentation/theme/memuki_layout.dart';
 
 import '../helpers/pump_app.dart';
 
-BuildContext _content(WidgetTester tester) =>
-    tester.element(find.text('Ready to study?'));
+/// A context inside the catalogue's theme, from the toolbar.
+BuildContext _content(WidgetTester tester) => tester.element(find.text('Mode'));
+
+Future<void> _wide(WidgetTester tester) async {
+  tester.view.physicalSize = const Size(1400, 2400);
+  tester.view.devicePixelRatio = 1;
+  addTearDown(tester.view.reset);
+}
 
 void main() {
   testWidgets('the Developer tab opens the catalogue', (tester) async {
@@ -20,18 +26,47 @@ void main() {
     await tester.pumpAndSettle();
 
     expect(find.byType(CatalogueScreen), findsOneWidget);
-    expect(find.text('Ready to study?'), findsOneWidget);
+    expect(find.text('Surfaces and text'), findsOneWidget);
+  });
+
+  testWidgets('every section renders, at the largest text scale', (
+    tester,
+  ) async {
+    await _wide(tester);
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.light(), home: const CatalogueScreen()),
+    );
+    await tester.tap(find.text('2.0×'));
+    await tester.pumpAndSettle();
+
+    for (final section in CatalogueSection.values) {
+      await tester.tap(find.text(section.title).first);
+      await tester.pumpAndSettle();
+      expect(find.text(section.title), findsNWidgets(2));
+      expect(tester.takeException(), isNull);
+    }
+    expect(find.text('猫'), findsOneWidget);
+  });
+
+  testWidgets('narrow windows list the sections in a row', (tester) async {
+    await tester.pumpWidget(
+      MaterialApp(theme: AppTheme.light(), home: const CatalogueScreen()),
+    );
+    await tester.ensureVisible(find.text('Panels'));
+    await tester.tap(find.text('Panels'));
+    await tester.pumpAndSettle();
+    expect(find.text('SectionHeader'), findsOneWidget);
   });
 
   testWidgets('the catalogue switches every appearance setting', (
     tester,
   ) async {
-    tester.view.physicalSize = const Size(1400, 2400);
-    tester.view.devicePixelRatio = 1;
-    addTearDown(tester.view.reset);
+    await _wide(tester);
     await tester.pumpWidget(
       MaterialApp(theme: AppTheme.light(), home: const CatalogueScreen()),
     );
+    await tester.tap(find.text('Study'));
+    await tester.pumpAndSettle();
     expect(_content(tester).colors.mode, ColorMode.light);
 
     Future<void> pick(String label) async {

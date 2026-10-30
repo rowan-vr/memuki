@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../components/rows.dart';
 import '../routing/router.dart';
 import '../theme/spacing.dart';
 
@@ -13,19 +14,21 @@ class DeveloperScreen extends StatelessWidget {
     return Scaffold(
       appBar: AppBar(title: const Text('Developer')),
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
+        padding: const EdgeInsets.all(Spacing.lg),
         children: [
-          ListTile(
-            title: const Text('Component catalogue'),
-            subtitle: const Text('Design tokens and components'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => const CatalogueRoute().go(context),
-          ),
-          ListTile(
-            title: const Text('Visual concepts'),
-            subtitle: const Text('Candidate looks on a mock review screen'),
-            trailing: const Icon(Icons.chevron_right),
-            onTap: () => const ConceptsRoute().go(context),
+          RowGroup(
+            children: [
+              ListRow(
+                title: 'Component catalogue',
+                subtitle: 'Design tokens and components',
+                onTap: () => const CatalogueRoute().go(context),
+              ),
+              ListRow(
+                title: 'Visual concepts',
+                subtitle: 'Candidate looks on a mock review screen',
+                onTap: () => const ConceptsRoute().go(context),
+              ),
+            ],
           ),
         ],
       ),

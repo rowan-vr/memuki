@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../components/icons.dart';
 import '../developer/developer_tools_provider.dart';
 import '../theme/breakpoints.dart';
 
@@ -22,15 +23,11 @@ class AppShell extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final destinations = [
-      (icon: Icons.home_outlined, selected: Icons.home, label: l10n.navHome),
-      (icon: Icons.style_outlined, selected: Icons.style, label: l10n.navDecks),
-      (
-        icon: Icons.settings_outlined,
-        selected: Icons.settings,
-        label: l10n.navSettings,
-      ),
+      (icon: MemukiIcons.home, label: l10n.navHome),
+      (icon: MemukiIcons.decks, label: l10n.navDecks),
+      (icon: MemukiIcons.settings, label: l10n.navSettings),
       if (ref.watch(developerToolsProvider))
-        (icon: Icons.code, selected: Icons.code, label: 'Developer'),
+        (icon: MemukiIcons.developer, label: 'Developer'),
     ];
 
     final windowSize = WindowSize.of(context);
@@ -42,11 +39,7 @@ class AppShell extends ConsumerWidget {
           onDestinationSelected: _goBranch,
           destinations: [
             for (final d in destinations)
-              NavigationDestination(
-                icon: Icon(d.icon),
-                selectedIcon: Icon(d.selected),
-                label: d.label,
-              ),
+              NavigationDestination(icon: Icon(d.icon), label: d.label),
           ],
         ),
       );
@@ -67,7 +60,6 @@ class AppShell extends ConsumerWidget {
               for (final d in destinations)
                 NavigationRailDestination(
                   icon: Icon(d.icon),
-                  selectedIcon: Icon(d.selected),
                   label: Text(d.label),
                 ),
             ],
