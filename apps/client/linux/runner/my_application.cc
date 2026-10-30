@@ -19,13 +19,31 @@ static void first_frame_cb(MyApplication* self, FlView* view) {
   gtk_widget_show(gtk_widget_get_toplevel(GTK_WIDGET(view)));
 }
 
+// Whether the session runs a tiling compositor, which arranges and closes
+// windows itself, so a title bar only takes up space.
+static gboolean is_tiling_desktop() {
+  const gchar* desktop = g_getenv("XDG_CURRENT_DESKTOP");
+  if (desktop == nullptr) return FALSE;
+  static const gchar* const tiling[] = {"Hyprland", "sway", "river", "niri",
+                                        "i3"};
+  g_auto(GStrv) names = g_strsplit(desktop, ":", -1);
+  for (gchar** name = names; *name != nullptr; name++) {
+    for (const gchar* candidate : tiling) {
+      if (g_ascii_strcasecmp(*name, candidate) == 0) return TRUE;
+    }
+  }
+  return FALSE;
+}
+
 // Implements GApplication::activate.
 static void my_application_activate(GApplication* application) {
   MyApplication* self = MY_APPLICATION(application);
   GtkWindow* window =
       GTK_WINDOW(gtk_application_window_new(GTK_APPLICATION(application)));
 
-  // Use a header bar when running in GNOME as this is the common style used
+  // Tiling compositors manage windows themselves, so the window has no
+  // decorations there.
+  // Otherwise, use a header bar when running in GNOME as this is the common style used
   // by applications and is the setup most users will be using (e.g. Ubuntu
   // desktop).
   // If running on X and not using GNOME then just use a traditional title bar
@@ -42,7 +60,10 @@ static void my_application_activate(GApplication* application) {
     }
   }
 #endif
-  if (use_header_bar) {
+  if (is_tiling_desktop()) {
+    gtk_window_set_title(window, "Memuki");
+    gtk_window_set_decorated(window, FALSE);
+  } else if (use_header_bar) {
     GtkHeaderBar* header_bar = GTK_HEADER_BAR(gtk_header_bar_new());
     gtk_widget_show(GTK_WIDGET(header_bar));
     gtk_header_bar_set_title(header_bar, "Memuki");
