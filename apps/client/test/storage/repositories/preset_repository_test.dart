@@ -122,6 +122,9 @@ void main() {
         newCardsPerDay: 10,
         newCardMix: NewCardMix.reviewsFirst,
         newCardOrder: NewCardOrder.random,
+        buryNewSiblings: false,
+        buryReviewSiblings: false,
+        buryLearningSiblings: LearningSiblingBury.day,
       );
       await repos.presets.updateSettings(preset.id, edited);
 

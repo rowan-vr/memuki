@@ -21,8 +21,13 @@ final class QueueDeck {
 
 /// A card in a study session.
 final class QueueCard {
-  const QueueCard({required this.deckId, required this.state});
+  const QueueCard({
+    required this.noteId,
+    required this.deckId,
+    required this.state,
+  });
 
+  final NoteId noteId;
   final DeckId deckId;
   final SchedulingState state;
 
@@ -37,6 +42,11 @@ final class QueueCard {
 /// decks below it, and the studied deck's limit caps the total. When nothing
 /// else is left, learning cards due within [learnAhead] are shown early.
 /// Burned cards are never in the queue.
+///
+/// Once a card of a note has been studied today, the note's other new and
+/// review cards are buried, as the preset sets: for the day, or after
+/// studying a learning card for the session. Learning cards are never
+/// buried, since their steps are due at set times.
 final class StudyQueue {
   const StudyQueue._({
     required this.next,
@@ -56,8 +66,12 @@ final class StudyQueue {
   /// apply. [cards] are their
   /// cards, oldest note first and a note's cards in template order.
   /// [newDone] and [reviewsDone] count the new cards and reviews studied
-  /// today, by deck of the card. [mix] and [order] come from the studied
-  /// deck's preset.
+  /// today, by deck of the card. [studiedToday] are the cards of the whole
+  /// collection whose reviews today bury their siblings now, with their
+  /// notes. [skip]
+  /// are cards left out for this session only. [mix], [order],
+  /// [buryNewSiblings], and [buryReviewSiblings] come from the studied deck's
+  /// preset.
   factory StudyQueue.build({
     required Map<DeckId, QueueDeck> decks,
     required List<QueueCard> cards,
@@ -65,9 +79,18 @@ final class StudyQueue {
     required Map<DeckId, int> reviewsDone,
     required DateTime now,
     required StudyDay day,
+    Map<StudyCardId, NoteId> studiedToday = const {},
+    Set<StudyCardId> skip = const {},
     NewCardMix mix = NewCardMix.mixed,
     NewCardOrder order = NewCardOrder.created,
+    bool buryNewSiblings = true,
+    bool buryReviewSiblings = true,
   }) {
+    final studiedNotes = studiedToday.values.toSet();
+    bool isBuriedSibling(QueueCard card) =>
+        studiedNotes.contains(card.noteId) &&
+        !studiedToday.containsKey(card.id);
+
     final today = day.startOf(now);
     final tomorrow = day.startAfter(now, 1);
 
@@ -75,16 +98,16 @@ final class StudyQueue {
     final reviews = <QueueCard>[];
     final newCards = <QueueCard>[];
     for (final card in cards) {
-      if (!decks.containsKey(card.deckId)) continue;
+      if (!decks.containsKey(card.deckId) || skip.contains(card.id)) continue;
       final due = card.state.due;
       switch (card.state.state) {
         case StudyCardState.learning || StudyCardState.relearning
             when due != null:
           learning.add(card);
         case StudyCardState.review when due != null && due.isBefore(tomorrow):
-          reviews.add(card);
+          if (!(buryReviewSiblings && isBuriedSibling(card))) reviews.add(card);
         case StudyCardState.newCard:
-          newCards.add(card);
+          if (!(buryNewSiblings && isBuriedSibling(card))) newCards.add(card);
         default:
           break;
       }

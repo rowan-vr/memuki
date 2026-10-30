@@ -25,33 +25,46 @@ void main() {
     reviewsPerDay: reviews,
   );
 
-  QueueCard card(StudyCardState state, {DateTime? due, DeckId? deckId}) =>
-      QueueCard(
-        deckId: deckId ?? root,
-        state: SchedulingState(
-          studyCardId: StudyCardId.derive(
-            NoteId.generate(),
-            StudyCardTemplateId.generate(),
-          ),
-          state: state,
-          due: due,
-        ),
-      );
+  QueueCard card(
+    StudyCardState state, {
+    DateTime? due,
+    DeckId? deckId,
+    NoteId? noteId,
+  }) {
+    final note = noteId ?? NoteId.generate();
+    return QueueCard(
+      noteId: note,
+      deckId: deckId ?? root,
+      state: SchedulingState(
+        studyCardId: StudyCardId.derive(note, StudyCardTemplateId.generate()),
+        state: state,
+        due: due,
+      ),
+    );
+  }
 
-  QueueCard newCard({DeckId? deckId}) =>
-      card(StudyCardState.newCard, deckId: deckId);
-  QueueCard reviewCard({DateTime? due, DeckId? deckId}) =>
-      card(StudyCardState.review, due: due ?? today, deckId: deckId);
-  QueueCard learningCard(DateTime due) =>
-      card(StudyCardState.learning, due: due);
+  QueueCard newCard({DeckId? deckId, NoteId? noteId}) =>
+      card(StudyCardState.newCard, deckId: deckId, noteId: noteId);
+  QueueCard reviewCard({DateTime? due, DeckId? deckId, NoteId? noteId}) => card(
+    StudyCardState.review,
+    due: due ?? today,
+    deckId: deckId,
+    noteId: noteId,
+  );
+  QueueCard learningCard(DateTime due, {NoteId? noteId}) =>
+      card(StudyCardState.learning, due: due, noteId: noteId);
 
   StudyQueue build(
     List<QueueCard> cards, {
     Map<DeckId, QueueDeck>? decks,
     Map<DeckId, int> newDone = const {},
     Map<DeckId, int> reviewsDone = const {},
+    Map<StudyCardId, NoteId> studiedToday = const {},
+    Set<StudyCardId> skip = const {},
     NewCardMix mix = NewCardMix.mixed,
     NewCardOrder order = NewCardOrder.created,
+    bool buryNewSiblings = true,
+    bool buryReviewSiblings = true,
     DateTime? at,
   }) => StudyQueue.build(
     decks: decks ?? {root: deck(root)},
@@ -60,8 +73,12 @@ void main() {
     reviewsDone: reviewsDone,
     now: at ?? now,
     day: day,
+    studiedToday: studiedToday,
+    skip: skip,
     mix: mix,
     order: order,
+    buryNewSiblings: buryNewSiblings,
+    buryReviewSiblings: buryReviewSiblings,
   );
 
   /// The order in which the cards would be shown, studying each in turn.
@@ -280,6 +297,66 @@ void main() {
         newDone: {n5: 2},
       );
       expect(queue.newCount, 1);
+    });
+  });
+
+  test('skipped cards are left out, learning cards too', () {
+    final skipped = learningCard(now);
+    final review = reviewCard();
+    final queue = build([skipped, review], skip: {skipped.id});
+    expect(queue.next, review.id);
+    expect(queue.learningCount, 0);
+  });
+
+  group('sibling burying', () {
+    final note = NoteId.generate();
+    final studied = card(StudyCardState.learning, due: tomorrow, noteId: note);
+    final studiedToday = {studied.id: note};
+
+    test('buries the new and review siblings of a card studied today', () {
+      final queue = build([
+        newCard(noteId: note),
+        reviewCard(noteId: note),
+        studied,
+      ], studiedToday: studiedToday);
+      expect(queue.next, isNull);
+      expect(queue.newCount, 0);
+      expect(queue.reviewCount, 0);
+    });
+
+    test('never buries learning siblings', () {
+      final sibling = learningCard(now, noteId: note);
+      expect(build([sibling], studiedToday: studiedToday).next, sibling.id);
+    });
+
+    test('does not bury the studied card itself', () {
+      final review = reviewCard(noteId: note);
+      expect(build([review], studiedToday: {review.id: note}).next, review.id);
+    });
+
+    test('leaves other notes alone', () {
+      final other = newCard();
+      expect(build([other], studiedToday: studiedToday).next, other.id);
+    });
+
+    test('can be turned off for new and review siblings', () {
+      final cards = [newCard(noteId: note), reviewCard(noteId: note)];
+      expect(
+        build(
+          cards,
+          studiedToday: studiedToday,
+          buryNewSiblings: false,
+        ).newCount,
+        1,
+      );
+      expect(
+        build(
+          cards,
+          studiedToday: studiedToday,
+          buryReviewSiblings: false,
+        ).reviewCount,
+        1,
+      );
     });
   });
 }

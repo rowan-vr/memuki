@@ -8,7 +8,8 @@ import 'package:path/path.dart' as p;
 import '../domain/ids.dart';
 import '../domain/note.dart' show SourceKind;
 import '../domain/note_type.dart' show FieldType;
-import '../domain/preset.dart' show NewCardMix, NewCardOrder, PresetVersion;
+import '../domain/preset.dart'
+    show LearningSiblingBury, NewCardMix, NewCardOrder, PresetVersion;
 import '../domain/review.dart';
 import 'converters.dart';
 import 'database.steps.dart';
@@ -80,7 +81,7 @@ class MemukiDatabase extends _$MemukiDatabase {
   HlcClock get clock => _clock;
 
   @override
-  int get schemaVersion => 7;
+  int get schemaVersion => 8;
 
   /// Opens the database now rather than on the first query, creating or
   /// upgrading the schema. Throws [DatabaseTooNewException] or
@@ -157,6 +158,7 @@ class MemukiDatabase extends _$MemukiDatabase {
           from4To5: _from4To5,
           from5To6: _from5To6,
           from6To7: _from6To7,
+          from7To8: _from7To8,
         ),
       );
 
@@ -429,6 +431,27 @@ class MemukiDatabase extends _$MemukiDatabase {
       ),
     );
     await customStatement('DROP TABLE state_before');
+  }
+
+  /// Adds suspending and burying of cards, and the sibling burying settings
+  /// of presets. No card is suspended or buried, and existing preset
+  /// versions bury new and review siblings for the day, and the siblings of
+  /// learning cards for the session.
+  Future<void> _from7To8(Migrator m, Schema8 schema) async {
+    await m.addColumn(schema.studyCards, schema.studyCards.suspended);
+    await m.addColumn(schema.studyCards, schema.studyCards.buriedUntil);
+    await m.addColumn(
+      schema.presetVersions,
+      schema.presetVersions.buryNewSiblings,
+    );
+    await m.addColumn(
+      schema.presetVersions,
+      schema.presetVersions.buryReviewSiblings,
+    );
+    await m.addColumn(
+      schema.presetVersions,
+      schema.presetVersions.buryLearningSiblings,
+    );
   }
 
   /// The state before each review event, by replaying each card's history.

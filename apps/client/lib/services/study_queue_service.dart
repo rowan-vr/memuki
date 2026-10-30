@@ -1,4 +1,5 @@
 import '../domain/ids.dart';
+import '../domain/preset.dart';
 import '../domain/review.dart';
 import '../domain/review_history.dart';
 import '../scheduler/scheduler_registry.dart';
@@ -40,8 +41,17 @@ class StudyQueueService {
   final SchedulingEngine _engine;
   final DeviceNow _now;
 
-  /// The queue of [deckId] and the decks below it, now.
-  Future<StudyQueue> queue(DeckId deckId) => _db.transaction(() async {
+  /// The queue of [deckId] and the decks below it, now. Cards in [skip]
+  /// are left out, e.g. those buried for the current study session only.
+  ///
+  /// [sessionStart] is when the current study session started. Studying a
+  /// learning card buries its siblings only for that session by default, so
+  /// without it such reviews bury nothing.
+  Future<StudyQueue> queue(
+    DeckId deckId, {
+    Set<StudyCardId> skip = const {},
+    DateTime? sessionStart,
+  }) => _db.transaction(() async {
     final studied = await _collections.deck(deckId);
     if (studied == null) {
       throw EntityNotFoundException('Deck $deckId does not exist');
@@ -76,21 +86,33 @@ class StudyQueueService {
     // when it reaches into tomorrow.
     final ahead = now.at.add(StudyQueue.learnAhead);
     final tomorrow = day.startAfter(now.at, 1);
-    final cards = await _cards.cardsWithState(
+    final cards = await _cards.queueCandidates(
       deckId,
+      now: now.at,
       dueBefore: ahead.isAfter(tomorrow) ? ahead : tomorrow,
     );
-    final (:newDone, :reviewsDone) = await _studiedToday(
+    final preset = (await _presets.effectivePreset(deckId)).version;
+    final (:newDone, :reviewsDone, :burying) = await _studiedToday(
       decks.keys.toSet(),
       collection.id,
       since: day.startOf(now.at),
+      buriesSiblings: (event) => switch (event.stateBefore) {
+        StudyCardState.learning ||
+        StudyCardState.relearning => switch (preset.buryLearningSiblings) {
+          LearningSiblingBury.day => true,
+          LearningSiblingBury.session =>
+            sessionStart != null && !event.at.isBefore(sessionStart),
+          LearningSiblingBury.never => false,
+        },
+        _ => true,
+      },
     );
-    final preset = (await _presets.effectivePreset(deckId)).version;
     return StudyQueue.build(
       decks: decks,
       cards: [
         for (final (card, state) in cards)
           QueueCard(
+            noteId: card.noteId,
             deckId: card.deckId,
             state: state ?? _engine.initial(card.id),
           ),
@@ -99,31 +121,46 @@ class StudyQueueService {
       reviewsDone: reviewsDone,
       now: now.at,
       day: day,
+      studiedToday: burying,
+      skip: skip,
       mix: preset.newCardMix,
       order: preset.newCardOrder,
+      buryNewSiblings: preset.buryNewSiblings,
+      buryReviewSiblings: preset.buryReviewSiblings,
     );
   });
 
   /// The new cards and reviews studied since [since] in [deckIds], by deck
-  /// of the card.
+  /// of the card, and the cards of the whole collection whose reviews since
+  /// then bury their siblings, by [buriesSiblings], with their notes.
   ///
   /// Only today's events are read: an undo always comes after the event it
   /// cancels, so whether one of today's events is in effect depends only on
   /// later events.
-  Future<({Map<DeckId, int> newDone, Map<DeckId, int> reviewsDone})>
+  Future<
+    ({
+      Map<DeckId, int> newDone,
+      Map<DeckId, int> reviewsDone,
+      Map<StudyCardId, NoteId> burying,
+    })
+  >
   _studiedToday(
     Set<DeckId> deckIds,
     CollectionId collectionId, {
     required DateTime since,
+    required bool Function(ReviewEvent review) buriesSiblings,
   }) async {
     final newDone = <DeckId, int>{};
     final reviewsDone = <DeckId, int>{};
+    final burying = <StudyCardId, NoteId>{};
     for (final MapEntry(key: cardId, value: events)
         in (await _reviews.eventsSince(collectionId, since)).entries) {
       final card = await _cards.card(cardId);
-      if (card == null || !deckIds.contains(card.deckId)) continue;
+      if (card == null) continue;
       for (final event in ReviewHistory(events).actions) {
         if (event.kind != ReviewEventKind.review) continue;
+        if (buriesSiblings(event)) burying[cardId] = card.noteId;
+        if (!deckIds.contains(card.deckId)) continue;
         final done = switch (event.stateBefore) {
           StudyCardState.newCard => newDone,
           StudyCardState.review => reviewsDone,
@@ -132,6 +169,6 @@ class StudyQueueService {
         done?.update(card.deckId, (n) => n + 1, ifAbsent: () => 1);
       }
     }
-    return (newDone: newDone, reviewsDone: reviewsDone);
+    return (newDone: newDone, reviewsDone: reviewsDone, burying: burying);
   }
 }

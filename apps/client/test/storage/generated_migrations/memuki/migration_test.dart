@@ -347,9 +347,20 @@ void main() {
       ],
     );
 
+    final v6 = MemukiDatabase(schema.newConnection(), replayHistory: replay);
+    addTearDown(v6.close);
+    await verifier.migrateAndValidate(v6, 6);
+    // The rebuilt table keeps its append-only trigger.
+    await expectLater(
+      v6.customStatement('UPDATE preset_versions SET reviews_per_day = 1'),
+      throwsA(anything),
+    );
+    // Read through the repositories after upgrading to the current version,
+    // since they use the current tables. Opening turned foreign keys on for
+    // the shared connection; upgrades run with them off.
+    await v6.customStatement('PRAGMA foreign_keys = OFF');
     final db = MemukiDatabase(schema.newConnection(), replayHistory: replay);
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 6);
 
     expect(
       (await Repositories(db).presets.preset(preset))!.version,
@@ -362,14 +373,9 @@ void main() {
         reviewsPerDay: 200,
       ),
     );
-    // The rebuilt table keeps its append-only trigger.
-    await expectLater(
-      db.customStatement('UPDATE preset_versions SET reviews_per_day = 1'),
-      throwsA(anything),
-    );
   });
 
-  group('v6 to v7', () {
+  group('from v6', () {
     final collection = CollectionId.generate();
     final preset = PresetId.generate();
     final version = PresetVersionId.generate();
@@ -380,9 +386,10 @@ void main() {
     // 21:00 on 29 October in UTC+9.
     final start = DateTime.utc(2026, 10, 29, 12);
 
-    /// A v6 database with a collection, a deck, and a note type.
-    Future<InitializedSchema> seeded() async {
-      final schema = await verifier.schemaAt(6);
+    /// A database at [schemaVersion] (6 or later) with a collection, a deck,
+    /// and a note type.
+    Future<InitializedSchema> seeded([int schemaVersion = 6]) async {
+      final schema = await verifier.schemaAt(schemaVersion);
       final raw = schema.rawDatabase;
       raw.execute(
         'INSERT INTO collections (id, name, default_preset_id, day_start, '
@@ -507,7 +514,7 @@ void main() {
       return id;
     }
 
-    test('records the state each event found its card in', () async {
+    test('v6 to v7 records the state each event found its card in', () async {
       final schema = await seeded();
       final learned = addCard(schema);
       final first = addEvent(schema, learned, 'review', grade: 'good');
@@ -556,8 +563,8 @@ void main() {
       );
     });
 
-    test('fails without a replay function when there are events, and '
-        'changes nothing', () async {
+    test('v6 to v7 fails without a replay function when there are events, '
+        'and changes nothing', () async {
       final schema = await seeded();
       addEvent(schema, addCard(schema), 'review', grade: 'good');
       final db = MemukiDatabase(schema.newConnection());
@@ -576,12 +583,31 @@ void main() {
       );
     });
 
-    test('needs no replay function without events', () async {
+    test('v6 to v7 needs no replay function without events', () async {
       final schema = await seeded();
       addCard(schema);
       final db = MemukiDatabase(schema.newConnection());
       addTearDown(db.close);
       await verifier.migrateAndValidate(db, 7);
+    });
+
+    test('v7 to v8 leaves cards unsuspended and presets burying '
+        'siblings', () async {
+      final schema = await seeded(7);
+      final card = addCard(schema);
+
+      final db = MemukiDatabase(schema.newConnection());
+      addTearDown(db.close);
+      await verifier.migrateAndValidate(db, 8);
+
+      final repos = Repositories(db);
+      final migrated = (await repos.cards.card(card))!;
+      expect(migrated.suspended, isFalse);
+      expect(migrated.buriedUntil, isNull);
+      final settings = (await repos.presets.preset(preset))!.version;
+      expect(settings.buryNewSiblings, isTrue);
+      expect(settings.buryReviewSiblings, isTrue);
+      expect(settings.buryLearningSiblings, LearningSiblingBury.session);
     });
   });
 }

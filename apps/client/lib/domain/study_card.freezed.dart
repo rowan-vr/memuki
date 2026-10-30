@@ -15,7 +15,10 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$StudyCard {
 
- NoteId get noteId; StudyCardTemplateId get templateId; DeckId get deckId;
+ NoteId get noteId; StudyCardTemplateId get templateId; DeckId get deckId;/// A suspended card keeps its scheduling state but is left out of every
+/// queue until it is unsuspended.
+ bool get suspended;/// A buried card is left out of queues until this time.
+ DateTime? get buriedUntil;
 /// Create a copy of StudyCard
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +30,20 @@ $StudyCardCopyWith<StudyCard> get copyWith => _$StudyCardCopyWithImpl<StudyCard>
 @override
 bool operator ==(Object other) {
   final _this = this as StudyCard;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StudyCard&&(identical(other.noteId, _this.noteId) || other.noteId == _this.noteId)&&(identical(other.templateId, _this.templateId) || other.templateId == _this.templateId)&&(identical(other.deckId, _this.deckId) || other.deckId == _this.deckId));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StudyCard&&(identical(other.noteId, _this.noteId) || other.noteId == _this.noteId)&&(identical(other.templateId, _this.templateId) || other.templateId == _this.templateId)&&(identical(other.deckId, _this.deckId) || other.deckId == _this.deckId)&&(identical(other.suspended, _this.suspended) || other.suspended == _this.suspended)&&(identical(other.buriedUntil, _this.buriedUntil) || other.buriedUntil == _this.buriedUntil));
 }
 
 
 @override
 int get hashCode {
   final _this = this as StudyCard;
-  return Object.hash(runtimeType,_this.noteId,_this.templateId,_this.deckId);
+  return Object.hash(runtimeType,_this.noteId,_this.templateId,_this.deckId,_this.suspended,_this.buriedUntil);
 }
 
 @override
 String toString() {
   final _this = this as StudyCard;
-  return 'StudyCard(noteId: ${_this.noteId}, templateId: ${_this.templateId}, deckId: ${_this.deckId})';
+  return 'StudyCard(noteId: ${_this.noteId}, templateId: ${_this.templateId}, deckId: ${_this.deckId}, suspended: ${_this.suspended}, buriedUntil: ${_this.buriedUntil})';
 }
 
 
@@ -51,7 +54,7 @@ abstract mixin class $StudyCardCopyWith<$Res>  {
   factory $StudyCardCopyWith(StudyCard value, $Res Function(StudyCard) _then) = _$StudyCardCopyWithImpl;
 @useResult
 $Res call({
- NoteId noteId, StudyCardTemplateId templateId, DeckId deckId
+ NoteId noteId, StudyCardTemplateId templateId, DeckId deckId, bool suspended, DateTime? buriedUntil
 });
 
 
@@ -68,12 +71,14 @@ class _$StudyCardCopyWithImpl<$Res>
 
 /// Create a copy of StudyCard
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? noteId = null,Object? templateId = null,Object? deckId = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? noteId = null,Object? templateId = null,Object? deckId = null,Object? suspended = null,Object? buriedUntil = freezed,}) {
   return _then(StudyCard(
 noteId: null == noteId ? _self.noteId : noteId // ignore: cast_nullable_to_non_nullable
 as NoteId,templateId: null == templateId ? _self.templateId : templateId // ignore: cast_nullable_to_non_nullable
 as StudyCardTemplateId,deckId: null == deckId ? _self.deckId : deckId // ignore: cast_nullable_to_non_nullable
-as DeckId,
+as DeckId,suspended: null == suspended ? _self.suspended : suspended // ignore: cast_nullable_to_non_nullable
+as bool,buriedUntil: freezed == buriedUntil ? _self.buriedUntil : buriedUntil // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 
@@ -158,10 +163,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( NoteId noteId,  StudyCardTemplateId templateId,  DeckId deckId)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( NoteId noteId,  StudyCardTemplateId templateId,  DeckId deckId,  bool suspended,  DateTime? buriedUntil)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StudyCard() when $default != null:
-return $default(_that.noteId,_that.templateId,_that.deckId);case _:
+return $default(_that.noteId,_that.templateId,_that.deckId,_that.suspended,_that.buriedUntil);case _:
   return orElse();
 
 }
@@ -179,10 +184,10 @@ return $default(_that.noteId,_that.templateId,_that.deckId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( NoteId noteId,  StudyCardTemplateId templateId,  DeckId deckId)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( NoteId noteId,  StudyCardTemplateId templateId,  DeckId deckId,  bool suspended,  DateTime? buriedUntil)  $default,) {final _that = this;
 switch (_that) {
 case _StudyCard():
-return $default(_that.noteId,_that.templateId,_that.deckId);case _:
+return $default(_that.noteId,_that.templateId,_that.deckId,_that.suspended,_that.buriedUntil);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +204,10 @@ return $default(_that.noteId,_that.templateId,_that.deckId);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( NoteId noteId,  StudyCardTemplateId templateId,  DeckId deckId)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( NoteId noteId,  StudyCardTemplateId templateId,  DeckId deckId,  bool suspended,  DateTime? buriedUntil)?  $default,) {final _that = this;
 switch (_that) {
 case _StudyCard() when $default != null:
-return $default(_that.noteId,_that.templateId,_that.deckId);case _:
+return $default(_that.noteId,_that.templateId,_that.deckId,_that.suspended,_that.buriedUntil);case _:
   return null;
 
 }
@@ -214,12 +219,17 @@ return $default(_that.noteId,_that.templateId,_that.deckId);case _:
 
 
 class _StudyCard extends StudyCard {
-   _StudyCard({required this.noteId, required this.templateId, required this.deckId}): super._();
+   _StudyCard({required this.noteId, required this.templateId, required this.deckId, this.suspended = false, this.buriedUntil}): super._();
   
 
 @override final  NoteId noteId;
 @override final  StudyCardTemplateId templateId;
 @override final  DeckId deckId;
+/// A suspended card keeps its scheduling state but is left out of every
+/// queue until it is unsuspended.
+@override@JsonKey() final  bool suspended;
+/// A buried card is left out of queues until this time.
+@override final  DateTime? buriedUntil;
 
 /// Create a copy of StudyCard
 /// with the given fields replaced by the non-null parameter values.
@@ -231,18 +241,18 @@ _$StudyCardCopyWith<_StudyCard> get copyWith => __$StudyCardCopyWithImpl<_StudyC
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StudyCard&&(identical(other.noteId, noteId) || other.noteId == noteId)&&(identical(other.templateId, templateId) || other.templateId == templateId)&&(identical(other.deckId, deckId) || other.deckId == deckId));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StudyCard&&(identical(other.noteId, noteId) || other.noteId == noteId)&&(identical(other.templateId, templateId) || other.templateId == templateId)&&(identical(other.deckId, deckId) || other.deckId == deckId)&&(identical(other.suspended, suspended) || other.suspended == suspended)&&(identical(other.buriedUntil, buriedUntil) || other.buriedUntil == buriedUntil));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,noteId,templateId,deckId);
+    return Object.hash(runtimeType,noteId,templateId,deckId,suspended,buriedUntil);
 }
 
 @override
 String toString() {
-    return 'StudyCard(noteId: $noteId, templateId: $templateId, deckId: $deckId)';
+    return 'StudyCard(noteId: $noteId, templateId: $templateId, deckId: $deckId, suspended: $suspended, buriedUntil: $buriedUntil)';
 }
 
 
@@ -253,7 +263,7 @@ abstract mixin class _$StudyCardCopyWith<$Res> implements $StudyCardCopyWith<$Re
   factory _$StudyCardCopyWith(_StudyCard value, $Res Function(_StudyCard) _then) = __$StudyCardCopyWithImpl;
 @override @useResult
 $Res call({
- NoteId noteId, StudyCardTemplateId templateId, DeckId deckId
+ NoteId noteId, StudyCardTemplateId templateId, DeckId deckId, bool suspended, DateTime? buriedUntil
 });
 
 
@@ -270,12 +280,14 @@ class __$StudyCardCopyWithImpl<$Res>
 
 /// Create a copy of StudyCard
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? noteId = null,Object? templateId = null,Object? deckId = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? noteId = null,Object? templateId = null,Object? deckId = null,Object? suspended = null,Object? buriedUntil = freezed,}) {
   return _then(_StudyCard(
 noteId: null == noteId ? _self.noteId : noteId // ignore: cast_nullable_to_non_nullable
 as NoteId,templateId: null == templateId ? _self.templateId : templateId // ignore: cast_nullable_to_non_nullable
 as StudyCardTemplateId,deckId: null == deckId ? _self.deckId : deckId // ignore: cast_nullable_to_non_nullable
-as DeckId,
+as DeckId,suspended: null == suspended ? _self.suspended : suspended // ignore: cast_nullable_to_non_nullable
+as bool,buriedUntil: freezed == buriedUntil ? _self.buriedUntil : buriedUntil // ignore: cast_nullable_to_non_nullable
+as DateTime?,
   ));
 }
 

@@ -16,6 +16,12 @@ void main() {
     japanese = await repos.seedCollection();
   });
 
+  final now = DateTime.utc(2026, 10, 29, 12);
+  final cutoff = DateTime.utc(2026, 10, 29, 18);
+
+  Future<List<(StudyCard, SchedulingState?)>> candidates(DeckId deckId) =>
+      repos.cards.queueCandidates(deckId, now: now, dueBefore: cutoff);
+
   test('new cards start in the new state', () async {
     final (_, card) = await japanese.addNote('猫');
     expect(await repos.cards.card(card.id), card);
@@ -60,7 +66,7 @@ void main() {
   });
 
   test(
-    'cardsWithState lists cards with their state in creation order',
+    'queueCandidates lists cards with their state in creation order',
     () async {
       final second = StudyCardTemplate(
         id: StudyCardTemplateId.generate(),
@@ -90,17 +96,16 @@ void main() {
       );
       await repos.cards.saveSchedulingState(state);
 
-      final listed = await repos.cards.cardsWithState(japanese.deck.id);
+      final listed = await candidates(japanese.deck.id);
       expect(listed.map((e) => e.$1), [secondCard, olderCard, newerCard]);
       expect(listed.last.$2, state);
       expect(listed.first.$2!.state, StudyCardState.newCard);
-      expect(await repos.cards.cardsWithState(child.id), hasLength(1));
+      expect(await candidates(child.id), hasLength(1));
     },
   );
 
-  test('cardsWithState can list only new cards and cards due before a '
+  test('queueCandidates lists only new cards and cards due before a '
       'time', () async {
-    final cutoff = DateTime.utc(2026, 10, 29, 18);
     Future<StudyCard> withState(StudyCardState state, {DateTime? due}) async {
       final (_, card) = await japanese.addNote('${state.name} $due');
       await repos.cards.saveSchedulingState(
@@ -121,11 +126,86 @@ void main() {
     await withState(StudyCardState.review, due: cutoff);
     await withState(StudyCardState.burned);
 
-    final listed = await repos.cards.cardsWithState(
-      japanese.deck.id,
-      dueBefore: cutoff,
-    );
+    final listed = await candidates(japanese.deck.id);
     expect(listed.map((e) => e.$1), [newCard, dueReview, dueLearning]);
+  });
+
+  test('queueCandidates leaves out suspended cards and cards buried '
+      'until later', () async {
+    final (_, suspended) = await japanese.addNote('猫');
+    final (_, buried) = await japanese.addNote('犬');
+    final (_, unburied) = await japanese.addNote('鳥');
+    await repos.cards.setSuspended([suspended.id], true);
+    await repos.cards.setBuriedUntil([
+      buried.id,
+    ], now.add(const Duration(minutes: 1)));
+    await repos.cards.setBuriedUntil([unburied.id], now);
+
+    final listed = await candidates(japanese.deck.id);
+    expect(listed.map((e) => e.$1.id), [unburied.id]);
+  });
+
+  group('status', () {
+    test('suspending and burying are stored and undone', () async {
+      final (_, card) = await japanese.addNote('猫');
+      final until = DateTime.utc(2026, 10, 30, 18);
+      await repos.cards.setSuspended([card.id], true);
+      await repos.cards.setBuriedUntil([card.id], until);
+      expect(
+        await repos.cards.card(card.id),
+        card.copyWith(suspended: true, buriedUntil: until),
+      );
+
+      await repos.cards.setSuspended([card.id], false);
+      await repos.cards.setBuriedUntil([card.id], null);
+      expect(await repos.cards.card(card.id), card);
+    });
+
+    test('changes are timestamped for sync', () async {
+      final (_, card) = await japanese.addNote('猫');
+      final before =
+          (await repos.db.select(repos.db.studyCards).getSingle()).hlc;
+      await repos.cards.setSuspended([card.id], true);
+      final after =
+          (await repos.db.select(repos.db.studyCards).getSingle()).hlc;
+      expect(after.compareTo(before), greaterThan(0));
+    });
+
+    test('a missing card changes none of them', () async {
+      final (_, card) = await japanese.addNote('猫');
+      final missing = StudyCardId.derive(
+        NoteId.generate(),
+        StudyCardTemplateId.generate(),
+      );
+      await expectLater(
+        repos.cards.setSuspended([card.id, missing], true),
+        throwsA(isA<EntityNotFoundException>()),
+      );
+      expect((await repos.cards.card(card.id))!.suspended, isFalse);
+    });
+
+    test('a recreated card takes the given status', () async {
+      final second = StudyCardTemplate(
+        id: StudyCardTemplateId.generate(),
+        name: 'Card 2',
+      );
+      await repos.noteTypes.updateNoteType(
+        japanese.noteType.copyWith(
+          templates: [...japanese.noteType.templates, second],
+        ),
+      );
+      final (note, _) = await japanese.addNote('猫');
+      final card = StudyCard(
+        noteId: note.id,
+        templateId: second.id,
+        deckId: japanese.deck.id,
+      );
+      await repos.cards.createCard(card);
+      await repos.cards.setSuspended([card.id], true);
+      await repos.cards.deleteCard(card.id);
+      await repos.cards.createCard(card);
+      expect((await repos.cards.card(card.id))!.suspended, isFalse);
+    });
   });
 
   test('watching a deck emits when a deck above it is deleted', () async {
