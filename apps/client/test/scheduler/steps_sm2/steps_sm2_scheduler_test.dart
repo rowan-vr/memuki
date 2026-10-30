@@ -377,6 +377,7 @@ void main() {
       kind: kind,
       at: now,
       utcOffset: const Duration(hours: 9),
+      stateBefore: StudyCardState.newCard,
       grade: grade,
       schedulerId: scheduler.id,
       schedulerVersion: scheduler.version,

@@ -9,10 +9,11 @@ import '../domain/ids.dart';
 import '../domain/note.dart' show SourceKind;
 import '../domain/note_type.dart' show FieldType;
 import '../domain/preset.dart' show NewCardMix, NewCardOrder, PresetVersion;
-import '../domain/review.dart' show Grade, ReviewEventKind, StudyCardState;
+import '../domain/review.dart';
 import 'converters.dart';
 import 'database.steps.dart';
 import 'database_exceptions.dart';
+import 'history_replay.dart';
 import 'sync/hlc.dart';
 import 'tables/tables.dart';
 
@@ -53,6 +54,7 @@ class MemukiDatabase extends _$MemukiDatabase {
   MemukiDatabase(
     super.e, {
     this.backupDirectory,
+    this.replayHistory,
     DateTime Function()? now,
     @visibleForTesting this._node,
   }) : _now = now ?? DateTime.now;
@@ -60,6 +62,10 @@ class MemukiDatabase extends _$MemukiDatabase {
   /// Where to write a copy of the database before upgrading it, or null to
   /// skip the copy.
   final Future<Directory> Function()? backupDirectory;
+
+  /// Replays review history for upgrades that derive data from it. Upgrading
+  /// a database that has review events from before v7 fails without it.
+  final ReplayHistory? replayHistory;
 
   final DateTime Function() _now;
 
@@ -74,7 +80,7 @@ class MemukiDatabase extends _$MemukiDatabase {
   HlcClock get clock => _clock;
 
   @override
-  int get schemaVersion => 6;
+  int get schemaVersion => 7;
 
   /// Opens the database now rather than on the first query, creating or
   /// upgrading the schema. Throws [DatabaseTooNewException] or
@@ -150,6 +156,7 @@ class MemukiDatabase extends _$MemukiDatabase {
           from3To4: _from3To4,
           from4To5: _from4To5,
           from5To6: _from5To6,
+          from6To7: _from6To7,
         ),
       );
 
@@ -384,5 +391,153 @@ class MemukiDatabase extends _$MemukiDatabase {
         newColumns: [mix, order],
       ),
     );
+  }
+
+  /// Records the state each review event found its card in, computed by
+  /// replaying every card's history with [replayHistory]. Events whose
+  /// preset version is unknown are replayed with the collection's default
+  /// preset.
+  Future<void> _from6To7(Migrator m, Schema7 schema) async {
+    final states = await _statesBefore();
+    await customStatement(
+      'CREATE TEMP TABLE state_before '
+      '(event_id BLOB PRIMARY KEY, state TEXT NOT NULL)',
+    );
+    for (final MapEntry(key: id, value: state) in states.entries) {
+      await customInsert(
+        'INSERT INTO state_before (event_id, state) VALUES (?, ?)',
+        variables: [
+          Variable.withBlob(reviewEventIdConverter.toSql(id)),
+          Variable.withString(state.name),
+        ],
+      );
+    }
+    final events = schema.reviewEvents;
+    final stateBefore = events.columnsByName['state_before']!;
+    // An event without a computed state fails the NOT NULL constraint, so
+    // the upgrade rolls back.
+    await m.alterTable(
+      TableMigration(
+        events,
+        columnTransformer: {
+          stateBefore: const CustomExpression<String>(
+            '(SELECT s.state FROM state_before s '
+            'WHERE s.event_id = review_events.id)',
+          ),
+        },
+        newColumns: [stateBefore],
+      ),
+    );
+    await customStatement('DROP TABLE state_before');
+  }
+
+  /// The state before each review event, by replaying each card's history.
+  /// Read as SQL against the v6 schema, so later changes to the tables do
+  /// not change this step.
+  Future<Map<ReviewEventId, StudyCardState>> _statesBefore() async {
+    final rows = await customSelect(
+      'SELECT e.*, c.collection_id FROM review_events e '
+      'JOIN study_cards c ON c.id = e.study_card_id '
+      'ORDER BY e.study_card_id, e.at, e.id',
+    ).get();
+    if (rows.isEmpty) return const {};
+    final replay = replayHistory;
+    if (replay == null) {
+      throw StateError('Upgrading review history needs a replay function');
+    }
+
+    final versions = <PresetVersionId, PresetVersion>{
+      for (final row in await customSelect(
+        'SELECT * FROM preset_versions',
+      ).get())
+        presetVersionIdConverter.fromSql(row.read('id')): PresetVersion(
+          id: presetVersionIdConverter.fromSql(row.read('id')),
+          schedulerId: row.read('scheduler_id'),
+          schedulerConfig: const JsonMapConverter().fromSql(
+            row.read('scheduler_config'),
+          ),
+          burnThreshold: switch (row.read<int?>('burn_threshold_days')) {
+            final days? => Duration(days: days),
+            null => null,
+          },
+          leechThreshold: row.read('leech_threshold'),
+          newCardsPerDay: row.read('new_cards_per_day'),
+          reviewsPerDay: row.read('reviews_per_day'),
+          newCardMix: NewCardMix.values.byName(row.read('new_card_mix')),
+          newCardOrder: NewCardOrder.values.byName(row.read('new_card_order')),
+        ),
+    };
+    final collections = {
+      for (final row in await customSelect(
+        'SELECT c.id, c.day_start, p.current_version_id FROM collections c '
+        'JOIN presets p ON p.id = c.default_preset_id',
+      ).get())
+        collectionIdConverter.fromSql(row.read('id')): (
+          dayStart: Duration(minutes: row.read('day_start')),
+          fallback:
+              versions[presetVersionIdConverter.fromSql(
+                row.read('current_version_id'),
+              )]!,
+        ),
+    };
+
+    final histories = <StudyCardId, (CollectionId, List<ReviewEvent>)>{};
+    for (final row in rows) {
+      final cardId = studyCardIdConverter.fromSql(row.read('study_card_id'));
+      DateTime? time(String column) => switch (row.read<int?>(column)) {
+        final millis? => const UtcMillisConverter().fromSql(millis),
+        null => null,
+      };
+      final event = ReviewEvent(
+        id: reviewEventIdConverter.fromSql(row.read('id')),
+        studyCardId: cardId,
+        kind: ReviewEventKind.values.byName(row.read('kind')),
+        at: time('at')!,
+        utcOffset: const DurationMinutesConverter().fromSql(
+          row.read('utc_offset'),
+        ),
+        // Not read by the replay.
+        stateBefore: StudyCardState.newCard,
+        grade: switch (row.read<String?>('grade')) {
+          final grade? => Grade.values.byName(grade),
+          null => null,
+        },
+        responseTime: switch (row.read<int?>('response_time')) {
+          final millis? => const DurationMillisConverter().fromSql(millis),
+          null => null,
+        },
+        dueBefore: time('due_before'),
+        dueAfter: time('due_after'),
+        undoneEventId: switch (row.read<Uint8List?>('undone_event_id')) {
+          final id? => reviewEventIdConverter.fromSql(id),
+          null => null,
+        },
+        schedulerId: row.read('scheduler_id'),
+        schedulerVersion: row.read('scheduler_version'),
+        presetVersionId: presetVersionIdConverter.fromSql(
+          row.read('preset_version_id'),
+        ),
+      );
+      final collectionId = collectionIdConverter.fromSql(
+        row.read('collection_id'),
+      );
+      (histories[cardId] ??= (collectionId, [])).$2.add(event);
+    }
+
+    final states = <ReviewEventId, StudyCardState>{};
+    for (final (collectionId, events) in histories.values) {
+      final collection = collections[collectionId]!;
+      states.addAll(
+        replay(
+          HistoryToReplay(
+            events: events,
+            versions: versions,
+            fallback: collection.fallback,
+            dayStart: collection.dayStart,
+          ),
+        ),
+      );
+    }
+    return states;
   }
 }

@@ -178,7 +178,7 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 - Per-card scheduling state (phase, current step, interval, ease, lapse count, due time).
 - Scheduler configuration presets, versioned.
 - Immutable review history with materialized scheduling state.
-- Each review event records the scheduler ID and version, configuration version, grade, timestamp, previous and next due time, and response time. This is sufficient to compute FSRS memory state from history later.
+- Each review event records the scheduler ID and version, configuration version, grade, timestamp, previous and next due time, response time, and the card's state before it. This is sufficient to compute FSRS memory state from history later.
 - Daily limits.
 - Suspended and buried cards; sibling burying.
 - Review queues and due-card selection.

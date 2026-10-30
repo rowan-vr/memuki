@@ -35,24 +35,17 @@ class ReviewRepository {
     CollectionId collectionId,
   ) => _histories(collectionId);
 
-  /// The whole history of each card in a collection that has an event at or
-  /// after [since], by card, each in the order the events happened.
-  Future<Map<StudyCardId, List<ReviewEvent>>> historiesSince(
+  /// The events at or after [since] of every card in a collection, by card,
+  /// each in the order they happened.
+  Future<Map<StudyCardId, List<ReviewEvent>>> eventsSince(
     CollectionId collectionId,
     DateTime since,
-  ) {
-    final recent = _db.selectOnly(_db.reviewEvents, distinct: true)
-      ..addColumns([_db.reviewEvents.studyCardId])
-      ..where(
-        _db.reviewEvents.at.isBiggerOrEqualValue(
-          const UtcMillisConverter().toSql(since),
-        ),
-      );
-    return _histories(
-      collectionId,
-      where: _db.reviewEvents.studyCardId.isInQuery(recent),
-    );
-  }
+  ) => _histories(
+    collectionId,
+    where: _db.reviewEvents.at.isBiggerOrEqualValue(
+      const UtcMillisConverter().toSql(since),
+    ),
+  );
 
   Future<Map<StudyCardId, List<ReviewEvent>>> _histories(
     CollectionId collectionId, {
@@ -122,6 +115,7 @@ class ReviewRepository {
             kind: event.kind,
             at: event.at,
             utcOffset: event.utcOffset,
+            stateBefore: event.stateBefore,
             grade: Value(event.grade),
             responseTime: Value(event.responseTime),
             dueBefore: Value(event.dueBefore),
@@ -142,6 +136,7 @@ ReviewEvent _event(ReviewEventRow row) => ReviewEvent(
   kind: row.kind,
   at: row.at,
   utcOffset: row.utcOffset,
+  stateBefore: row.stateBefore,
   grade: row.grade,
   responseTime: row.responseTime,
   dueBefore: row.dueBefore,

@@ -10,6 +10,8 @@ import 'app.dart';
 import 'core/error_handling.dart';
 import 'core/logging.dart';
 import 'presentation/startup/startup_error_app.dart';
+import 'scheduler/schedulers.dart';
+import 'services/rebuild_service.dart';
 import 'storage/database_exceptions.dart';
 import 'storage/media/io_media_store.dart';
 import 'storage/open_database.dart';
@@ -23,7 +25,7 @@ Future<void> main() async {
 
   // Opening creates or upgrades the schema, so a database that cannot be used
   // is reported before the app starts.
-  final database = openAppDatabase();
+  final database = openAppDatabase(replayHistory: historyReplay(allSchedulers));
   final IoMediaStore media;
   try {
     await database.ensureOpen();

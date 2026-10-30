@@ -200,6 +200,7 @@ void main() {
             kind: ReviewEventKind.review,
             at: at,
             utcOffset: const Duration(hours: 9),
+            stateBefore: StudyCardState.newCard,
             grade: const Value(Grade.good),
             responseTime: const Value(Duration(milliseconds: 4250)),
             schedulerId: 'sm2',

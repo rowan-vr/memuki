@@ -203,6 +203,7 @@ final _writes = <String, _Case>{
         kind: ReviewEventKind.review,
         at: fixtureEpoch,
         utcOffset: Duration.zero,
+        stateBefore: StudyCardState.newCard,
         grade: Grade.good,
         schedulerId: 'sm2',
         schedulerVersion: 1,

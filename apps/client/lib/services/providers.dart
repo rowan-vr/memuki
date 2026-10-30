@@ -1,16 +1,12 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
-import '../scheduler/scheduler_registry.dart';
-import '../scheduler/steps_sm2/steps_sm2_scheduler.dart';
+import '../scheduler/schedulers.dart';
 import '../storage/providers.dart';
 import 'rebuild_service.dart';
 import 'review_service.dart';
 import 'study_queue_service.dart';
 
-/// Every scheduler version the app can replay.
-final schedulerRegistryProvider = Provider(
-  (ref) => SchedulerRegistry([const StepsSm2Scheduler()]),
-);
+final schedulerRegistryProvider = Provider((ref) => allSchedulers);
 
 final reviewServiceProvider = Provider(
   (ref) => ReviewService(

@@ -5,8 +5,12 @@ import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/preset.dart';
+import 'package:memuki/domain/review.dart';
+import 'package:memuki/scheduler/schedulers.dart';
+import 'package:memuki/services/rebuild_service.dart';
 import 'package:memuki/storage/converters.dart';
 import 'package:memuki/storage/database.dart';
+import 'package:memuki/storage/database_exceptions.dart';
 import 'package:memuki/storage/repositories/repositories.dart';
 import 'package:memuki/storage/sync/hlc.dart';
 
@@ -14,6 +18,7 @@ import 'generated/schema.dart';
 
 void main() {
   driftRuntimeOptions.dontWarnAboutMultipleDatabases = true;
+  final replay = historyReplay(allSchedulers);
   late SchemaVerifier verifier;
 
   setUpAll(() {
@@ -28,7 +33,10 @@ void main() {
         for (final toVersion in versions.skip(i + 1)) {
           test('to $toVersion', () async {
             final schema = await verifier.schemaAt(fromVersion);
-            final db = MemukiDatabase(schema.newConnection());
+            final db = MemukiDatabase(
+              schema.newConnection(),
+              replayHistory: replay,
+            );
             await verifier.migrateAndValidate(db, toVersion);
             await db.close();
           });
@@ -102,7 +110,11 @@ void main() {
     );
 
     final now = DateTime.utc(2026, 10, 29, 12);
-    final db = MemukiDatabase(schema.newConnection(), now: () => now);
+    final db = MemukiDatabase(
+      schema.newConnection(),
+      now: () => now,
+      replayHistory: replay,
+    );
     addTearDown(db.close);
 
     final device = await db.select(db.device).getSingle();
@@ -181,7 +193,7 @@ void main() {
       [bytes(event), bytes(card), hlc],
     );
 
-    final db = MemukiDatabase(schema.newConnection());
+    final db = MemukiDatabase(schema.newConnection(), replayHistory: replay);
     addTearDown(db.close);
     await verifier.migrateAndValidate(db, 4);
 
@@ -259,14 +271,14 @@ void main() {
       [bytes(event), bytes(card), hlc],
     );
 
-    final v5 = MemukiDatabase(schema.newConnection());
+    final v5 = MemukiDatabase(schema.newConnection(), replayHistory: replay);
     addTearDown(v5.close);
     await verifier.migrateAndValidate(v5, 5);
     // Read through the repositories after upgrading to the current version,
     // since they use the current tables. Opening turned foreign keys on for
     // the shared connection; upgrades run with them off.
     await v5.customStatement('PRAGMA foreign_keys = OFF');
-    final db = MemukiDatabase(schema.newConnection());
+    final db = MemukiDatabase(schema.newConnection(), replayHistory: replay);
     addTearDown(db.close);
     final repos = Repositories(db);
 
@@ -335,7 +347,7 @@ void main() {
       ],
     );
 
-    final db = MemukiDatabase(schema.newConnection());
+    final db = MemukiDatabase(schema.newConnection(), replayHistory: replay);
     addTearDown(db.close);
     await verifier.migrateAndValidate(db, 6);
 
@@ -355,6 +367,222 @@ void main() {
       db.customStatement('UPDATE preset_versions SET reviews_per_day = 1'),
       throwsA(anything),
     );
+  });
+
+  group('v6 to v7', () {
+    final collection = CollectionId.generate();
+    final preset = PresetId.generate();
+    final version = PresetVersionId.generate();
+    final deck = DeckId.generate();
+    final noteType = NoteTypeId.generate();
+    final template = StudyCardTemplateId.generate();
+    const hlc = '019a2f0c8a00-0000-0123456789abcdef';
+    // 21:00 on 29 October in UTC+9.
+    final start = DateTime.utc(2026, 10, 29, 12);
+
+    /// A v6 database with a collection, a deck, and a note type.
+    Future<InitializedSchema> seeded() async {
+      final schema = await verifier.schemaAt(6);
+      final raw = schema.rawDatabase;
+      raw.execute(
+        'INSERT INTO collections (id, name, default_preset_id, day_start, '
+        'hlc) VALUES (?, ?, ?, 180, ?)',
+        [
+          collectionIdConverter.toSql(collection),
+          'Japanese',
+          presetIdConverter.toSql(preset),
+          hlc,
+        ],
+      );
+      raw.execute(
+        'INSERT INTO presets (id, collection_id, name, current_version_id, '
+        "hlc) VALUES (?, ?, 'Default', ?, ?)",
+        [
+          presetIdConverter.toSql(preset),
+          collectionIdConverter.toSql(collection),
+          presetVersionIdConverter.toSql(version),
+          hlc,
+        ],
+      );
+      raw.execute(
+        'INSERT INTO preset_versions (id, preset_id, scheduler_id, '
+        'scheduler_config, burn_threshold_days, leech_threshold, '
+        'new_cards_per_day, reviews_per_day, new_card_mix, new_card_order, '
+        "hlc) VALUES (?, ?, 'memuki.steps-sm2', '{}', 365, 8, 50, 500, "
+        "'mixed', 'created', ?)",
+        [
+          presetVersionIdConverter.toSql(version),
+          presetIdConverter.toSql(preset),
+          hlc,
+        ],
+      );
+      raw.execute(
+        'INSERT INTO decks (id, collection_id, name, hlc) VALUES (?, ?, ?, ?)',
+        [
+          deckIdConverter.toSql(deck),
+          collectionIdConverter.toSql(collection),
+          'Vocab',
+          hlc,
+        ],
+      );
+      raw.execute(
+        'INSERT INTO note_types (id, collection_id, name, hlc) '
+        'VALUES (?, ?, ?, ?)',
+        [
+          noteTypeIdConverter.toSql(noteType),
+          collectionIdConverter.toSql(collection),
+          'Basic',
+          hlc,
+        ],
+      );
+      raw.execute(
+        'INSERT INTO study_card_templates (id, note_type_id, position, name, '
+        'hlc) VALUES (?, ?, 0, ?, ?)',
+        [
+          studyCardTemplateIdConverter.toSql(template),
+          noteTypeIdConverter.toSql(noteType),
+          'Card 1',
+          hlc,
+        ],
+      );
+      return schema;
+    }
+
+    StudyCardId addCard(InitializedSchema schema) {
+      final note = NoteId.generate();
+      final card = StudyCardId.derive(note, template);
+      schema.rawDatabase
+        ..execute(
+          'INSERT INTO notes (id, collection_id, note_type_id, hlc) '
+          'VALUES (?, ?, ?, ?)',
+          [
+            noteIdConverter.toSql(note),
+            collectionIdConverter.toSql(collection),
+            noteTypeIdConverter.toSql(noteType),
+            hlc,
+          ],
+        )
+        ..execute(
+          'INSERT INTO study_cards '
+          '(id, collection_id, note_id, template_id, deck_id, hlc) '
+          'VALUES (?, ?, ?, ?, ?, ?)',
+          [
+            studyCardIdConverter.toSql(card),
+            collectionIdConverter.toSql(collection),
+            noteIdConverter.toSql(note),
+            studyCardTemplateIdConverter.toSql(template),
+            deckIdConverter.toSql(deck),
+            hlc,
+          ],
+        );
+      return card;
+    }
+
+    var minute = 0;
+    ReviewEventId addEvent(
+      InitializedSchema schema,
+      StudyCardId card,
+      String kind, {
+      String? grade,
+      ReviewEventId? undoes,
+      String schedulerId = 'memuki.steps-sm2',
+    }) {
+      final id = ReviewEventId.generate();
+      schema.rawDatabase.execute(
+        'INSERT INTO review_events (id, study_card_id, kind, at, utc_offset, '
+        'grade, undone_event_id, scheduler_id, scheduler_version, '
+        'preset_version_id, hlc) VALUES (?, ?, ?, ?, 540, ?, ?, ?, 1, ?, ?)',
+        [
+          reviewEventIdConverter.toSql(id),
+          studyCardIdConverter.toSql(card),
+          kind,
+          start.add(Duration(minutes: minute++)).millisecondsSinceEpoch,
+          grade,
+          if (undoes == null) null else reviewEventIdConverter.toSql(undoes),
+          schedulerId,
+          presetVersionIdConverter.toSql(version),
+          hlc,
+        ],
+      );
+      return id;
+    }
+
+    test('records the state each event found its card in', () async {
+      final schema = await seeded();
+      final learned = addCard(schema);
+      final first = addEvent(schema, learned, 'review', grade: 'good');
+      final second = addEvent(schema, learned, 'review', grade: 'good');
+      final undo = addEvent(schema, learned, 'undo', undoes: second);
+      final easy = addEvent(schema, learned, 'review', grade: 'easy');
+      final burned = addCard(schema);
+      final burn = addEvent(schema, burned, 'burn');
+      final unburn = addEvent(schema, burned, 'unburn');
+      // An unknown scheduler falls back to the preset's latest one.
+      final lapse = addEvent(
+        schema,
+        burned,
+        'review',
+        grade: 'again',
+        schedulerId: 'sm2',
+      );
+      final after = addEvent(schema, burned, 'review', grade: 'good');
+
+      final db = MemukiDatabase(schema.newConnection(), replayHistory: replay);
+      addTearDown(db.close);
+      await verifier.migrateAndValidate(db, 7);
+
+      final states = {
+        for (final event in [
+          ...await Repositories(db).reviews.history(learned),
+          ...await Repositories(db).reviews.history(burned),
+        ])
+          event.id: event.stateBefore,
+      };
+      expect(states, {
+        first: StudyCardState.newCard,
+        second: StudyCardState.learning,
+        // The state after both reviews, before the undo.
+        undo: StudyCardState.learning,
+        easy: StudyCardState.learning,
+        burn: StudyCardState.newCard,
+        unburn: StudyCardState.burned,
+        lapse: StudyCardState.review,
+        after: StudyCardState.relearning,
+      });
+      // The rebuilt table keeps its append-only trigger.
+      await expectLater(
+        db.customStatement("UPDATE review_events SET state_before = 'review'"),
+        throwsA(anything),
+      );
+    });
+
+    test('fails without a replay function when there are events, and '
+        'changes nothing', () async {
+      final schema = await seeded();
+      addEvent(schema, addCard(schema), 'review', grade: 'good');
+      final db = MemukiDatabase(schema.newConnection());
+      addTearDown(db.close);
+      await expectLater(
+        db.ensureOpen(),
+        throwsA(isA<DatabaseMigrationException>()),
+      );
+      final columns = schema.rawDatabase.select(
+        "SELECT name FROM pragma_table_info('review_events')",
+      );
+      expect(columns.map((r) => r['name']), isNot(contains('state_before')));
+      expect(
+        schema.rawDatabase.select('PRAGMA user_version').single.values.single,
+        6,
+      );
+    });
+
+    test('needs no replay function without events', () async {
+      final schema = await seeded();
+      addCard(schema);
+      final db = MemukiDatabase(schema.newConnection());
+      addTearDown(db.close);
+      await verifier.migrateAndValidate(db, 7);
+    });
   });
 }
 

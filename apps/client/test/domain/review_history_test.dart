@@ -19,6 +19,7 @@ void main() {
             (undoes == null ? ReviewEventKind.review : ReviewEventKind.undo),
         at: DateTime.utc(2026, 10, 29, 12, minute++),
         utcOffset: Duration.zero,
+        stateBefore: StudyCardState.newCard,
         grade: kind == null && undoes == null ? Grade.good : null,
         undoneEventId: undoes?.id,
         schedulerId: 'test.fake',

@@ -192,6 +192,7 @@ void main() {
         kind: ReviewEventKind.reschedule,
         at: now,
         utcOffset: offset,
+        stateBefore: StudyCardState.newCard,
         schedulerId: 'memuki.steps-sm2',
         schedulerVersion: 1,
         presetVersionId: japanese.preset.version.id,

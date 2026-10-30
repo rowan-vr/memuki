@@ -18,6 +18,7 @@ class ReviewEvents extends Table {
   TextColumn get kind => textEnum<ReviewEventKind>()();
   IntColumn get at => integer().map(const UtcMillisConverter())();
   IntColumn get utcOffset => integer().map(const DurationMinutesConverter())();
+  TextColumn get stateBefore => textEnum<StudyCardState>()();
   TextColumn get grade => textEnum<Grade>().nullable()();
   IntColumn get responseTime =>
       integer().map(const DurationMillisConverter()).nullable()();

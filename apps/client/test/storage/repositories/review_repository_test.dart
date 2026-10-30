@@ -21,6 +21,7 @@ void main() {
         kind: undoes == null ? ReviewEventKind.review : ReviewEventKind.undo,
         at: at,
         utcOffset: Duration.zero,
+        stateBefore: StudyCardState.newCard,
         grade: undoes == null ? Grade.good : null,
         responseTime: const Duration(milliseconds: 3200),
         undoneEventId: undoes,
@@ -55,33 +56,36 @@ void main() {
     );
   });
 
-  test('historiesSince returns the whole history of recently reviewed '
-      'cards', () async {
-    final (_, recent) = await japanese.addNote('猫');
-    final (_, old) = await japanese.addNote('犬');
-    final (_, other) = await (await repos.seedCollection(name: 'Other'))
-        .addNote('鳥');
-    final first = event(recent.id, DateTime.utc(2026, 10, 1));
-    final second = event(recent.id, DateTime.utc(2026, 10, 29));
-    for (final e in [
-      second,
-      first,
-      event(old.id, DateTime.utc(2026, 10, 28)),
-      event(other.id, DateTime.utc(2026, 10, 29)),
-    ]) {
-      await repos.reviews.append(e);
-    }
+  test(
+    'eventsSince returns the recent events of a collection by card',
+    () async {
+      final (_, recent) = await japanese.addNote('猫');
+      final (_, old) = await japanese.addNote('犬');
+      final (_, other) = await (await repos.seedCollection(name: 'Other'))
+          .addNote('鳥');
+      final first = event(recent.id, DateTime.utc(2026, 10, 29));
+      final second = event(recent.id, DateTime.utc(2026, 10, 30));
+      for (final e in [
+        second,
+        first,
+        event(recent.id, DateTime.utc(2026, 10, 1)),
+        event(old.id, DateTime.utc(2026, 10, 28)),
+        event(other.id, DateTime.utc(2026, 10, 29)),
+      ]) {
+        await repos.reviews.append(e);
+      }
 
-    expect(
-      await repos.reviews.historiesSince(
-        japanese.id,
-        DateTime.utc(2026, 10, 29),
-      ),
-      {
-        recent.id: [first, second],
-      },
-    );
-  });
+      expect(
+        await repos.reviews.eventsSince(
+          japanese.id,
+          DateTime.utc(2026, 10, 29),
+        ),
+        {
+          recent.id: [first, second],
+        },
+      );
+    },
+  );
 
   group('undo', () {
     late StudyCardId cardId;

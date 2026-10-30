@@ -179,6 +179,7 @@ class ReviewService {
       kind: kind,
       at: now.at,
       utcOffset: now.utcOffset,
+      stateBefore: target.before.state,
       grade: grade,
       responseTime: responseTime,
       dueBefore: target.before.due,

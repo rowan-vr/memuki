@@ -62,6 +62,7 @@ void main() {
     expect(event.grade, Grade.good);
     expect(event.at, now);
     expect(event.utcOffset, offset);
+    expect(event.stateBefore, StudyCardState.newCard);
     expect(event.responseTime, const Duration(seconds: 4));
     expect(event.dueBefore, isNull);
     expect(event.dueAfter, state.due);
