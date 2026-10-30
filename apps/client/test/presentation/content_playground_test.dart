@@ -3,6 +3,8 @@ import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:memuki/domain/content/mark_kinds.dart';
 import 'package:memuki/presentation/components/panel.dart';
+import 'package:memuki/presentation/content/field_editor.dart';
+import 'package:memuki/presentation/content/marked_text_controller.dart';
 import 'package:memuki/presentation/developer/content_playground_screen.dart';
 import 'package:memuki/presentation/developer/content_warnings.dart';
 import 'package:memuki/presentation/developer/developer_screen.dart';
@@ -232,6 +234,40 @@ void main() {
 
     await filter('nothing like this');
     expect(find.text('No kinds match.'), findsOneWidget);
+  });
+
+  testWidgets('a field can be edited rich, writing its source', (tester) async {
+    await _open(tester);
+    await tester.tap(find.text('Rich'));
+    await tester.pumpAndSettle();
+    final rich = find.byType(FieldEditor);
+    expect(rich, findsOneWidget);
+
+    final controller =
+        tester.widget<TextField>(find.byType(TextField).first).controller!
+            as MarkedTextController;
+    controller
+      ..text = 'ab'
+      ..selection = const TextSelection(baseOffset: 0, extentOffset: 1);
+    await tester.pump();
+    await tester.tap(find.byTooltip('Emphasis'));
+    await tester.pumpAndSettle();
+    expect(_output(tester, 'Canonical source'), '{em | a}b');
+
+    // Trying an example puts it in the rich editor.
+    await tester.tap(_row('sub'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Try'));
+    await tester.pumpAndSettle();
+    expect(_output(tester, 'Canonical source'), 'H{sub | 2}O');
+
+    await tester.tap(find.text('Source').last);
+    await tester.pumpAndSettle();
+    expect(find.byType(FieldEditor), findsNothing);
+    expect(
+      tester.widget<TextField>(find.byType(TextField).first).controller!.text,
+      'H{sub | 2}O',
+    );
   });
 
   testWidgets('narrow windows stack the kinds under the playground', (

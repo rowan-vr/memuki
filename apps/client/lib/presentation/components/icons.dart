@@ -28,4 +28,10 @@ abstract final class MemukiIcons {
   static const sepiaTheme = LucideIcons.coffee;
   static const appearance = LucideIcons.palette;
   static const warning = LucideIcons.triangleAlert;
+  static const emphasis = LucideIcons.highlighter;
+  static const subscript = LucideIcons.subscript;
+  static const superscript = LucideIcons.superscript;
+  static const language = LucideIcons.languages;
+  static const undo = LucideIcons.undo2;
+  static const redo = LucideIcons.redo2;
 }
