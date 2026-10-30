@@ -190,6 +190,7 @@ void main() {
         '{x "a"b}',
         '{x a"b"}',
         '{x =y}',
+        '{x #=y}',
         '{x a{b}',
         r'{x a\b}',
       ]) {
@@ -284,6 +285,56 @@ void main() {
     });
   });
 
+  group('comments', () {
+    test('are read up to the matching close', () {
+      expect(_parse('a{# note }b'), [
+        ContentNode.text('a'),
+        const ContentNode.comment('note'),
+        ContentNode.text('b'),
+      ]);
+      expect(_parse('{#}{#  }'), [
+        const ContentNode.comment(''),
+        const ContentNode.comment(''),
+      ]);
+      expect(_parse(r'{# {em | x} \} \ }'), [
+        const ContentNode.comment('{em | x} }  '),
+      ]);
+      expect(_parse('{em | {#x} y}'), [
+        const ContentNode.mark(
+          'em',
+          content: [ContentNode.comment('x'), ContentNode.text(' y')],
+        ),
+      ]);
+    });
+
+    test('a comment that is never closed is kept as text', () {
+      final parsed = parseContent('a{# b {c}');
+      expect(parsed.nodes, [
+        ContentNode.text('a{# b '),
+        const ContentNode.mark('c'),
+      ]);
+      expect(parsed.problems, [_p(ContentProblemKind.unclosedMark, 1)]);
+    });
+
+    test('are passed over inside marks nested too deeply', () {
+      final open = '{em | ' * (maxContentDepth + 1);
+      final close = '}' * (maxContentDepth + 1);
+      final parsed = parseContent('$open{# \\} } x$close');
+      expect(parsed.problems.single.kind, ContentProblemKind.tooDeep);
+      expect(_allText(parsed.nodes), endsWith(r'{em | {# \} } x}'));
+    });
+
+    test('are written with their ends and braces protected', () {
+      expect(
+        writeContent([
+          const ContentNode.comment(''),
+          const ContentNode.comment(r' {a} \ '),
+        ]),
+        r'{#}{# \ \{a\} \\\ }',
+      );
+    });
+  });
+
   group('writing', () {
     test('writes the canonical form', () {
       expect(
@@ -362,7 +413,7 @@ void main() {
 
     test('any source settles into a canonical form', () {
       final random = Random(11);
-      const alphabet = '{}|\\" =ab\n漢😀';
+      const alphabet = '{}|\\" =ab\n漢😀#';
       final chars = alphabet.runes.map(String.fromCharCode).toList();
       for (var i = 0; i < 5000; i++) {
         final source = [
@@ -386,6 +437,7 @@ String _allText(List<ContentNode> nodes) => nodes
       (n) => switch (n) {
         TextNode(:final text) => text,
         MarkNode(:final content) => _allText(content ?? const []),
+        CommentNode(:final text) => text,
       },
     )
     .join();
@@ -409,6 +461,8 @@ List<ContentNode> _normalized(List<ContentNode> nodes) {
             content: node.content == null ? null : _normalized(node.content!),
           ),
         );
+      case CommentNode():
+        out.add(node);
     }
   }
   return out;
@@ -438,7 +492,9 @@ String _string(Random random, {int max = 4}) => [
 
 List<ContentNode> _generate(Random random, int depth) => [
   for (var i = random.nextInt(4); i > 0; i--)
-    if (depth == 0 || random.nextBool())
+    if (random.nextInt(8) == 0)
+      ContentNode.comment(_string(random))
+    else if (depth == 0 || random.nextBool())
       ContentNode.text(_string(random))
     else
       ContentNode.mark(

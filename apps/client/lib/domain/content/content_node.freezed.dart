@@ -56,12 +56,13 @@ extension ContentNodePatterns on ContentNode {
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( TextNode value)?  text,TResult Function( MarkNode value)?  mark,required TResult orElse(),}){
+@optionalTypeArgs TResult maybeMap<TResult extends Object?>({TResult Function( TextNode value)?  text,TResult Function( MarkNode value)?  mark,TResult Function( CommentNode value)?  comment,required TResult orElse(),}){
 final _that = this;
 switch (_that) {
 case TextNode() when text != null:
 return text(_that);case MarkNode() when mark != null:
-return mark(_that);case _:
+return mark(_that);case CommentNode() when comment != null:
+return comment(_that);case _:
   return orElse();
 
 }
@@ -79,12 +80,13 @@ return mark(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( TextNode value)  text,required TResult Function( MarkNode value)  mark,}){
+@optionalTypeArgs TResult map<TResult extends Object?>({required TResult Function( TextNode value)  text,required TResult Function( MarkNode value)  mark,required TResult Function( CommentNode value)  comment,}){
 final _that = this;
 switch (_that) {
 case TextNode():
 return text(_that);case MarkNode():
-return mark(_that);}
+return mark(_that);case CommentNode():
+return comment(_that);}
 }
 /// A variant of `map` that fallback to returning `null`.
 ///
@@ -98,12 +100,13 @@ return mark(_that);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( TextNode value)?  text,TResult? Function( MarkNode value)?  mark,}){
+@optionalTypeArgs TResult? mapOrNull<TResult extends Object?>({TResult? Function( TextNode value)?  text,TResult? Function( MarkNode value)?  mark,TResult? Function( CommentNode value)?  comment,}){
 final _that = this;
 switch (_that) {
 case TextNode() when text != null:
 return text(_that);case MarkNode() when mark != null:
-return mark(_that);case _:
+return mark(_that);case CommentNode() when comment != null:
+return comment(_that);case _:
   return null;
 
 }
@@ -120,11 +123,12 @@ return mark(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String text)?  text,TResult Function( String key,  List<String> args,  Map<String, String> named,  List<ContentNode>? content)?  mark,required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>({TResult Function( String text)?  text,TResult Function( String key,  List<String> args,  Map<String, String> named,  List<ContentNode>? content)?  mark,TResult Function( String text)?  comment,required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case TextNode() when text != null:
 return text(_that.text);case MarkNode() when mark != null:
-return mark(_that.key,_that.args,_that.named,_that.content);case _:
+return mark(_that.key,_that.args,_that.named,_that.content);case CommentNode() when comment != null:
+return comment(_that.text);case _:
   return orElse();
 
 }
@@ -142,11 +146,12 @@ return mark(_that.key,_that.args,_that.named,_that.content);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String text)  text,required TResult Function( String key,  List<String> args,  Map<String, String> named,  List<ContentNode>? content)  mark,}) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>({required TResult Function( String text)  text,required TResult Function( String key,  List<String> args,  Map<String, String> named,  List<ContentNode>? content)  mark,required TResult Function( String text)  comment,}) {final _that = this;
 switch (_that) {
 case TextNode():
 return text(_that.text);case MarkNode():
-return mark(_that.key,_that.args,_that.named,_that.content);}
+return mark(_that.key,_that.args,_that.named,_that.content);case CommentNode():
+return comment(_that.text);}
 }
 /// A variant of `when` that fallback to returning `null`
 ///
@@ -160,11 +165,12 @@ return mark(_that.key,_that.args,_that.named,_that.content);}
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String text)?  text,TResult? Function( String key,  List<String> args,  Map<String, String> named,  List<ContentNode>? content)?  mark,}) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>({TResult? Function( String text)?  text,TResult? Function( String key,  List<String> args,  Map<String, String> named,  List<ContentNode>? content)?  mark,TResult? Function( String text)?  comment,}) {final _that = this;
 switch (_that) {
 case TextNode() when text != null:
 return text(_that.text);case MarkNode() when mark != null:
-return mark(_that.key,_that.args,_that.named,_that.content);case _:
+return mark(_that.key,_that.args,_that.named,_that.content);case CommentNode() when comment != null:
+return comment(_that.text);case _:
   return null;
 
 }
@@ -328,6 +334,74 @@ as String,args: null == args ? _self._args : args // ignore: cast_nullable_to_no
 as List<String>,named: null == named ? _self._named : named // ignore: cast_nullable_to_non_nullable
 as Map<String, String>,content: freezed == content ? _self._content : content // ignore: cast_nullable_to_non_nullable
 as List<ContentNode>?,
+  ));
+}
+
+
+}
+
+/// @nodoc
+
+
+class CommentNode implements ContentNode {
+  const CommentNode(this.text);
+  
+
+ final  String text;
+
+/// Create a copy of ContentNode
+/// with the given fields replaced by the non-null parameter values.
+@JsonKey(includeFromJson: false, includeToJson: false)
+@pragma('vm:prefer-inline')
+$CommentNodeCopyWith<CommentNode> get copyWith => _$CommentNodeCopyWithImpl<CommentNode>(this, _$identity);
+
+
+
+@override
+bool operator ==(Object other) {
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is CommentNode&&(identical(other.text, text) || other.text == text));
+}
+
+
+@override
+int get hashCode {
+    return Object.hash(runtimeType,text);
+}
+
+@override
+String toString() {
+    return 'ContentNode.comment(text: $text)';
+}
+
+
+}
+
+/// @nodoc
+abstract mixin class $CommentNodeCopyWith<$Res> implements $ContentNodeCopyWith<$Res> {
+  factory $CommentNodeCopyWith(CommentNode value, $Res Function(CommentNode) _then) = _$CommentNodeCopyWithImpl;
+@useResult
+$Res call({
+ String text
+});
+
+
+
+
+}
+/// @nodoc
+class _$CommentNodeCopyWithImpl<$Res>
+    implements $CommentNodeCopyWith<$Res> {
+  _$CommentNodeCopyWithImpl(this._self, this._then);
+
+  final CommentNode _self;
+  final $Res Function(CommentNode) _then;
+
+/// Create a copy of ContentNode
+/// with the given fields replaced by the non-null parameter values.
+@pragma('vm:prefer-inline') $Res call({Object? text = null,}) {
+  return _then(CommentNode(
+null == text ? _self.text : text // ignore: cast_nullable_to_non_nullable
+as String,
   ));
 }
 

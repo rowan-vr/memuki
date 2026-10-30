@@ -69,6 +69,9 @@ const maxContentDepth = 64;
 /// Whitespace right after a mark's `|` and right before its `}` is not part
 /// of its content; `\` before a character, including a space, makes it
 /// literal.
+///
+/// `{#` starts a comment, which runs to the matching `}`: braces inside it
+/// must pair up or be escaped, and whitespace at its ends is dropped.
 ParsedContent parseContent(String source) => _Parser(source).parse();
 
 /// Whether [key] can name a mark kind or a named argument: a letter, then
@@ -106,6 +109,7 @@ const _bar = 0x7C; // |
 const _backslash = 0x5C; // \
 const _quote = 0x22; // "
 const _equals = 0x3D; // =
+const _hash = 0x23; // #
 
 /// Text being collected, with how much of its end is protected from trimming
 /// by an escape.
@@ -120,6 +124,18 @@ class _Text {
   void addEscaped(String s) {
     buffer.write(s);
     protectedLength = buffer.length;
+  }
+
+  /// The text, with trailing whitespace that is not protected dropped when
+  /// [trimEnd].
+  String value({bool trimEnd = false}) {
+    final value = buffer.toString();
+    if (!trimEnd) return value;
+    var end = value.length;
+    while (end > protectedLength && isContentSpace(value.codeUnitAt(end - 1))) {
+      end--;
+    }
+    return value.substring(0, end);
   }
 }
 
@@ -152,15 +168,7 @@ class _Frame {
   /// Ends the text collected so far, with trailing whitespace dropped when
   /// [trimEnd].
   void flush({bool trimEnd = false}) {
-    var value = text.buffer.toString();
-    if (trimEnd) {
-      var end = value.length;
-      while (end > text.protectedLength &&
-          isContentSpace(value.codeUnitAt(end - 1))) {
-        end--;
-      }
-      value = value.substring(0, end);
-    }
+    final value = text.value(trimEnd: trimEnd);
     if (value.isNotEmpty) nodes.add(ContentNode.text(value));
     text.buffer.clear();
     text.protectedLength = 0;
@@ -217,6 +225,18 @@ class _Parser {
           );
           if (skipping == 0) top.text.add(r'\');
           pos++;
+        }
+      } else if (c == _open && pos + 1 < _length && _at(pos + 1) == _hash) {
+        final comment = _comment(pos);
+        if (comment == null) {
+          if (skipping == 0) {
+            problems.add(ContentProblem(ContentProblemKind.unclosedMark, pos));
+            top.text.add('{');
+          }
+          pos++;
+        } else {
+          if (skipping == 0) top.addNode(ContentNode.comment(comment.text));
+          pos = comment.end;
         }
       } else if (c == _open) {
         final head = _head(pos);
@@ -292,6 +312,36 @@ class _Parser {
     named: head.named,
     content: content,
   ) as MarkNode;
+
+  /// Reads the comment starting at [start], which is at a `{#`; null when it
+  /// is never closed.
+  ({String text, int end})? _comment(int start) {
+    final text = _Text();
+    var pos = start + 2;
+    while (pos < _length && isContentSpace(_at(pos))) {
+      pos++;
+    }
+    var depth = 0;
+    while (pos < _length) {
+      final c = _at(pos);
+      if (c == _backslash && pos + 1 < _length) {
+        final escaped = _charAt(pos + 1);
+        text.addEscaped(escaped);
+        pos += 1 + escaped.length;
+        continue;
+      }
+      if (c == _close) {
+        if (depth == 0) return (text: text.value(trimEnd: true), end: pos + 1);
+        depth--;
+      } else if (c == _open) {
+        depth++;
+      }
+      final char = _charAt(pos);
+      text.add(char);
+      pos += char.length;
+    }
+    return null;
+  }
 
   /// Reads the head of the mark starting at [start], which is at a `{`.
   _Head _head(int start) {
@@ -392,6 +442,10 @@ class _Parser {
       final arg = value(allowEmpty: false);
       if (arg == null) return failValue(argStart);
       if (pos < _length && _at(pos) == _equals && _at(argStart) != _quote) {
+        // A name must be one the writer can write back.
+        if (!isContentKey(arg)) {
+          return fail(ContentProblemKind.invalidMark, start);
+        }
         pos++;
         final valueStart = pos;
         final namedValue = value(allowEmpty: true);

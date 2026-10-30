@@ -3,8 +3,8 @@ import 'content_parser.dart';
 
 /// Writes [nodes] as content source, in the canonical form: arguments are
 /// quoted only when they need it, and only `\`, `{`, and `}` are escaped in
-/// text, plus whitespace at the ends of a mark's content, which would
-/// otherwise be dropped.
+/// text and comments, plus whitespace at the ends of a mark's content or a
+/// comment, which would otherwise be dropped.
 ///
 /// [parseContent] reads the result back to [nodes], with adjacent text
 /// nodes joined and empty ones left out. Throws an [ArgumentError] when a
@@ -44,6 +44,10 @@ void _writeNodes(
         );
       case MarkNode():
         _writeMark(out, node);
+      case CommentNode(:final text):
+        out.write(text.isEmpty ? '{#' : '{# ');
+        _writeText(out, text, protectStart: true, protectEnd: true);
+        out.write('}');
     }
   }
 }

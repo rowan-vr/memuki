@@ -27,4 +27,5 @@ abstract final class MemukiIcons {
   static const darkTheme = LucideIcons.moon;
   static const sepiaTheme = LucideIcons.coffee;
   static const appearance = LucideIcons.palette;
+  static const warning = LucideIcons.triangleAlert;
 }

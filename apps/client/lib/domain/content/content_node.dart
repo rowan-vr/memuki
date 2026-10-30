@@ -2,7 +2,7 @@ import 'package:freezed_annotation/freezed_annotation.dart';
 
 part 'content_node.freezed.dart';
 
-/// A piece of content: text, or a mark around further content.
+/// A piece of content: text, a mark around further content, or a comment.
 ///
 /// Field values and templates are lists of nodes. Lists from the parser have
 /// no empty text nodes and no two text nodes in a row.
@@ -22,4 +22,8 @@ sealed class ContentNode with _$ContentNode {
     @Default({}) Map<String, String> named,
     List<ContentNode>? content,
   }) = MarkNode;
+
+  /// A note in the source, written `{# text}`, that is not part of the
+  /// content: it reads as nothing and is not shown.
+  const factory ContentNode.comment(String text) = CommentNode;
 }

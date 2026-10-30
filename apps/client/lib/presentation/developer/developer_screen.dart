@@ -25,6 +25,11 @@ class DeveloperScreen extends StatelessWidget {
                 onTap: () => const CatalogueRoute().go(context),
               ),
               ListRow(
+                title: 'Content format',
+                subtitle: 'Try field and template source; see the mark kinds',
+                onTap: () => const ContentPlaygroundRoute().go(context),
+              ),
+              ListRow(
                 title: 'Visual concepts',
                 subtitle: 'Candidate looks on a mock review screen',
                 onTap: () => const ConceptsRoute().go(context),
