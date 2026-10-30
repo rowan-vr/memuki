@@ -120,6 +120,8 @@ void main() {
         },
         burnThreshold: null,
         newCardsPerDay: 10,
+        newCardMix: NewCardMix.reviewsFirst,
+        newCardOrder: NewCardOrder.random,
       );
       await repos.presets.updateSettings(preset.id, edited);
 

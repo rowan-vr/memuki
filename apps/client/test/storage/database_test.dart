@@ -6,6 +6,7 @@ import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/note_type.dart';
+import 'package:memuki/domain/preset.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/storage/database.dart';
 import 'package:memuki/storage/database_exceptions.dart';
@@ -72,6 +73,8 @@ class _Seed {
         schedulerConfig: const {},
         newCardsPerDay: 50,
         reviewsPerDay: 500,
+        newCardMix: NewCardMix.mixed,
+        newCardOrder: NewCardOrder.created,
       ),
     );
     b.insert(

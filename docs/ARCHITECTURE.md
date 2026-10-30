@@ -94,7 +94,8 @@ With this model, merging concurrent reviews from different devices reduces to me
 - **Configuration:** decks select a shared preset; a deck without its own preset inherits its parent's, and a root deck without one uses the collection's default preset, which cannot be deleted. Decks whose preset is deleted inherit again. Presets set the scheduler and its settings, the burn threshold (default 1 year), the leech threshold (default 8), and daily limits (default 50 new cards and 500 reviews).
 - **Preset versions:** a preset's settings are immutable versions with their own IDs; editing a preset adds a version and makes it current. Review events record the version ID, so concurrent edits on different devices cannot produce two different versions with the same identity, and replay always finds the settings an event used.
 - **Study day:** starts at a per-collection hour (default 03:00 local time). Steps under 1d are exact durations; steps of 1d or more fall due at the start of a study day.
-- **Nested decks:** studying a deck includes all decks below it. Each subdeck's daily limit applies, and the studied deck's limit caps the combined total.
+- **Nested decks:** studying a deck includes all decks below it. Each deck's daily limit caps the cards from it and the decks below it, and the studied deck's limit caps the combined total.
+- **Study queue:** built from the cards' scheduling state when a card is needed, not stored. Due learning and relearning cards come first and are never limited; due reviews (most overdue first) and new cards follow, capped by the limits and ordered by the studied deck's preset: new cards mixed evenly among reviews, or either first, and introduced in creation order or a random order fixed for the study day. When nothing else is left, learning cards due within 20 minutes are shown early. What was studied today is counted by replaying the history in effect of cards with events in the current study day, so an undo gives a slot back: a review counts as a new card if the card was new before it, and against the review limit if it was in review.
 - **FSRS:** added in a later phase as an alternative review-phase algorithm; learning and relearning steps remain. Review events store grade, timestamps, due times, and response time from the start, so FSRS memory state can be computed from existing history when it is introduced.
 
 ## Card rendering
@@ -233,6 +234,7 @@ memuki/
 | D38 | Studying a deck includes its subdecks; the studied deck's daily limit caps the subdecks' combined total | Decided | 2 |
 | D39 | Review events record the device's UTC offset; replay uses it and the recorded scheduler version, keeping old versions available | Decided | 2 |
 | D40 | Preset settings are immutable versions identified by UUID; review events record the version ID; each collection has an undeletable default preset | Decided | 2 |
+| D41 | Study queues are computed from scheduling state and today's history in effect; learning cards first, then reviews and new cards ordered per preset | Decided | 2 |
 
 ## Open questions
 

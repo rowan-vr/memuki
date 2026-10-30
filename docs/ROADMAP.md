@@ -214,6 +214,10 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Default daily limits | 50 new cards and 500 reviews per day, per preset | Decided |
 | Studying a parent deck | Includes the cards of all its subdecks; studying a subdeck includes only that subdeck and the decks below it | Decided |
 | Daily limits in nested decks | Each subdeck's own limit applies, and the studied deck's limit caps the combined total | Decided |
+| Queue order | Due learning and relearning cards first; then reviews and new cards, mixed evenly by default, or reviews first or new cards first, per preset | Decided |
+| New card order | Creation order by default (oldest note first, a note's cards in template order), or random with a fixed order for the study day, per preset | Decided |
+| What the limits count | The new-card limit counts cards first studied today; the review limit counts reviews of cards in the review phase. Learning and relearning cards are not limited. Counts come from the history in effect, so an undo gives the slot back | Decided |
+| Learning ahead | When nothing else is left, learning cards due within 20 minutes are shown early | Decided |
 | FSRS | Separate later phase; placement TBD | Decided |
 
 ### Acceptance Criteria

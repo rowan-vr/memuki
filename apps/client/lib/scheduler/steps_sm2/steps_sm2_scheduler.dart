@@ -1,8 +1,8 @@
-import 'dart:convert';
 import 'dart:math' as math;
 
 import '../../domain/review.dart';
 import '../scheduler.dart';
+import '../unit_hash.dart';
 import 'steps_sm2_config.dart';
 
 /// The default scheduler: learning and relearning steps, then SM-2-style
@@ -220,21 +220,6 @@ int _fuzz(int days, SchedulingState state) {
   final low = (days - delta).round();
   final high = (days + delta).round();
   return low +
-      (_unitHash('${state.studyCardId}:${state.reviewCount}') *
-              (high - low + 1))
+      (unitHash('${state.studyCardId}:${state.reviewCount}') * (high - low + 1))
           .floor();
-}
-
-/// A number in [0, 1) derived from [seed]. Uses only arithmetic that is exact
-/// in both native and web numbers, so every platform agrees.
-double _unitHash(String seed) {
-  const modulus = 2147483647;
-  var hash = 0;
-  for (final byte in utf8.encode(seed)) {
-    hash = (hash * 31 + byte) % modulus;
-  }
-  for (var i = 0; i < 3; i++) {
-    hash = (hash * 48271) % modulus;
-  }
-  return hash / modulus;
 }

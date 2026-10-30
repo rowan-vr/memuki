@@ -25,6 +25,28 @@ abstract class Preset with _$Preset {
   }) = _Preset;
 }
 
+/// Where new cards go among the day's reviews. Learning cards that are due
+/// always come first.
+enum NewCardMix {
+  /// New cards are spread evenly among the reviews.
+  mixed,
+
+  /// New cards come after all due reviews.
+  reviewsFirst,
+
+  /// New cards come before the due reviews.
+  newFirst,
+}
+
+/// The order in which new cards are introduced.
+enum NewCardOrder {
+  /// Oldest note first, and a note's cards in template order.
+  created,
+
+  /// Shuffled, in the same order for the whole study day.
+  random,
+}
+
 /// One immutable version of a preset's settings.
 @freezed
 abstract class PresetVersion with _$PresetVersion {
@@ -64,6 +86,11 @@ abstract class PresetVersion with _$PresetVersion {
     /// Lapses at which a card becomes a leech. Null disables leeches.
     @Default(8) int? leechThreshold,
     @Default(50) int newCardsPerDay,
+
+    /// The limit on cards in review falling due; learning and relearning
+    /// cards are not limited.
     @Default(500) int reviewsPerDay,
+    @Default(NewCardMix.mixed) NewCardMix newCardMix,
+    @Default(NewCardOrder.created) NewCardOrder newCardOrder,
   }) = _PresetVersion;
 }

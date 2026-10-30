@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/ids.dart';
+import 'package:memuki/domain/note_type.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/domain/study_card.dart';
 import 'package:memuki/storage/repositories/repository_exceptions.dart';
@@ -56,6 +57,75 @@ void main() {
       await repos.cards.cardsInDeck(japanese.deck.id, includeSubdecks: true),
       unorderedEquals([top, nested]),
     );
+  });
+
+  test(
+    'cardsWithState lists cards with their state in creation order',
+    () async {
+      final second = StudyCardTemplate(
+        id: StudyCardTemplateId.generate(),
+        name: 'Card 2',
+      );
+      // Listed before the first template, so position decides the order.
+      await repos.noteTypes.updateNoteType(
+        japanese.noteType.copyWith(
+          templates: [second, ...japanese.noteType.templates],
+        ),
+      );
+      final child = await japanese.addDeck('Child', parentId: japanese.deck.id);
+      final (older, olderCard) = await japanese.addNote('猫', deckId: child.id);
+      final (_, newerCard) = await japanese.addNote('犬');
+      final secondCard = StudyCard(
+        noteId: older.id,
+        templateId: second.id,
+        deckId: japanese.deck.id,
+      );
+      await repos.cards.createCard(secondCard);
+      final state = SchedulingState(
+        studyCardId: newerCard.id,
+        state: StudyCardState.review,
+        due: DateTime.utc(2026, 10, 29),
+        interval: const Duration(days: 3),
+        ease: 2.5,
+      );
+      await repos.cards.saveSchedulingState(state);
+
+      final listed = await repos.cards.cardsWithState(japanese.deck.id);
+      expect(listed.map((e) => e.$1), [secondCard, olderCard, newerCard]);
+      expect(listed.last.$2, state);
+      expect(listed.first.$2!.state, StudyCardState.newCard);
+      expect(await repos.cards.cardsWithState(child.id), hasLength(1));
+    },
+  );
+
+  test('cardsWithState can list only new cards and cards due before a '
+      'time', () async {
+    final cutoff = DateTime.utc(2026, 10, 29, 18);
+    Future<StudyCard> withState(StudyCardState state, {DateTime? due}) async {
+      final (_, card) = await japanese.addNote('${state.name} $due');
+      await repos.cards.saveSchedulingState(
+        SchedulingState(studyCardId: card.id, state: state, due: due),
+      );
+      return card;
+    }
+
+    final newCard = await withState(StudyCardState.newCard);
+    final dueReview = await withState(
+      StudyCardState.review,
+      due: cutoff.subtract(const Duration(days: 1)),
+    );
+    final dueLearning = await withState(
+      StudyCardState.learning,
+      due: cutoff.subtract(const Duration(minutes: 1)),
+    );
+    await withState(StudyCardState.review, due: cutoff);
+    await withState(StudyCardState.burned);
+
+    final listed = await repos.cards.cardsWithState(
+      japanese.deck.id,
+      dueBefore: cutoff,
+    );
+    expect(listed.map((e) => e.$1), [newCard, dueReview, dueLearning]);
   });
 
   test('watching a deck emits when a deck above it is deleted', () async {

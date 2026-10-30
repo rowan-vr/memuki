@@ -3,6 +3,7 @@ import 'package:drift/drift.dart';
 import '../../domain/ids.dart';
 import '../../domain/review.dart';
 import '../../domain/review_history.dart';
+import '../converters.dart';
 import '../database.dart';
 import '../sync/change_recorder.dart';
 import 'repository_exceptions.dart';
@@ -32,7 +33,31 @@ class ReviewRepository {
   /// they happened. Includes the events of deleted cards.
   Future<Map<StudyCardId, List<ReviewEvent>>> histories(
     CollectionId collectionId,
-  ) async {
+  ) => _histories(collectionId);
+
+  /// The whole history of each card in a collection that has an event at or
+  /// after [since], by card, each in the order the events happened.
+  Future<Map<StudyCardId, List<ReviewEvent>>> historiesSince(
+    CollectionId collectionId,
+    DateTime since,
+  ) {
+    final recent = _db.selectOnly(_db.reviewEvents, distinct: true)
+      ..addColumns([_db.reviewEvents.studyCardId])
+      ..where(
+        _db.reviewEvents.at.isBiggerOrEqualValue(
+          const UtcMillisConverter().toSql(since),
+        ),
+      );
+    return _histories(
+      collectionId,
+      where: _db.reviewEvents.studyCardId.isInQuery(recent),
+    );
+  }
+
+  Future<Map<StudyCardId, List<ReviewEvent>>> _histories(
+    CollectionId collectionId, {
+    Expression<bool>? where,
+  }) async {
     final query =
         _db.select(_db.reviewEvents).join([
             innerJoin(
@@ -40,7 +65,10 @@ class ReviewRepository {
               _db.studyCards.id.equalsExp(_db.reviewEvents.studyCardId),
             ),
           ])
-          ..where(_db.studyCards.collectionId.equalsValue(collectionId))
+          ..where(
+            _db.studyCards.collectionId.equalsValue(collectionId) &
+                (where ?? const Constant(true)),
+          )
           ..orderBy([
             OrderingTerm(expression: _db.reviewEvents.studyCardId),
             OrderingTerm(expression: _db.reviewEvents.at),

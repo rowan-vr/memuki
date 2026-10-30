@@ -5964,6 +5964,24 @@ class $PresetVersionsTable extends PresetVersions
     requiredDuringInsert: true,
   );
   @override
+  late final GeneratedColumnWithTypeConverter<NewCardMix, String> newCardMix =
+      GeneratedColumn<String>(
+        'new_card_mix',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: true,
+      ).withConverter<NewCardMix>($PresetVersionsTable.$converternewCardMix);
+  @override
+  late final GeneratedColumnWithTypeConverter<NewCardOrder, String>
+  newCardOrder = GeneratedColumn<String>(
+    'new_card_order',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: true,
+  ).withConverter<NewCardOrder>($PresetVersionsTable.$converternewCardOrder);
+  @override
   late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
       GeneratedColumn<String>(
         'hlc',
@@ -5982,6 +6000,8 @@ class $PresetVersionsTable extends PresetVersions
     leechThreshold,
     newCardsPerDay,
     reviewsPerDay,
+    newCardMix,
+    newCardOrder,
     hlc,
   ];
   @override
@@ -6098,6 +6118,18 @@ class $PresetVersionsTable extends PresetVersions
         DriftSqlType.int,
         data['${effectivePrefix}reviews_per_day'],
       )!,
+      newCardMix: $PresetVersionsTable.$converternewCardMix.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}new_card_mix'],
+        )!,
+      ),
+      newCardOrder: $PresetVersionsTable.$converternewCardOrder.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}new_card_order'],
+        )!,
+      ),
       hlc: $PresetVersionsTable.$converterhlc.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -6118,6 +6150,12 @@ class $PresetVersionsTable extends PresetVersions
       presetIdConverter;
   static TypeConverter<Map<String, Object?>, String> $converterschedulerConfig =
       const JsonMapConverter();
+  static JsonTypeConverter2<NewCardMix, String, String> $converternewCardMix =
+      const EnumNameConverter<NewCardMix>(NewCardMix.values);
+  static JsonTypeConverter2<NewCardOrder, String, String>
+  $converternewCardOrder = const EnumNameConverter<NewCardOrder>(
+    NewCardOrder.values,
+  );
   static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
 }
 
@@ -6133,6 +6171,8 @@ class PresetVersionRow extends DataClass
   final int? leechThreshold;
   final int newCardsPerDay;
   final int reviewsPerDay;
+  final NewCardMix newCardMix;
+  final NewCardOrder newCardOrder;
   final Hlc hlc;
   const PresetVersionRow({
     required this.id,
@@ -6143,6 +6183,8 @@ class PresetVersionRow extends DataClass
     this.leechThreshold,
     required this.newCardsPerDay,
     required this.reviewsPerDay,
+    required this.newCardMix,
+    required this.newCardOrder,
     required this.hlc,
   });
   @override
@@ -6173,6 +6215,16 @@ class PresetVersionRow extends DataClass
     map['new_cards_per_day'] = Variable<int>(newCardsPerDay);
     map['reviews_per_day'] = Variable<int>(reviewsPerDay);
     {
+      map['new_card_mix'] = Variable<String>(
+        $PresetVersionsTable.$converternewCardMix.toSql(newCardMix),
+      );
+    }
+    {
+      map['new_card_order'] = Variable<String>(
+        $PresetVersionsTable.$converternewCardOrder.toSql(newCardOrder),
+      );
+    }
+    {
       map['hlc'] = Variable<String>(
         $PresetVersionsTable.$converterhlc.toSql(hlc),
       );
@@ -6194,6 +6246,8 @@ class PresetVersionRow extends DataClass
           : Value(leechThreshold),
       newCardsPerDay: Value(newCardsPerDay),
       reviewsPerDay: Value(reviewsPerDay),
+      newCardMix: Value(newCardMix),
+      newCardOrder: Value(newCardOrder),
       hlc: Value(hlc),
     );
   }
@@ -6214,6 +6268,12 @@ class PresetVersionRow extends DataClass
       leechThreshold: serializer.fromJson<int?>(json['leechThreshold']),
       newCardsPerDay: serializer.fromJson<int>(json['newCardsPerDay']),
       reviewsPerDay: serializer.fromJson<int>(json['reviewsPerDay']),
+      newCardMix: $PresetVersionsTable.$converternewCardMix.fromJson(
+        serializer.fromJson<String>(json['newCardMix']),
+      ),
+      newCardOrder: $PresetVersionsTable.$converternewCardOrder.fromJson(
+        serializer.fromJson<String>(json['newCardOrder']),
+      ),
       hlc: serializer.fromJson<Hlc>(json['hlc']),
     );
   }
@@ -6231,6 +6291,12 @@ class PresetVersionRow extends DataClass
       'leechThreshold': serializer.toJson<int?>(leechThreshold),
       'newCardsPerDay': serializer.toJson<int>(newCardsPerDay),
       'reviewsPerDay': serializer.toJson<int>(reviewsPerDay),
+      'newCardMix': serializer.toJson<String>(
+        $PresetVersionsTable.$converternewCardMix.toJson(newCardMix),
+      ),
+      'newCardOrder': serializer.toJson<String>(
+        $PresetVersionsTable.$converternewCardOrder.toJson(newCardOrder),
+      ),
       'hlc': serializer.toJson<Hlc>(hlc),
     };
   }
@@ -6244,6 +6310,8 @@ class PresetVersionRow extends DataClass
     Value<int?> leechThreshold = const Value.absent(),
     int? newCardsPerDay,
     int? reviewsPerDay,
+    NewCardMix? newCardMix,
+    NewCardOrder? newCardOrder,
     Hlc? hlc,
   }) => PresetVersionRow(
     id: id ?? this.id,
@@ -6258,6 +6326,8 @@ class PresetVersionRow extends DataClass
         : this.leechThreshold,
     newCardsPerDay: newCardsPerDay ?? this.newCardsPerDay,
     reviewsPerDay: reviewsPerDay ?? this.reviewsPerDay,
+    newCardMix: newCardMix ?? this.newCardMix,
+    newCardOrder: newCardOrder ?? this.newCardOrder,
     hlc: hlc ?? this.hlc,
   );
   PresetVersionRow copyWithCompanion(PresetVersionsCompanion data) {
@@ -6282,6 +6352,12 @@ class PresetVersionRow extends DataClass
       reviewsPerDay: data.reviewsPerDay.present
           ? data.reviewsPerDay.value
           : this.reviewsPerDay,
+      newCardMix: data.newCardMix.present
+          ? data.newCardMix.value
+          : this.newCardMix,
+      newCardOrder: data.newCardOrder.present
+          ? data.newCardOrder.value
+          : this.newCardOrder,
       hlc: data.hlc.present ? data.hlc.value : this.hlc,
     );
   }
@@ -6297,6 +6373,8 @@ class PresetVersionRow extends DataClass
           ..write('leechThreshold: $leechThreshold, ')
           ..write('newCardsPerDay: $newCardsPerDay, ')
           ..write('reviewsPerDay: $reviewsPerDay, ')
+          ..write('newCardMix: $newCardMix, ')
+          ..write('newCardOrder: $newCardOrder, ')
           ..write('hlc: $hlc')
           ..write(')'))
         .toString();
@@ -6312,6 +6390,8 @@ class PresetVersionRow extends DataClass
     leechThreshold,
     newCardsPerDay,
     reviewsPerDay,
+    newCardMix,
+    newCardOrder,
     hlc,
   );
   @override
@@ -6326,6 +6406,8 @@ class PresetVersionRow extends DataClass
           other.leechThreshold == this.leechThreshold &&
           other.newCardsPerDay == this.newCardsPerDay &&
           other.reviewsPerDay == this.reviewsPerDay &&
+          other.newCardMix == this.newCardMix &&
+          other.newCardOrder == this.newCardOrder &&
           other.hlc == this.hlc);
 }
 
@@ -6338,6 +6420,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
   final Value<int?> leechThreshold;
   final Value<int> newCardsPerDay;
   final Value<int> reviewsPerDay;
+  final Value<NewCardMix> newCardMix;
+  final Value<NewCardOrder> newCardOrder;
   final Value<Hlc> hlc;
   final Value<int> rowid;
   const PresetVersionsCompanion({
@@ -6349,6 +6433,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     this.leechThreshold = const Value.absent(),
     this.newCardsPerDay = const Value.absent(),
     this.reviewsPerDay = const Value.absent(),
+    this.newCardMix = const Value.absent(),
+    this.newCardOrder = const Value.absent(),
     this.hlc = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -6361,6 +6447,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     this.leechThreshold = const Value.absent(),
     required int newCardsPerDay,
     required int reviewsPerDay,
+    required NewCardMix newCardMix,
+    required NewCardOrder newCardOrder,
     required Hlc hlc,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -6369,6 +6457,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
        schedulerConfig = Value(schedulerConfig),
        newCardsPerDay = Value(newCardsPerDay),
        reviewsPerDay = Value(reviewsPerDay),
+       newCardMix = Value(newCardMix),
+       newCardOrder = Value(newCardOrder),
        hlc = Value(hlc);
   static Insertable<PresetVersionRow> custom({
     Expression<Uint8List>? id,
@@ -6379,6 +6469,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     Expression<int>? leechThreshold,
     Expression<int>? newCardsPerDay,
     Expression<int>? reviewsPerDay,
+    Expression<String>? newCardMix,
+    Expression<String>? newCardOrder,
     Expression<String>? hlc,
     Expression<int>? rowid,
   }) {
@@ -6391,6 +6483,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
       if (leechThreshold != null) 'leech_threshold': leechThreshold,
       if (newCardsPerDay != null) 'new_cards_per_day': newCardsPerDay,
       if (reviewsPerDay != null) 'reviews_per_day': reviewsPerDay,
+      if (newCardMix != null) 'new_card_mix': newCardMix,
+      if (newCardOrder != null) 'new_card_order': newCardOrder,
       if (hlc != null) 'hlc': hlc,
       if (rowid != null) 'rowid': rowid,
     });
@@ -6405,6 +6499,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     Value<int?>? leechThreshold,
     Value<int>? newCardsPerDay,
     Value<int>? reviewsPerDay,
+    Value<NewCardMix>? newCardMix,
+    Value<NewCardOrder>? newCardOrder,
     Value<Hlc>? hlc,
     Value<int>? rowid,
   }) {
@@ -6417,6 +6513,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
       leechThreshold: leechThreshold ?? this.leechThreshold,
       newCardsPerDay: newCardsPerDay ?? this.newCardsPerDay,
       reviewsPerDay: reviewsPerDay ?? this.reviewsPerDay,
+      newCardMix: newCardMix ?? this.newCardMix,
+      newCardOrder: newCardOrder ?? this.newCardOrder,
       hlc: hlc ?? this.hlc,
       rowid: rowid ?? this.rowid,
     );
@@ -6457,6 +6555,16 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     if (reviewsPerDay.present) {
       map['reviews_per_day'] = Variable<int>(reviewsPerDay.value);
     }
+    if (newCardMix.present) {
+      map['new_card_mix'] = Variable<String>(
+        $PresetVersionsTable.$converternewCardMix.toSql(newCardMix.value),
+      );
+    }
+    if (newCardOrder.present) {
+      map['new_card_order'] = Variable<String>(
+        $PresetVersionsTable.$converternewCardOrder.toSql(newCardOrder.value),
+      );
+    }
     if (hlc.present) {
       map['hlc'] = Variable<String>(
         $PresetVersionsTable.$converterhlc.toSql(hlc.value),
@@ -6479,6 +6587,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
           ..write('leechThreshold: $leechThreshold, ')
           ..write('newCardsPerDay: $newCardsPerDay, ')
           ..write('reviewsPerDay: $reviewsPerDay, ')
+          ..write('newCardMix: $newCardMix, ')
+          ..write('newCardOrder: $newCardOrder, ')
           ..write('hlc: $hlc, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -14816,6 +14926,8 @@ typedef $$PresetVersionsTableCreateCompanionBuilder =
       Value<int?> leechThreshold,
       required int newCardsPerDay,
       required int reviewsPerDay,
+      required NewCardMix newCardMix,
+      required NewCardOrder newCardOrder,
       required Hlc hlc,
       Value<int> rowid,
     });
@@ -14829,6 +14941,8 @@ typedef $$PresetVersionsTableUpdateCompanionBuilder =
       Value<int?> leechThreshold,
       Value<int> newCardsPerDay,
       Value<int> reviewsPerDay,
+      Value<NewCardMix> newCardMix,
+      Value<NewCardOrder> newCardOrder,
       Value<Hlc> hlc,
       Value<int> rowid,
     });
@@ -14921,6 +15035,18 @@ class $$PresetVersionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<NewCardMix, NewCardMix, String>
+  get newCardMix => $composableBuilder(
+    column: $table.newCardMix,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<NewCardOrder, NewCardOrder, String>
+  get newCardOrder => $composableBuilder(
+    column: $table.newCardOrder,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
       $composableBuilder(
         column: $table.hlc,
@@ -15002,6 +15128,16 @@ class $$PresetVersionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get newCardMix => $composableBuilder(
+    column: $table.newCardMix,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get newCardOrder => $composableBuilder(
+    column: $table.newCardOrder,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get hlc => $composableBuilder(
     column: $table.hlc,
     builder: (column) => ColumnOrderings(column),
@@ -15053,6 +15189,18 @@ class $$PresetVersionsTableAnnotationComposer
     column: $table.reviewsPerDay,
     builder: (column) => column,
   );
+
+  GeneratedColumnWithTypeConverter<NewCardMix, String> get newCardMix =>
+      $composableBuilder(
+        column: $table.newCardMix,
+        builder: (column) => column,
+      );
+
+  GeneratedColumnWithTypeConverter<NewCardOrder, String> get newCardOrder =>
+      $composableBuilder(
+        column: $table.newCardOrder,
+        builder: (column) => column,
+      );
 
   GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
       $composableBuilder(column: $table.hlc, builder: (column) => column);
@@ -15122,6 +15270,8 @@ class $$PresetVersionsTableTableManager
                 Value<int?> leechThreshold = const Value.absent(),
                 Value<int> newCardsPerDay = const Value.absent(),
                 Value<int> reviewsPerDay = const Value.absent(),
+                Value<NewCardMix> newCardMix = const Value.absent(),
+                Value<NewCardOrder> newCardOrder = const Value.absent(),
                 Value<Hlc> hlc = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PresetVersionsCompanion(
@@ -15133,6 +15283,8 @@ class $$PresetVersionsTableTableManager
                 leechThreshold: leechThreshold,
                 newCardsPerDay: newCardsPerDay,
                 reviewsPerDay: reviewsPerDay,
+                newCardMix: newCardMix,
+                newCardOrder: newCardOrder,
                 hlc: hlc,
                 rowid: rowid,
               ),
@@ -15146,6 +15298,8 @@ class $$PresetVersionsTableTableManager
                 Value<int?> leechThreshold = const Value.absent(),
                 required int newCardsPerDay,
                 required int reviewsPerDay,
+                required NewCardMix newCardMix,
+                required NewCardOrder newCardOrder,
                 required Hlc hlc,
                 Value<int> rowid = const Value.absent(),
               }) => PresetVersionsCompanion.insert(
@@ -15157,6 +15311,8 @@ class $$PresetVersionsTableTableManager
                 leechThreshold: leechThreshold,
                 newCardsPerDay: newCardsPerDay,
                 reviewsPerDay: reviewsPerDay,
+                newCardMix: newCardMix,
+                newCardOrder: newCardOrder,
                 hlc: hlc,
                 rowid: rowid,
               ),

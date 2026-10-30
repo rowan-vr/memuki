@@ -197,6 +197,8 @@ Future<void> _insertVersion(
         leechThreshold: Value(version.leechThreshold),
         newCardsPerDay: version.newCardsPerDay,
         reviewsPerDay: version.reviewsPerDay,
+        newCardMix: version.newCardMix,
+        newCardOrder: version.newCardOrder,
         hlc: hlc,
       ),
     );
@@ -211,6 +213,8 @@ PresetVersion _version(PresetVersionRow row) => PresetVersion(
   leechThreshold: row.leechThreshold,
   newCardsPerDay: row.newCardsPerDay,
   reviewsPerDay: row.reviewsPerDay,
+  newCardMix: row.newCardMix,
+  newCardOrder: row.newCardOrder,
 );
 
 EntityNotFoundException _notFound(PresetId id) =>

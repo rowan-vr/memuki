@@ -259,9 +259,15 @@ void main() {
       [bytes(event), bytes(card), hlc],
     );
 
+    final v5 = MemukiDatabase(schema.newConnection());
+    addTearDown(v5.close);
+    await verifier.migrateAndValidate(v5, 5);
+    // Read through the repositories after upgrading to the current version,
+    // since they use the current tables. Opening turned foreign keys on for
+    // the shared connection; upgrades run with them off.
+    await v5.customStatement('PRAGMA foreign_keys = OFF');
     final db = MemukiDatabase(schema.newConnection());
     addTearDown(db.close);
-    await verifier.migrateAndValidate(db, 5);
     final repos = Repositories(db);
 
     final presets = [
@@ -286,6 +292,69 @@ void main() {
     expect(history.single.id, event);
     expect(history.single.presetVersionId, presets.first.version.id);
     expect(history.single.utcOffset, const Duration(hours: 9));
+  });
+
+  test('v5 to v6 mixes new cards in creation order in existing presets', () async {
+    final schema = await verifier.schemaAt(5);
+    final collection = CollectionId.generate();
+    final preset = PresetId.generate();
+    final version = PresetVersionId.generate();
+    const hlc = '019a2f0c8a00-0000-0123456789abcdef';
+
+    final raw = schema.rawDatabase;
+    raw.execute(
+      'INSERT INTO collections (id, name, default_preset_id, day_start, hlc) '
+      'VALUES (?, ?, ?, 180, ?)',
+      [
+        collectionIdConverter.toSql(collection),
+        'Japanese',
+        presetIdConverter.toSql(preset),
+        hlc,
+      ],
+    );
+    raw.execute(
+      'INSERT INTO presets (id, collection_id, name, current_version_id, hlc) '
+      "VALUES (?, ?, 'Default', ?, ?)",
+      [
+        presetIdConverter.toSql(preset),
+        collectionIdConverter.toSql(collection),
+        presetVersionIdConverter.toSql(version),
+        hlc,
+      ],
+    );
+    raw.execute(
+      'INSERT INTO preset_versions (id, preset_id, scheduler_id, '
+      'scheduler_config, burn_threshold_days, leech_threshold, '
+      'new_cards_per_day, reviews_per_day, hlc) '
+      "VALUES (?, ?, 'memuki.steps-sm2', '{\"fuzz\":false}', NULL, 4, 20, "
+      '200, ?)',
+      [
+        presetVersionIdConverter.toSql(version),
+        presetIdConverter.toSql(preset),
+        hlc,
+      ],
+    );
+
+    final db = MemukiDatabase(schema.newConnection());
+    addTearDown(db.close);
+    await verifier.migrateAndValidate(db, 6);
+
+    expect(
+      (await Repositories(db).presets.preset(preset))!.version,
+      PresetVersion(
+        id: version,
+        schedulerConfig: {'fuzz': false},
+        burnThreshold: null,
+        leechThreshold: 4,
+        newCardsPerDay: 20,
+        reviewsPerDay: 200,
+      ),
+    );
+    // The rebuilt table keeps its append-only trigger.
+    await expectLater(
+      db.customStatement('UPDATE preset_versions SET reviews_per_day = 1'),
+      throwsA(anything),
+    );
   });
 }
 
