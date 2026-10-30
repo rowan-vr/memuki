@@ -151,4 +151,34 @@ class AppLocalizationsEn extends AppLocalizations {
     );
     return '$_temp0';
   }
+
+  @override
+  String get editorRuby => 'Ruby';
+
+  @override
+  String get editorEmphasis => 'Emphasis';
+
+  @override
+  String get editorSubscript => 'Subscript';
+
+  @override
+  String get editorSuperscript => 'Superscript';
+
+  @override
+  String get editorLanguage => 'Language';
+
+  @override
+  String get editorReading => 'Reading';
+
+  @override
+  String get editorLanguageTag => 'Language tag';
+
+  @override
+  String get editorRemoveMark => 'Remove';
+
+  @override
+  String get editorUndo => 'Undo';
+
+  @override
+  String get editorRedo => 'Redo';
 }

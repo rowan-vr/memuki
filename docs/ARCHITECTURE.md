@@ -135,6 +135,11 @@ H{sub | 2}O
 - **Plain text** is the content with the marks dropped (`今日は天気がいいです`). Search, duplicate detection, sorting, and typed-answer comparison use it.
 - **Language:** each field definition has a language, and a `lang` mark overrides it for a span. The language selects glyph forms for shared Han characters, text direction, and font fallback.
 - **Editing:** fields are edited directly in their rendered form; selecting text offers the marks that apply. A toggle shows the source.
+  - The editor is Flutter's own text field. Its text is the content's text, and marks are ranges over it that follow edits: text typed inside a mark joins it, as does text typed at its end, except after a ruby. Comments and marks without content are single characters shown as chips.
+  - Marks are toggled on the selection from a toolbar, the selection menu, or shortcuts. Toggling a mark over part of a marked span takes it off that part only.
+  - Ruby readings are painted above their base text, in extra line height. A reading wider than its base text spreads the base text with letter spacing, so the reading never covers its neighbours. While the cursor is in a mark with arguments, such as a ruby's reading or a language tag, they are edited in a popover under the mark.
+  - Undo covers marks as well as text; typing up to a space is one step.
+  - Editable text cannot raise or lower glyphs, so subscript and superscript are only smaller while editing, using the font's own forms where it has them.
 
 ### Templates
 
@@ -293,6 +298,7 @@ memuki/
 | D46 | Reading content never fails: malformed parts are kept as literal text and reported; whitespace at the ends of a mark's content is not part of it | Decided | 3 |
 | D47 | Content has comments, written `{# …}` | Decided | 3 |
 | D48 | A template has one `front` and one `back` at its top level, with nothing but whitespace and comments outside them | Decided | 3 |
+| D49 | Fields are edited with Flutter's own text field and marks as ranges over its text, not with an editor package | Decided | 3 |
 
 ## Open questions
 
