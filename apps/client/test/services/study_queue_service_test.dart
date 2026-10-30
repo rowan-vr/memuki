@@ -109,6 +109,27 @@ void main() {
     expect(queue.next, cards[1].id);
   });
 
+  test('learning ahead reaches into the next study day', () async {
+    await repos.presets.updateSettings(
+      japanese.preset.id,
+      PresetVersion(
+        id: PresetVersionId.generate(),
+        schedulerConfig: {
+          'learningSteps': [15],
+        },
+      ),
+    );
+    final cards = await addNotes(1);
+    // 02:50 local; the study day ends at 03:00.
+    now = DateTime.utc(2026, 10, 29, 17, 50);
+    final state = await reviews.review(cards.single.id, Grade.again);
+    // Due at 03:05, within 20 minutes.
+    expect(state.due, DateTime.utc(2026, 10, 29, 18, 5));
+    final queue = await queues.queue(japanese.deck.id);
+    expect(queue.next, cards.single.id);
+    expect(queue.learningCount, 1);
+  });
+
   test('yesterday\'s reviews do not count', () async {
     await setLimits(japanese.preset.id, newCards: 1);
     final cards = await addNotes(2);

@@ -81,9 +81,16 @@ class StudyQueueService {
       pending.addAll(children[id] ?? const []);
     }
 
-    final cards = await _cards.cardsWithState(deckId);
+    // Learning cards due within the learn-ahead window can be shown even
+    // when it reaches into tomorrow.
+    final ahead = now.at.add(StudyQueue.learnAhead);
+    final tomorrow = day.startAfter(now.at, 1);
+    final cards = await _cards.cardsWithState(
+      deckId,
+      dueBefore: ahead.isAfter(tomorrow) ? ahead : tomorrow,
+    );
     final (:newDone, :reviewsDone) = await _studiedToday(
-      cards.map((c) => c.$1),
+      decks.keys.toSet(),
       collection.id,
       since: day.startOf(now.at),
       dayStart: collection.dayStart,
@@ -107,19 +114,25 @@ class StudyQueueService {
     );
   });
 
-  /// The new cards and reviews of [cards] studied since [since], by deck.
+  /// The new cards and reviews studied since [since] in [deckIds], by deck
+  /// of the card.
   Future<({Map<DeckId, int> newDone, Map<DeckId, int> reviewsDone})>
   _studiedToday(
-    Iterable<StudyCard> cards,
+    Set<DeckId> deckIds,
     CollectionId collectionId, {
     required DateTime since,
     required Duration dayStart,
   }) async {
-    final histories = await _reviews.historiesSince(collectionId, since);
-    final steps = await _rebuild.replaySteps({
-      for (final card in cards) card: ?histories[card.id],
-    }, dayStart: dayStart);
-    final decks = {for (final card in cards) card.id: card.deckId};
+    final histories = <StudyCard, List<ReviewEvent>>{};
+    for (final MapEntry(key: id, value: history)
+        in (await _reviews.historiesSince(collectionId, since)).entries) {
+      final card = await _cards.card(id);
+      if (card != null && deckIds.contains(card.deckId)) {
+        histories[card] = history;
+      }
+    }
+    final steps = await _rebuild.replaySteps(histories, dayStart: dayStart);
+    final decks = {for (final card in histories.keys) card.id: card.deckId};
     final newDone = <DeckId, int>{};
     final reviewsDone = <DeckId, int>{};
     for (final MapEntry(key: cardId, value: cardSteps) in steps.entries) {

@@ -98,6 +98,36 @@ void main() {
     },
   );
 
+  test('cardsWithState can list only new cards and cards due before a '
+      'time', () async {
+    final cutoff = DateTime.utc(2026, 10, 29, 18);
+    Future<StudyCard> withState(StudyCardState state, {DateTime? due}) async {
+      final (_, card) = await japanese.addNote('${state.name} $due');
+      await repos.cards.saveSchedulingState(
+        SchedulingState(studyCardId: card.id, state: state, due: due),
+      );
+      return card;
+    }
+
+    final newCard = await withState(StudyCardState.newCard);
+    final dueReview = await withState(
+      StudyCardState.review,
+      due: cutoff.subtract(const Duration(days: 1)),
+    );
+    final dueLearning = await withState(
+      StudyCardState.learning,
+      due: cutoff.subtract(const Duration(minutes: 1)),
+    );
+    await withState(StudyCardState.review, due: cutoff);
+    await withState(StudyCardState.burned);
+
+    final listed = await repos.cards.cardsWithState(
+      japanese.deck.id,
+      dueBefore: cutoff,
+    );
+    expect(listed.map((e) => e.$1), [newCard, dueReview, dueLearning]);
+  });
+
   test('watching a deck emits when a deck above it is deleted', () async {
     final child = await japanese.addDeck('Child', parentId: japanese.deck.id);
     final (_, card) = await japanese.addNote('猫', deckId: child.id);
