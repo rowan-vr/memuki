@@ -109,7 +109,8 @@ abstract class SchedulingState with _$SchedulingState {
     @Default(0) int lapses,
     @Default(0) int reviewCount,
 
-    /// The last event this state was computed from, or null for a new card.
+    /// The last action in effect this state was computed from, or null if
+    /// there is none, e.g. for a new card or after undoing every action.
     ReviewEventId? lastEventId,
   }) = _SchedulingState;
 }

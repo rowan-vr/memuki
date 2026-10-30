@@ -204,6 +204,9 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Burned state | Cards whose next interval reaches a configurable threshold are burned and leave normal scheduling | Decided |
 | Burn threshold | Per preset, can be disabled; default 1 year | Decided |
 | Grading a burned card | Pass: stays burned; Again: returns to relearning | Decided |
+| Unburning | The card returns to review with its interval and ease, due at the start of the current study day | Decided |
+| Undo and redo | An undo is an event referring to the event it cancels; an event is in effect unless an undo in effect refers to it. Undo cancels the latest review, burn, or unburn in effect; redo cancels the latest undo, while only undos and redos follow it. Undoing after a redo refers to the action again, so chains are at most redo → undo → action | Decided |
+| Leech tag on undo | Undoing below the leech threshold removes the `leech` tag from the note unless another of its cards is still at or above its own threshold; a redo that reaches it again re-tags | Decided |
 | Sub-day vs. day steps | Steps under 1d are exact durations; steps of 1d or more fall due at the start of the study day | Decided |
 | Start of study day | Per collection; default 03:00 local time | Decided |
 | Configuration scope | Per deck, via shared presets; a deck without its own preset inherits its parent's; root decks without one use the collection's default preset, which cannot be deleted | Decided |

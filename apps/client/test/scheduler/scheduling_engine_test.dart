@@ -148,6 +148,58 @@ void main() {
     });
   });
 
+  group('unburning', () {
+    test('returns a burned card to reviews, due at the start of today', () {
+      final burned = review(burnThreshold: const Duration(days: 1));
+      final unburn = event(kind: ReviewEventKind.unburn);
+      final state = engine.apply(burned, unburn, settings);
+      expect(state.state, StudyCardState.review);
+      // 03:00 on 29 October in UTC+9.
+      expect(state.due, DateTime.utc(2026, 10, 28, 18));
+      expect(state.interval, burned.interval);
+      expect(state.ease, burned.ease);
+      expect(state.reviewCount, 1);
+      expect(state.lastEventId, unburn.id);
+    });
+
+    test('uses the collection\'s study day start', () {
+      final burned = review(burnThreshold: const Duration(days: 1));
+      final state = engine.apply(
+        burned,
+        event(kind: ReviewEventKind.unburn),
+        const SchedulingSettings(dayStart: Duration(hours: 22)),
+      );
+      // 22:00 on 28 October in UTC+9.
+      expect(state.due, DateTime.utc(2026, 10, 28, 13));
+    });
+
+    test('leaves other cards unchanged', () {
+      final reviewed = review();
+      final state = engine.apply(
+        reviewed,
+        event(kind: ReviewEventKind.unburn),
+        settings,
+      );
+      expect(state.copyWith(lastEventId: reviewed.lastEventId), reviewed);
+    });
+  });
+
+  test('undo events cannot be applied', () {
+    final reviewed = review();
+    final undo = ReviewEvent(
+      id: ReviewEventId.generate(),
+      studyCardId: cardId,
+      kind: ReviewEventKind.undo,
+      at: at,
+      utcOffset: Duration.zero,
+      undoneEventId: reviewed.lastEventId,
+      schedulerId: 'test.fake',
+      schedulerVersion: 1,
+      presetVersionId: PresetVersionId.generate(),
+    );
+    expect(() => engine.apply(reviewed, undo, settings), throwsArgumentError);
+  });
+
   group('leeches', () {
     SchedulingState lapses(int count) =>
         engine.initial(cardId).copyWith(lapses: count);

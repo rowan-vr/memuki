@@ -1,6 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/note.dart';
+import 'package:memuki/domain/note_type.dart';
 import 'package:memuki/domain/preset.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/domain/study_card.dart';
@@ -225,6 +226,188 @@ void main() {
       );
       await service.review(card.id, Grade.again);
       expect(await tagNames(note), isEmpty);
+    });
+  });
+
+  group('burning', () {
+    test('a manual burn burns the card and records the event', () async {
+      final (_, card) = await japanese.addNote('猫');
+      final reviewed = await service.review(card.id, Grade.good);
+      final state = await service.burn(card.id);
+
+      expect(state.state, StudyCardState.burned);
+      expect(state.due, isNull);
+      expect(await repos.cards.schedulingState(card.id), state);
+      final event = (await repos.reviews.history(card.id)).last;
+      expect(event.kind, ReviewEventKind.burn);
+      expect(event.id, state.lastEventId);
+      expect(event.dueBefore, reviewed.due);
+      expect(event.dueAfter, isNull);
+    });
+
+    test('an unburned card is due at the start of today', () async {
+      final (_, card) = await japanese.addNote('猫');
+      await service.review(card.id, Grade.easy);
+      await service.burn(card.id);
+      final state = await service.unburn(card.id);
+
+      expect(state.state, StudyCardState.review);
+      // 03:00 on 29 October in UTC+9.
+      expect(state.due, DateTime.utc(2026, 10, 28, 18));
+      expect(state.interval, const Duration(days: 14));
+      final event = (await repos.reviews.history(card.id)).last;
+      expect(event.kind, ReviewEventKind.unburn);
+      expect(event.dueAfter, state.due);
+    });
+
+    test(
+      'rejects burning a burned card and unburning an unburned one',
+      () async {
+        final (_, card) = await japanese.addNote('猫');
+        await expectLater(
+          service.unburn(card.id),
+          throwsA(isA<InvalidReviewEventException>()),
+        );
+        await service.burn(card.id);
+        await expectLater(
+          service.burn(card.id),
+          throwsA(isA<InvalidReviewEventException>()),
+        );
+        expect(await repos.reviews.history(card.id), hasLength(1));
+      },
+    );
+  });
+
+  group('undo', () {
+    test('undoing a review restores the state before it', () async {
+      final (_, card) = await japanese.addNote('猫');
+      final first = await service.review(card.id, Grade.good);
+      now = first.due!;
+      final second = await service.review(card.id, Grade.good);
+      now = now.add(const Duration(minutes: 1));
+      final undone = await service.undo(card.id);
+
+      expect(undone, first);
+      expect(await repos.cards.schedulingState(card.id), first);
+      final history = await repos.reviews.history(card.id);
+      expect(history, hasLength(3));
+      expect(history.last.kind, ReviewEventKind.undo);
+      expect(history.last.undoneEventId, second.lastEventId);
+      expect(history.last.dueBefore, second.due);
+      expect(history.last.dueAfter, first.due);
+    });
+
+    test('undo and redo walk back and forth', () async {
+      final (_, card) = await japanese.addNote('猫');
+      final first = await service.review(card.id, Grade.good);
+      now = first.due!;
+      final second = await service.review(card.id, Grade.easy);
+
+      expect(await service.undo(card.id), first);
+      final none = await service.undo(card.id);
+      expect(none.state, StudyCardState.newCard);
+      expect(none.lastEventId, isNull);
+      expect(await service.redo(card.id), first);
+      expect(await service.redo(card.id), second);
+      expect(await service.undo(card.id), first);
+    });
+
+    test('undoes burns and unburns', () async {
+      final (_, card) = await japanese.addNote('猫');
+      final reviewed = await service.review(card.id, Grade.easy);
+      final burned = await service.burn(card.id);
+      await service.unburn(card.id);
+      expect(await service.undo(card.id), burned);
+      expect(await service.undo(card.id), reviewed);
+    });
+
+    test(
+      'rejects undo and redo when there is nothing to undo or redo',
+      () async {
+        final (_, card) = await japanese.addNote('猫');
+        await expectLater(
+          service.undo(card.id),
+          throwsA(isA<InvalidReviewEventException>()),
+        );
+        await service.review(card.id, Grade.good);
+        await expectLater(
+          service.redo(card.id),
+          throwsA(isA<InvalidReviewEventException>()),
+        );
+        await service.undo(card.id);
+        await service.review(card.id, Grade.easy);
+        await expectLater(
+          service.redo(card.id),
+          throwsA(isA<InvalidReviewEventException>()),
+        );
+      },
+    );
+
+    group('leeches', () {
+      setUp(() async {
+        await repos.presets.updateSettings(
+          japanese.preset.id,
+          PresetVersion(
+            id: PresetVersionId.generate(),
+            schedulerConfig: {'fuzz': false},
+            leechThreshold: 1,
+          ),
+        );
+      });
+
+      /// Graduates the card and fails it once, making it a leech.
+      Future<void> lapse(StudyCardId card) async {
+        await service.review(card, Grade.easy);
+        await service.review(card, Grade.again);
+      }
+
+      test('undoing the lapse that made a leech removes the tag', () async {
+        final (note, card) = await japanese.addNote('猫');
+        await lapse(card.id);
+        final tag = (await repos.notes.tagIds(note.id)).single;
+
+        await service.undo(card.id);
+        expect(await repos.notes.tagIds(note.id), isEmpty);
+        expect(await repos.tags.tags(japanese.id), hasLength(1));
+
+        await service.redo(card.id);
+        expect(await repos.notes.tagIds(note.id), {tag});
+      });
+
+      test('keeps the tag while another card of the note is a leech', () async {
+        final template = StudyCardTemplate(
+          id: StudyCardTemplateId.generate(),
+          name: 'Card 2',
+        );
+        await repos.noteTypes.updateNoteType(
+          japanese.noteType.copyWith(
+            templates: [...japanese.noteType.templates, template],
+          ),
+        );
+        final (note, card) = await japanese.addNote('猫');
+        final sibling = StudyCard(
+          noteId: note.id,
+          templateId: template.id,
+          deckId: japanese.deck.id,
+        );
+        await repos.cards.createCard(sibling);
+        await lapse(card.id);
+        await lapse(sibling.id);
+
+        await service.undo(card.id);
+        expect(await repos.notes.tagIds(note.id), hasLength(1));
+        await service.undo(sibling.id);
+        expect(await repos.notes.tagIds(note.id), isEmpty);
+      });
+
+      test('undoing other events leaves the tag alone', () async {
+        final (note, card) = await japanese.addNote('猫');
+        final tag = await japanese.addTag('leech');
+        await repos.notes.addTag(note.id, tag.id);
+        await service.review(card.id, Grade.good);
+        await service.undo(card.id);
+        expect(await repos.notes.tagIds(note.id), {tag.id});
+      });
     });
   });
 }

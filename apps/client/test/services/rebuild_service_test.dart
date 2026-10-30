@@ -72,7 +72,6 @@ void main() {
     StudyCardId card,
     ReviewEventKind kind, {
     String schedulerId = 'memuki.steps-sm2',
-    ReviewEventId? undoes,
   }) => ReviewEvent(
     id: ReviewEventId.generate(),
     studyCardId: card,
@@ -80,7 +79,6 @@ void main() {
     at: now,
     utcOffset: Duration.zero,
     grade: kind == ReviewEventKind.review ? Grade.good : null,
-    undoneEventId: undoes,
     schedulerId: schedulerId,
     schedulerVersion: 1,
     presetVersionId: japanese.preset.version.id,
@@ -185,11 +183,7 @@ void main() {
     final (_, broken) = await japanese.addNote('猫');
     final (_, fine) = await japanese.addNote('犬');
     final live = await study(fine.id, [Grade.good]);
-    final reviewed = event(broken.id, ReviewEventKind.review);
-    await repos.reviews.append(reviewed);
-    await repos.reviews.append(
-      event(broken.id, ReviewEventKind.undo, undoes: reviewed.id),
-    );
+    await repos.reviews.append(event(broken.id, ReviewEventKind.reschedule));
     final before = await repos.cards.schedulingState(broken.id);
     await corrupt(fine.id);
 
@@ -197,6 +191,19 @@ void main() {
     expect(report.failures.keys, [broken.id]);
     expect(await repos.cards.schedulingState(broken.id), before);
     expect(await repos.cards.schedulingState(fine.id), live);
+  });
+
+  test('skips undone events', () async {
+    final (_, card) = await japanese.addNote('猫');
+    final live = await study(card.id, [Grade.good, Grade.again]);
+    await reviews.review(card.id, Grade.easy);
+    await reviews.undo(card.id);
+    await reviews.burn(card.id);
+    await reviews.undo(card.id);
+    await corrupt(card.id);
+
+    await rebuild.rebuildCard(card.id);
+    expect(await repos.cards.schedulingState(card.id), live);
   });
 
   test('replay adds no leech tags', () async {
