@@ -1,22 +1,8 @@
 import 'package:flutter/material.dart';
 
-/// Heading typeface candidates, compared in the component catalogue until the
-/// heading typeface is settled. Body text always uses Noto Sans JP.
-enum HeadingFace {
-  fraunces('Fraunces', serif: true),
-  sourceSerif('SourceSerif4', serif: true),
-  zenMaruGothic('ZenMaruGothic'),
-  mPlusRounded('MPLUSRounded1c');
-
-  const HeadingFace(this.family, {this.serif = false});
-
-  final String family;
-  final bool serif;
-}
-
-/// Memuki's type scale. Headings use a face with character; body text and
-/// labels use Noto Sans JP, which also backs the heading faces for Japanese and
-/// other glyphs they lack.
+/// Memuki's type scale. Headings use Zen Maru Gothic, a rounded face; body text
+/// and labels use Noto Sans JP, which also backs headings for glyphs Zen Maru
+/// Gothic lacks.
 @immutable
 class MemukiType extends ThemeExtension<MemukiType> {
   const MemukiType({
@@ -34,18 +20,15 @@ class MemukiType extends ThemeExtension<MemukiType> {
   /// Chinese glyph variants for Han characters.
   static const bodyFamily = 'NotoSansJP';
 
-  factory MemukiType.of(HeadingFace face, Color color) {
+  static const headingFamily = 'ZenMaruGothic';
+
+  factory MemukiType.of(Color color) {
     TextStyle headingStyle(double size, double height) => TextStyle(
-      fontFamily: face.family,
+      fontFamily: headingFamily,
       fontFamilyFallback: const [bodyFamily],
       fontSize: size,
       height: height / size,
-      fontWeight: face.serif ? FontWeight.w600 : FontWeight.w700,
-      fontVariations: [
-        FontVariation.weight(face.serif ? 600 : 700),
-        // Rounds Fraunces' terminals slightly; other faces ignore the axis.
-        if (face == HeadingFace.fraunces) const FontVariation('SOFT', 50),
-      ],
+      fontWeight: FontWeight.w700,
       letterSpacing: 0,
       color: color,
     );

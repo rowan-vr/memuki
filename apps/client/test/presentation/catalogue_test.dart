@@ -49,9 +49,6 @@ void main() {
       MemukiColors.of(ColorMode.sepia, MemukiAccent.green).accent.base,
     );
 
-    await pick('sourceSerif');
-    expect(_content(tester).type.heading.fontFamily, 'SourceSerif4');
-
     for (final style in CardStyle.values) {
       await pick(style.name);
       expect(_content(tester).layout.cardStyle, style);

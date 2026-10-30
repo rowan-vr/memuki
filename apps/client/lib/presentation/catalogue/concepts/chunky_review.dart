@@ -129,7 +129,7 @@ class _Chunk {
 }
 
 TextStyle _bold(double size, Color color) => TextStyle(
-  fontFamily: 'MPLUSRounded1c',
+  fontFamily: 'ZenMaruGothic',
   fontFamilyFallback: const ['NotoSansJP'],
   fontWeight: FontWeight.w700,
   fontSize: size,

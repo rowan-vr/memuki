@@ -17,27 +17,23 @@ class Appearance {
   const Appearance({
     this.mode = ColorMode.light,
     this.accent = MemukiAccent.blue,
-    this.headingFace = HeadingFace.zenMaruGothic,
     this.cardStyle = CardStyle.notecard,
     this.density = Density.comfortable,
   });
 
   final ColorMode mode;
   final MemukiAccent accent;
-  final HeadingFace headingFace;
   final CardStyle cardStyle;
   final Density density;
 
   Appearance copyWith({
     ColorMode? mode,
     MemukiAccent? accent,
-    HeadingFace? headingFace,
     CardStyle? cardStyle,
     Density? density,
   }) => Appearance(
     mode: mode ?? this.mode,
     accent: accent ?? this.accent,
-    headingFace: headingFace ?? this.headingFace,
     cardStyle: cardStyle ?? this.cardStyle,
     density: density ?? this.density,
   );
@@ -54,7 +50,7 @@ abstract final class AppTheme {
       cardStyle: appearance.cardStyle,
       density: appearance.density,
     );
-    final type = MemukiType.of(appearance.headingFace, colors.text);
+    final type = MemukiType.of(colors.text);
     final scheme = ColorScheme(
       brightness: colors.brightness,
       primary: colors.accent.base,

@@ -3,7 +3,6 @@ import 'package:flutter/material.dart';
 import '../theme/app_theme.dart';
 import '../theme/memuki_colors.dart';
 import '../theme/memuki_layout.dart';
-import '../theme/memuki_type.dart';
 import '../theme/motion.dart';
 import '../theme/radii.dart';
 import '../theme/spacing.dart';
@@ -101,13 +100,6 @@ class _Controls extends StatelessWidget {
         _AccentPicker(
           selected: a.accent,
           onSelected: (v) => onChanged(a.copyWith(accent: v)),
-        ),
-        _ChoiceGroup(
-          label: 'Headings',
-          values: HeadingFace.values,
-          selected: a.headingFace,
-          name: (v) => v.name,
-          onSelected: (v) => onChanged(a.copyWith(headingFace: v)),
         ),
         _ChoiceGroup(
           label: 'Card style',
