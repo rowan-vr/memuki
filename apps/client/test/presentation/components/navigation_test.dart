@@ -35,6 +35,15 @@ Color? _fill(WidgetTester tester, String label) {
   return (container.decoration! as BoxDecoration).color;
 }
 
+/// Where the sliding highlight is.
+Rect _indicator(WidgetTester tester) =>
+    tester.getRect(find.byType(AnimatedPositioned));
+
+/// Where the destination labelled [label] is.
+Rect _destination(WidgetTester tester, String label) => tester.getRect(
+  find.ancestor(of: find.text(label), matching: find.byType(Pressable)),
+);
+
 void main() {
   for (final (name, build)
       in <(String, Widget Function(int, ValueChanged<int>))>[
@@ -102,8 +111,30 @@ void main() {
             label: 'Decks',
           ),
         );
-        final colors = tester.element(find.text('Home')).colors;
-        expect(_fill(tester, 'Decks'), colors.accent.soft);
+        await tester.pump();
+        expect(
+          _destination(tester, 'Decks').contains(_indicator(tester).center),
+          isTrue,
+        );
+      });
+
+      testWidgets('slides the highlight to a newly selected destination', (
+        tester,
+      ) async {
+        await _pump(tester, build(0, (_) {}));
+        await tester.pump();
+        final from = _indicator(tester).center;
+
+        await _pump(tester, build(1, (_) {}));
+        await tester.pump();
+        await tester.pump(const Duration(milliseconds: 60));
+        final midway = _indicator(tester).center;
+
+        await tester.pumpAndSettle();
+        final to = _indicator(tester).center;
+        expect(_destination(tester, 'Decks').contains(to), isTrue);
+        expect(midway, isNot(from));
+        expect(midway, isNot(to));
       });
 
       testWidgets('tints a destination on hover', (tester) async {

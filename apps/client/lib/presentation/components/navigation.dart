@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../theme/radii.dart';
 import '../theme/spacing.dart';
+import 'animations.dart';
 import 'pressable.dart';
 
 /// A top-level destination in a [NavBar] or [NavRail].
@@ -16,7 +17,8 @@ class NavDestination {
 }
 
 /// The navigation along the bottom of compact windows: an icon and a label
-/// per destination, the selected one on a tint of the accent.
+/// per destination, the selected one on a tint of the accent that slides
+/// over when the selection changes.
 class NavBar extends StatelessWidget {
   const NavBar({
     super.key,
@@ -44,17 +46,23 @@ class NavBar extends StatelessWidget {
             horizontal: Spacing.sm,
             vertical: Spacing.xs + 2,
           ),
-          child: Row(
-            children: [
-              for (final (i, d) in destinations.indexed)
-                Expanded(
-                  child: _BarItem(
-                    destination: d,
-                    selected: i == selectedIndex,
-                    onTap: () => onSelected(i),
+          child: SlidingIndicator(
+            count: destinations.length,
+            selected: selectedIndex,
+            indicator: const _Indicator(pill: true),
+            builder: (context, anchor) => Row(
+              children: [
+                for (final (i, d) in destinations.indexed)
+                  Expanded(
+                    child: _BarItem(
+                      destination: d,
+                      selected: i == selectedIndex,
+                      onTap: () => onSelected(i),
+                      anchor: (child) => anchor(i, child),
+                    ),
                   ),
-                ),
-            ],
+              ],
+            ),
           ),
         ),
       ),
@@ -62,16 +70,36 @@ class NavBar extends StatelessWidget {
   }
 }
 
+/// The selected destination's highlight, slid between destinations by a
+/// [SlidingIndicator].
+class _Indicator extends StatelessWidget {
+  const _Indicator({required this.pill});
+
+  final bool pill;
+
+  @override
+  Widget build(BuildContext context) => DecoratedBox(
+    decoration: BoxDecoration(
+      color: context.colors.accent.soft,
+      borderRadius: BorderRadius.circular(pill ? Radii.pill : Radii.sm),
+    ),
+  );
+}
+
 class _BarItem extends StatelessWidget {
   const _BarItem({
     required this.destination,
     required this.selected,
     required this.onTap,
+    required this.anchor,
   });
 
   final NavDestination destination;
   final bool selected;
   final VoidCallback onTap;
+
+  /// Marks the part the [_Indicator] covers when selected.
+  final Widget Function(Widget child) anchor;
 
   @override
   Widget build(BuildContext context) {
@@ -86,20 +114,23 @@ class _BarItem extends StatelessWidget {
         child: Column(
           mainAxisSize: MainAxisSize.min,
           children: [
-            AnimatedContainer(
-              duration: Motion.quick,
-              curve: Motion.settle,
-              width: 56,
-              height: 30,
-              decoration: BoxDecoration(
-                color: selected
-                    ? colors.accent.soft
-                    : state.hovered
-                    ? colors.surfaceSunken
-                    : null,
-                borderRadius: BorderRadius.circular(Radii.pill),
+            anchor(
+              AnimatedContainer(
+                duration: Motion.quick,
+                curve: Motion.settle,
+                width: 56,
+                height: 30,
+                decoration: BoxDecoration(
+                  color: state.hovered && !selected
+                      ? colors.surfaceSunken
+                      : null,
+                  borderRadius: BorderRadius.circular(Radii.pill),
+                ),
+                child: Pop(
+                  active: selected,
+                  child: Icon(destination.icon, size: 20, color: fg),
+                ),
               ),
-              child: Icon(destination.icon, size: 20, color: fg),
             ),
             const SizedBox(height: Spacing.xs),
             Text(
@@ -166,21 +197,35 @@ class NavRail extends StatelessWidget {
                   ),
                   child: Text(title!, style: context.type.title),
                 ),
-              for (final (i, d) in destinations.indexed)
-                Padding(
-                  padding: const EdgeInsets.only(bottom: Spacing.xs),
-                  child: extended
-                      ? _RailRow(
-                          destination: d,
-                          selected: i == selectedIndex,
-                          onTap: () => onSelected(i),
-                        )
-                      : _BarItem(
-                          destination: d,
-                          selected: i == selectedIndex,
-                          onTap: () => onSelected(i),
-                        ),
+              SlidingIndicator(
+                count: destinations.length,
+                selected: selectedIndex,
+                indicator: _Indicator(pill: !extended),
+                builder: (context, anchor) => Column(
+                  crossAxisAlignment: CrossAxisAlignment.stretch,
+                  children: [
+                    for (final (i, d) in destinations.indexed)
+                      Padding(
+                        padding: const EdgeInsets.only(bottom: Spacing.xs),
+                        child: extended
+                            ? anchor(
+                                i,
+                                _RailRow(
+                                  destination: d,
+                                  selected: i == selectedIndex,
+                                  onTap: () => onSelected(i),
+                                ),
+                              )
+                            : _BarItem(
+                                destination: d,
+                                selected: i == selectedIndex,
+                                onTap: () => onSelected(i),
+                                anchor: (child) => anchor(i, child),
+                              ),
+                      ),
+                  ],
                 ),
+              ),
             ],
           ),
         ),
@@ -217,16 +262,15 @@ class _RailRow extends StatelessWidget {
           vertical: context.layout.dense(Spacing.sm + 2),
         ),
         decoration: BoxDecoration(
-          color: selected
-              ? colors.accent.soft
-              : state.hovered
-              ? colors.surfaceSunken
-              : null,
+          color: state.hovered && !selected ? colors.surfaceSunken : null,
           borderRadius: radius,
         ),
         child: Row(
           children: [
-            Icon(destination.icon, size: 20, color: fg),
+            Pop(
+              active: selected,
+              child: Icon(destination.icon, size: 20, color: fg),
+            ),
             const SizedBox(width: Spacing.sm + 4),
             Expanded(
               child: Text(

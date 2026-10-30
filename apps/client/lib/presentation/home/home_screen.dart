@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../components/animations.dart';
 import '../components/screen.dart';
 import '../theme/spacing.dart';
 
@@ -19,12 +20,20 @@ class HomeScreen extends StatelessWidget {
           child: Column(
             mainAxisSize: MainAxisSize.min,
             children: [
-              Text(l10n.homeWelcomeTitle, style: textTheme.headlineMedium),
+              Entrance(
+                child: Text(
+                  l10n.homeWelcomeTitle,
+                  style: textTheme.headlineMedium,
+                ),
+              ),
               const SizedBox(height: Spacing.sm),
-              Text(
-                l10n.homeWelcomeBody,
-                style: textTheme.bodyLarge,
-                textAlign: TextAlign.center,
+              Entrance(
+                index: 1,
+                child: Text(
+                  l10n.homeWelcomeBody,
+                  style: textTheme.bodyLarge,
+                  textAlign: TextAlign.center,
+                ),
               ),
             ],
           ),

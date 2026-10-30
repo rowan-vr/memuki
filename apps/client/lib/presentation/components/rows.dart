@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../theme/radii.dart';
 import '../theme/spacing.dart';
+import 'animations.dart';
 import 'icons.dart';
 import 'panel.dart';
 import 'pressable.dart';
@@ -78,7 +79,8 @@ class ListRow extends StatelessWidget {
   }
 }
 
-/// Rows on one panel, separated by hairlines.
+/// Rows on one panel, separated by hairlines. The rows arrive in a short
+/// stagger when the group first appears.
 class RowGroup extends StatelessWidget {
   const RowGroup({super.key, required this.children});
 
@@ -102,7 +104,7 @@ class RowGroup extends StatelessWidget {
                 margin: const EdgeInsets.symmetric(horizontal: Spacing.sm),
                 color: border,
               ),
-            child,
+            Entrance(index: i, child: child),
           ],
         ],
       ),

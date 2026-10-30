@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../components/animations.dart';
 import '../components/screen.dart';
 import '../theme/spacing.dart';
 
@@ -15,10 +16,12 @@ class DecksScreen extends StatelessWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(Spacing.lg),
-          child: Text(
-            l10n.decksEmpty,
-            style: Theme.of(context).textTheme.bodyLarge,
-            textAlign: TextAlign.center,
+          child: Entrance(
+            child: Text(
+              l10n.decksEmpty,
+              style: Theme.of(context).textTheme.bodyLarge,
+              textAlign: TextAlign.center,
+            ),
           ),
         ),
       ),

@@ -4,6 +4,7 @@ import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../theme/radii.dart';
 import '../theme/spacing.dart';
+import 'animations.dart';
 import 'panel.dart';
 import 'pressable.dart';
 
@@ -18,7 +19,8 @@ class Choice<T> {
 }
 
 /// Picks one of a few options, shown side by side in a sunken track with the
-/// selected one raised. Options wrap onto further lines when they do not fit.
+/// selected one raised, sliding over when the selection changes. Options wrap
+/// onto further lines when they do not fit.
 class SegmentedChoice<T> extends StatelessWidget {
   const SegmentedChoice({
     super.key,
@@ -40,15 +42,29 @@ class SegmentedChoice<T> extends StatelessWidget {
         color: colors.surfaceSunken,
         borderRadius: BorderRadius.circular(Radii.sm),
       ),
-      child: Wrap(
-        children: [
-          for (final choice in choices)
-            _Segment(
-              choice: choice,
-              selected: choice.value == selected,
-              onTap: () => onSelected(choice.value),
-            ),
-        ],
+      child: SlidingIndicator(
+        count: choices.length,
+        selected: choices.indexWhere((c) => c.value == selected),
+        indicator: DecoratedBox(
+          decoration: BoxDecoration(
+            color: colors.surfaceRaised,
+            borderRadius: BorderRadius.circular(Radii.sm - 3),
+            boxShadow: paperShadow(colors),
+          ),
+        ),
+        builder: (context, anchor) => Wrap(
+          children: [
+            for (final (i, choice) in choices.indexed)
+              anchor(
+                i,
+                _Segment(
+                  choice: choice,
+                  selected: choice.value == selected,
+                  onTap: () => onSelected(choice.value),
+                ),
+              ),
+          ],
+        ),
       ),
     );
   }
@@ -82,13 +98,10 @@ class _Segment<T> extends StatelessWidget {
           vertical: context.layout.dense(Spacing.xs + 2),
         ),
         decoration: BoxDecoration(
-          color: selected
-              ? colors.surfaceRaised
-              : state.hovered
+          color: state.hovered && !selected
               ? colors.border.withValues(alpha: 0.5)
               : null,
           borderRadius: radius,
-          boxShadow: selected ? paperShadow(colors) : null,
         ),
         child: Row(
           mainAxisSize: MainAxisSize.min,

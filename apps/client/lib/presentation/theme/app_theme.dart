@@ -1,9 +1,11 @@
+import 'package:flutter/cupertino.dart' show CupertinoPageTransitionsBuilder;
 import 'package:flutter/material.dart';
 
 import 'contrast.dart';
 import 'memuki_colors.dart';
 import 'memuki_layout.dart';
 import 'memuki_type.dart';
+import 'page_transitions.dart';
 
 /// Builds the app's themes from Memuki's tokens.
 ///
@@ -95,20 +97,16 @@ abstract final class AppTheme {
         bodySmall: type.caption,
       ),
       primaryTextTheme: _withWeightAxis(base.primaryTextTheme),
-      appBarTheme: AppBarTheme(
-        backgroundColor: colors.background,
-        surfaceTintColor: Colors.transparent,
-        scrolledUnderElevation: 0,
-        titleTextStyle: type.title,
-      ),
-      navigationBarTheme: NavigationBarThemeData(
-        backgroundColor: colors.surface,
-        indicatorColor: colors.accent.soft,
-        surfaceTintColor: Colors.transparent,
-      ),
-      navigationRailTheme: NavigationRailThemeData(
-        backgroundColor: colors.surface,
-        indicatorColor: colors.accent.soft,
+      pageTransitionsTheme: const PageTransitionsTheme(
+        builders: {
+          // iOS keeps its own transition for the edge swipe back.
+          TargetPlatform.iOS: CupertinoPageTransitionsBuilder(),
+          TargetPlatform.android: MemukiPageTransitionsBuilder(),
+          TargetPlatform.fuchsia: MemukiPageTransitionsBuilder(),
+          TargetPlatform.linux: MemukiPageTransitionsBuilder(),
+          TargetPlatform.macOS: MemukiPageTransitionsBuilder(),
+          TargetPlatform.windows: MemukiPageTransitionsBuilder(),
+        },
       ),
       textSelectionTheme: TextSelectionThemeData(
         cursorColor: colors.accent.base,

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../components/animations.dart';
 import '../components/icons.dart';
 import '../components/panel.dart';
 import '../components/screen.dart';
@@ -22,34 +23,36 @@ class SettingsScreen extends ConsumerWidget {
       body: ListView(
         padding: const EdgeInsets.all(Spacing.lg),
         children: [
-          Panel(
-            child: Column(
-              crossAxisAlignment: CrossAxisAlignment.start,
-              children: [
-                Text(l10n.settingsThemeMode, style: context.type.bodyStrong),
-                const SizedBox(height: Spacing.sm),
-                SegmentedChoice(
-                  choices: [
-                    Choice(
-                      ThemeMode.system,
-                      l10n.settingsThemeModeSystem,
-                      icon: MemukiIcons.systemTheme,
-                    ),
-                    Choice(
-                      ThemeMode.light,
-                      l10n.settingsThemeModeLight,
-                      icon: MemukiIcons.lightTheme,
-                    ),
-                    Choice(
-                      ThemeMode.dark,
-                      l10n.settingsThemeModeDark,
-                      icon: MemukiIcons.darkTheme,
-                    ),
-                  ],
-                  selected: themeMode,
-                  onSelected: ref.read(themeModeProvider.notifier).select,
-                ),
-              ],
+          Entrance(
+            child: Panel(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.settingsThemeMode, style: context.type.bodyStrong),
+                  const SizedBox(height: Spacing.sm),
+                  SegmentedChoice(
+                    choices: [
+                      Choice(
+                        ThemeMode.system,
+                        l10n.settingsThemeModeSystem,
+                        icon: MemukiIcons.systemTheme,
+                      ),
+                      Choice(
+                        ThemeMode.light,
+                        l10n.settingsThemeModeLight,
+                        icon: MemukiIcons.lightTheme,
+                      ),
+                      Choice(
+                        ThemeMode.dark,
+                        l10n.settingsThemeModeDark,
+                        icon: MemukiIcons.darkTheme,
+                      ),
+                    ],
+                    selected: themeMode,
+                    onSelected: ref.read(themeModeProvider.notifier).select,
+                  ),
+                ],
+              ),
             ),
           ),
         ],

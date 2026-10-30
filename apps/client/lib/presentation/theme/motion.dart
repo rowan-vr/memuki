@@ -1,4 +1,4 @@
-import 'package:flutter/animation.dart';
+import 'package:flutter/widgets.dart';
 
 /// Durations and curves. Motion is short and slightly springy; it confirms an
 /// action and never makes the user wait.
@@ -20,4 +20,9 @@ abstract final class Motion {
 
   /// Elements leaving.
   static const exit = Curves.easeInCubic;
+
+  /// Whether to animate: false when the platform asks for reduced motion,
+  /// in which case motion is left out or replaced by a fade.
+  static bool enabled(BuildContext context) =>
+      !MediaQuery.disableAnimationsOf(context);
 }

@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../components/animations.dart';
 import '../components/buttons.dart';
 import '../components/icons.dart';
 import '../components/indicators.dart';
@@ -387,8 +388,8 @@ class _Page extends StatelessWidget {
         ),
         Text(section.title, style: context.type.display),
         const SizedBox(height: Spacing.lg),
-        for (final specimen in specimens) ...[
-          specimen,
+        for (final (i, specimen) in specimens.indexed) ...[
+          Entrance(index: i, child: specimen),
           const SizedBox(height: Spacing.xl),
         ],
       ],

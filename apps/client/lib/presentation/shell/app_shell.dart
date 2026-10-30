@@ -3,6 +3,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../components/animations.dart';
 import '../components/icons.dart';
 import '../components/navigation.dart';
 import '../developer/developer_tools_provider.dart';
@@ -32,11 +33,12 @@ class AppShell extends ConsumerWidget {
         const NavDestination(icon: MemukiIcons.developer, label: 'Developer'),
     ];
     final selected = navigationShell.currentIndex;
+    final page = SwitchTransition(value: selected, child: navigationShell);
 
     final windowSize = WindowSize.of(context);
     if (windowSize == WindowSize.compact) {
       return Scaffold(
-        body: navigationShell,
+        body: page,
         bottomNavigationBar: NavBar(
           destinations: destinations,
           selectedIndex: selected,
@@ -55,7 +57,7 @@ class AppShell extends ConsumerWidget {
             extended: windowSize == WindowSize.expanded,
             title: l10n.appTitle,
           ),
-          Expanded(child: navigationShell),
+          Expanded(child: page),
         ],
       ),
     );
