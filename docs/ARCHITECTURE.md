@@ -96,6 +96,7 @@ With this model, merging concurrent reviews from different devices reduces to me
 - **Study day:** starts at a per-collection hour (default 03:00 local time). Steps under 1d are exact durations; steps of 1d or more fall due at the start of a study day.
 - **Nested decks:** studying a deck includes all decks below it. Each deck's daily limit caps the cards from it and the decks below it, and the studied deck's limit caps the combined total.
 - **Study queue:** built from the cards' scheduling state when a card is needed, not stored. Due learning and relearning cards come first and are never limited; due reviews (most overdue first) and new cards follow, capped by the limits and ordered by the studied deck's preset: new cards mixed evenly among reviews, or either first, and introduced in creation order or a random order fixed for the study day. When nothing else is left, learning cards due within 20 minutes are shown early. What was studied today is counted from the events in effect in the current study day, so an undo gives a slot back: a review counts as a new card if its recorded state before is new, and against the review limit if it is review.
+- **Suspending and burying:** card properties, synced like other card edits, not review events. A suspended card is left out of every queue; a buried card is left out until its `buried_until` time. A study session can skip cards for that session only, which is not stored. Sibling burying is not stored either: once a card of a note has a review in effect today, the note's other new and review cards are left out of the day's queue, as the studied deck's preset sets; learning cards are never buried.
 - **FSRS:** added in a later phase as an alternative review-phase algorithm; learning and relearning steps remain. Review events store grade, timestamps, due times, and response time from the start, so FSRS memory state can be computed from existing history when it is introduced.
 
 ## Card rendering
@@ -235,6 +236,7 @@ memuki/
 | D39 | Review events record the device's UTC offset; replay uses it and the recorded scheduler version, keeping old versions available | Decided | 2 |
 | D40 | Preset settings are immutable versions identified by UUID; review events record the version ID; each collection has an undeletable default preset | Decided | 2 |
 | D41 | Study queues are computed from scheduling state and today's history in effect; learning cards first, then reviews and new cards ordered per preset | Decided | 2 |
+| D42 | Suspending and burying are synced card properties; sibling burying is computed from today's events in effect | Decided | 2 |
 
 ## Open questions
 

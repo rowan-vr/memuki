@@ -92,5 +92,13 @@ abstract class PresetVersion with _$PresetVersion {
     @Default(500) int reviewsPerDay,
     @Default(NewCardMix.mixed) NewCardMix newCardMix,
     @Default(NewCardOrder.created) NewCardOrder newCardOrder,
+
+    /// Whether studying a card keeps the note's other new cards out of the
+    /// day's queue.
+    @Default(true) bool buryNewSiblings,
+
+    /// Whether studying a card keeps the note's other review cards out of
+    /// the day's queue.
+    @Default(true) bool buryReviewSiblings,
   }) = _PresetVersion;
 }

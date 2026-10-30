@@ -1,5 +1,7 @@
 import 'package:flutter_test/flutter_test.dart';
+import 'package:memuki/domain/collection.dart';
 import 'package:memuki/domain/ids.dart';
+import 'package:memuki/domain/note_type.dart';
 import 'package:memuki/domain/preset.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/domain/study_card.dart';
@@ -201,6 +203,84 @@ void main() {
     final queue = await queues.queue(japanese.deck.id);
     expect(queue.newCount, 1);
     expect(queue.next, cards[1].id);
+  });
+
+  test('suspended cards and cards buried until later are left out', () async {
+    final cards = await addNotes(3);
+    await repos.cards.setSuspended([cards[0].id], true);
+    await repos.cards.setBuriedUntil([
+      cards[1].id,
+    ], now.add(const Duration(hours: 1)));
+    var queue = await queues.queue(japanese.deck.id);
+    expect(queue.newCount, 1);
+    expect(queue.next, cards[2].id);
+
+    now = now.add(const Duration(hours: 1));
+    queue = await queues.queue(japanese.deck.id);
+    expect(queue.newCount, 2);
+    expect(queue.next, cards[1].id);
+  });
+
+  test('cards skipped for the session are left out', () async {
+    final cards = await addNotes(2);
+    final queue = await queues.queue(japanese.deck.id, skip: {cards[0].id});
+    expect(queue.newCount, 1);
+    expect(queue.next, cards[1].id);
+  });
+
+  group('sibling burying', () {
+    late StudyCard first;
+    late StudyCard sibling;
+    late Deck other;
+
+    setUp(() async {
+      final template = StudyCardTemplate(
+        id: StudyCardTemplateId.generate(),
+        name: 'Card 2',
+      );
+      await repos.noteTypes.updateNoteType(
+        japanese.noteType.copyWith(
+          templates: [...japanese.noteType.templates, template],
+        ),
+      );
+      other = await japanese.addDeck('Reverse');
+      final (note, card) = await japanese.addNote('猫');
+      first = card;
+      sibling = StudyCard(
+        noteId: note.id,
+        templateId: template.id,
+        deckId: japanese.deck.id,
+      );
+      await repos.cards.createCard(sibling);
+    });
+
+    test('studying a card buries its new sibling for the day', () async {
+      await reviews.review(first.id, Grade.good);
+      expect((await queues.queue(japanese.deck.id)).newCount, 0);
+      now = now.add(const Duration(days: 1));
+      expect((await queues.queue(japanese.deck.id)).newCount, 1);
+    });
+
+    test('an undo brings the sibling back', () async {
+      await reviews.review(first.id, Grade.good);
+      await reviews.undo(first.id);
+      expect((await queues.queue(japanese.deck.id)).newCount, 2);
+    });
+
+    test('a sibling studied in another deck counts', () async {
+      await repos.cards.moveCard(first.id, other.id);
+      await reviews.review(first.id, Grade.good);
+      expect((await queues.queue(japanese.deck.id)).newCount, 0);
+    });
+
+    test('can be turned off in the preset', () async {
+      await repos.presets.updateSettings(
+        japanese.preset.id,
+        PresetVersion(id: PresetVersionId.generate(), buryNewSiblings: false),
+      );
+      await reviews.review(first.id, Grade.good);
+      expect((await queues.queue(japanese.deck.id)).next, sibling.id);
+    });
   });
 
   test('rejects unknown decks', () async {

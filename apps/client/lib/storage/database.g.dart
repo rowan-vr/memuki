@@ -3639,6 +3639,30 @@ class $StudyCardsTable extends StudyCards
         type: DriftSqlType.blob,
         requiredDuringInsert: true,
       ).withConverter<DeckId>($StudyCardsTable.$converterdeckId);
+  static const VerificationMeta _suspendedMeta = const VerificationMeta(
+    'suspended',
+  );
+  @override
+  late final GeneratedColumn<bool> suspended = GeneratedColumn<bool>(
+    'suspended',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("suspended" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<DateTime?, int> buriedUntil =
+      GeneratedColumn<int>(
+        'buried_until',
+        aliasedName,
+        true,
+        type: DriftSqlType.int,
+        requiredDuringInsert: false,
+      ).withConverter<DateTime?>($StudyCardsTable.$converterburiedUntiln);
   @override
   List<GeneratedColumn> get $columns => [
     hlc,
@@ -3648,6 +3672,8 @@ class $StudyCardsTable extends StudyCards
     noteId,
     templateId,
     deckId,
+    suspended,
+    buriedUntil,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -3665,6 +3691,12 @@ class $StudyCardsTable extends StudyCards
       context.handle(
         _deletedMeta,
         deleted.isAcceptableOrUnknown(data['deleted']!, _deletedMeta),
+      );
+    }
+    if (data.containsKey('suspended')) {
+      context.handle(
+        _suspendedMeta,
+        suspended.isAcceptableOrUnknown(data['suspended']!, _suspendedMeta),
       );
     }
     return context;
@@ -3720,6 +3752,16 @@ class $StudyCardsTable extends StudyCards
           data['${effectivePrefix}deck_id'],
         )!,
       ),
+      suspended: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}suspended'],
+      )!,
+      buriedUntil: $StudyCardsTable.$converterburiedUntiln.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.int,
+          data['${effectivePrefix}buried_until'],
+        ),
+      ),
     );
   }
 
@@ -3737,6 +3779,10 @@ class $StudyCardsTable extends StudyCards
   static TypeConverter<StudyCardTemplateId, Uint8List> $convertertemplateId =
       studyCardTemplateIdConverter;
   static TypeConverter<DeckId, Uint8List> $converterdeckId = deckIdConverter;
+  static TypeConverter<DateTime, int> $converterburiedUntil =
+      const UtcMillisConverter();
+  static TypeConverter<DateTime?, int?> $converterburiedUntiln =
+      NullAwareTypeConverter.wrap($converterburiedUntil);
 }
 
 class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
@@ -3747,6 +3793,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
   final NoteId noteId;
   final StudyCardTemplateId templateId;
   final DeckId deckId;
+  final bool suspended;
+  final DateTime? buriedUntil;
   const StudyCardRow({
     required this.hlc,
     required this.deleted,
@@ -3755,6 +3803,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
     required this.noteId,
     required this.templateId,
     required this.deckId,
+    required this.suspended,
+    this.buriedUntil,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -3786,6 +3836,12 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
         $StudyCardsTable.$converterdeckId.toSql(deckId),
       );
     }
+    map['suspended'] = Variable<bool>(suspended);
+    if (!nullToAbsent || buriedUntil != null) {
+      map['buried_until'] = Variable<int>(
+        $StudyCardsTable.$converterburiedUntiln.toSql(buriedUntil),
+      );
+    }
     return map;
   }
 
@@ -3798,6 +3854,10 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
       noteId: Value(noteId),
       templateId: Value(templateId),
       deckId: Value(deckId),
+      suspended: Value(suspended),
+      buriedUntil: buriedUntil == null && nullToAbsent
+          ? const Value.absent()
+          : Value(buriedUntil),
     );
   }
 
@@ -3814,6 +3874,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
       noteId: serializer.fromJson<NoteId>(json['noteId']),
       templateId: serializer.fromJson<StudyCardTemplateId>(json['templateId']),
       deckId: serializer.fromJson<DeckId>(json['deckId']),
+      suspended: serializer.fromJson<bool>(json['suspended']),
+      buriedUntil: serializer.fromJson<DateTime?>(json['buriedUntil']),
     );
   }
   @override
@@ -3827,6 +3889,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
       'noteId': serializer.toJson<NoteId>(noteId),
       'templateId': serializer.toJson<StudyCardTemplateId>(templateId),
       'deckId': serializer.toJson<DeckId>(deckId),
+      'suspended': serializer.toJson<bool>(suspended),
+      'buriedUntil': serializer.toJson<DateTime?>(buriedUntil),
     };
   }
 
@@ -3838,6 +3902,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
     NoteId? noteId,
     StudyCardTemplateId? templateId,
     DeckId? deckId,
+    bool? suspended,
+    Value<DateTime?> buriedUntil = const Value.absent(),
   }) => StudyCardRow(
     hlc: hlc ?? this.hlc,
     deleted: deleted ?? this.deleted,
@@ -3846,6 +3912,8 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
     noteId: noteId ?? this.noteId,
     templateId: templateId ?? this.templateId,
     deckId: deckId ?? this.deckId,
+    suspended: suspended ?? this.suspended,
+    buriedUntil: buriedUntil.present ? buriedUntil.value : this.buriedUntil,
   );
   StudyCardRow copyWithCompanion(StudyCardsCompanion data) {
     return StudyCardRow(
@@ -3860,6 +3928,10 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
           ? data.templateId.value
           : this.templateId,
       deckId: data.deckId.present ? data.deckId.value : this.deckId,
+      suspended: data.suspended.present ? data.suspended.value : this.suspended,
+      buriedUntil: data.buriedUntil.present
+          ? data.buriedUntil.value
+          : this.buriedUntil,
     );
   }
 
@@ -3872,14 +3944,25 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
           ..write('collectionId: $collectionId, ')
           ..write('noteId: $noteId, ')
           ..write('templateId: $templateId, ')
-          ..write('deckId: $deckId')
+          ..write('deckId: $deckId, ')
+          ..write('suspended: $suspended, ')
+          ..write('buriedUntil: $buriedUntil')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(hlc, deleted, id, collectionId, noteId, templateId, deckId);
+  int get hashCode => Object.hash(
+    hlc,
+    deleted,
+    id,
+    collectionId,
+    noteId,
+    templateId,
+    deckId,
+    suspended,
+    buriedUntil,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -3890,7 +3973,9 @@ class StudyCardRow extends DataClass implements Insertable<StudyCardRow> {
           other.collectionId == this.collectionId &&
           other.noteId == this.noteId &&
           other.templateId == this.templateId &&
-          other.deckId == this.deckId);
+          other.deckId == this.deckId &&
+          other.suspended == this.suspended &&
+          other.buriedUntil == this.buriedUntil);
 }
 
 class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
@@ -3901,6 +3986,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
   final Value<NoteId> noteId;
   final Value<StudyCardTemplateId> templateId;
   final Value<DeckId> deckId;
+  final Value<bool> suspended;
+  final Value<DateTime?> buriedUntil;
   final Value<int> rowid;
   const StudyCardsCompanion({
     this.hlc = const Value.absent(),
@@ -3910,6 +3997,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
     this.noteId = const Value.absent(),
     this.templateId = const Value.absent(),
     this.deckId = const Value.absent(),
+    this.suspended = const Value.absent(),
+    this.buriedUntil = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   StudyCardsCompanion.insert({
@@ -3920,6 +4009,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
     required NoteId noteId,
     required StudyCardTemplateId templateId,
     required DeckId deckId,
+    this.suspended = const Value.absent(),
+    this.buriedUntil = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : hlc = Value(hlc),
        id = Value(id),
@@ -3935,6 +4026,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
     Expression<Uint8List>? noteId,
     Expression<Uint8List>? templateId,
     Expression<Uint8List>? deckId,
+    Expression<bool>? suspended,
+    Expression<int>? buriedUntil,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -3945,6 +4038,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
       if (noteId != null) 'note_id': noteId,
       if (templateId != null) 'template_id': templateId,
       if (deckId != null) 'deck_id': deckId,
+      if (suspended != null) 'suspended': suspended,
+      if (buriedUntil != null) 'buried_until': buriedUntil,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -3957,6 +4052,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
     Value<NoteId>? noteId,
     Value<StudyCardTemplateId>? templateId,
     Value<DeckId>? deckId,
+    Value<bool>? suspended,
+    Value<DateTime?>? buriedUntil,
     Value<int>? rowid,
   }) {
     return StudyCardsCompanion(
@@ -3967,6 +4064,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
       noteId: noteId ?? this.noteId,
       templateId: templateId ?? this.templateId,
       deckId: deckId ?? this.deckId,
+      suspended: suspended ?? this.suspended,
+      buriedUntil: buriedUntil ?? this.buriedUntil,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -4007,6 +4106,14 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
         $StudyCardsTable.$converterdeckId.toSql(deckId.value),
       );
     }
+    if (suspended.present) {
+      map['suspended'] = Variable<bool>(suspended.value);
+    }
+    if (buriedUntil.present) {
+      map['buried_until'] = Variable<int>(
+        $StudyCardsTable.$converterburiedUntiln.toSql(buriedUntil.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -4023,6 +4130,8 @@ class StudyCardsCompanion extends UpdateCompanion<StudyCardRow> {
           ..write('noteId: $noteId, ')
           ..write('templateId: $templateId, ')
           ..write('deckId: $deckId, ')
+          ..write('suspended: $suspended, ')
+          ..write('buriedUntil: $buriedUntil, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -5981,6 +6090,35 @@ class $PresetVersionsTable extends PresetVersions
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   ).withConverter<NewCardOrder>($PresetVersionsTable.$converternewCardOrder);
+  static const VerificationMeta _buryNewSiblingsMeta = const VerificationMeta(
+    'buryNewSiblings',
+  );
+  @override
+  late final GeneratedColumn<bool> buryNewSiblings = GeneratedColumn<bool>(
+    'bury_new_siblings',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("bury_new_siblings" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
+  static const VerificationMeta _buryReviewSiblingsMeta =
+      const VerificationMeta('buryReviewSiblings');
+  @override
+  late final GeneratedColumn<bool> buryReviewSiblings = GeneratedColumn<bool>(
+    'bury_review_siblings',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("bury_review_siblings" IN (0, 1))',
+    ),
+    defaultValue: const Constant(true),
+  );
   @override
   late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
       GeneratedColumn<String>(
@@ -6002,6 +6140,8 @@ class $PresetVersionsTable extends PresetVersions
     reviewsPerDay,
     newCardMix,
     newCardOrder,
+    buryNewSiblings,
+    buryReviewSiblings,
     hlc,
   ];
   @override
@@ -6067,6 +6207,24 @@ class $PresetVersionsTable extends PresetVersions
     } else if (isInserting) {
       context.missing(_reviewsPerDayMeta);
     }
+    if (data.containsKey('bury_new_siblings')) {
+      context.handle(
+        _buryNewSiblingsMeta,
+        buryNewSiblings.isAcceptableOrUnknown(
+          data['bury_new_siblings']!,
+          _buryNewSiblingsMeta,
+        ),
+      );
+    }
+    if (data.containsKey('bury_review_siblings')) {
+      context.handle(
+        _buryReviewSiblingsMeta,
+        buryReviewSiblings.isAcceptableOrUnknown(
+          data['bury_review_siblings']!,
+          _buryReviewSiblingsMeta,
+        ),
+      );
+    }
     return context;
   }
 
@@ -6130,6 +6288,14 @@ class $PresetVersionsTable extends PresetVersions
           data['${effectivePrefix}new_card_order'],
         )!,
       ),
+      buryNewSiblings: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}bury_new_siblings'],
+      )!,
+      buryReviewSiblings: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}bury_review_siblings'],
+      )!,
       hlc: $PresetVersionsTable.$converterhlc.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -6173,6 +6339,8 @@ class PresetVersionRow extends DataClass
   final int reviewsPerDay;
   final NewCardMix newCardMix;
   final NewCardOrder newCardOrder;
+  final bool buryNewSiblings;
+  final bool buryReviewSiblings;
   final Hlc hlc;
   const PresetVersionRow({
     required this.id,
@@ -6185,6 +6353,8 @@ class PresetVersionRow extends DataClass
     required this.reviewsPerDay,
     required this.newCardMix,
     required this.newCardOrder,
+    required this.buryNewSiblings,
+    required this.buryReviewSiblings,
     required this.hlc,
   });
   @override
@@ -6224,6 +6394,8 @@ class PresetVersionRow extends DataClass
         $PresetVersionsTable.$converternewCardOrder.toSql(newCardOrder),
       );
     }
+    map['bury_new_siblings'] = Variable<bool>(buryNewSiblings);
+    map['bury_review_siblings'] = Variable<bool>(buryReviewSiblings);
     {
       map['hlc'] = Variable<String>(
         $PresetVersionsTable.$converterhlc.toSql(hlc),
@@ -6248,6 +6420,8 @@ class PresetVersionRow extends DataClass
       reviewsPerDay: Value(reviewsPerDay),
       newCardMix: Value(newCardMix),
       newCardOrder: Value(newCardOrder),
+      buryNewSiblings: Value(buryNewSiblings),
+      buryReviewSiblings: Value(buryReviewSiblings),
       hlc: Value(hlc),
     );
   }
@@ -6274,6 +6448,8 @@ class PresetVersionRow extends DataClass
       newCardOrder: $PresetVersionsTable.$converternewCardOrder.fromJson(
         serializer.fromJson<String>(json['newCardOrder']),
       ),
+      buryNewSiblings: serializer.fromJson<bool>(json['buryNewSiblings']),
+      buryReviewSiblings: serializer.fromJson<bool>(json['buryReviewSiblings']),
       hlc: serializer.fromJson<Hlc>(json['hlc']),
     );
   }
@@ -6297,6 +6473,8 @@ class PresetVersionRow extends DataClass
       'newCardOrder': serializer.toJson<String>(
         $PresetVersionsTable.$converternewCardOrder.toJson(newCardOrder),
       ),
+      'buryNewSiblings': serializer.toJson<bool>(buryNewSiblings),
+      'buryReviewSiblings': serializer.toJson<bool>(buryReviewSiblings),
       'hlc': serializer.toJson<Hlc>(hlc),
     };
   }
@@ -6312,6 +6490,8 @@ class PresetVersionRow extends DataClass
     int? reviewsPerDay,
     NewCardMix? newCardMix,
     NewCardOrder? newCardOrder,
+    bool? buryNewSiblings,
+    bool? buryReviewSiblings,
     Hlc? hlc,
   }) => PresetVersionRow(
     id: id ?? this.id,
@@ -6328,6 +6508,8 @@ class PresetVersionRow extends DataClass
     reviewsPerDay: reviewsPerDay ?? this.reviewsPerDay,
     newCardMix: newCardMix ?? this.newCardMix,
     newCardOrder: newCardOrder ?? this.newCardOrder,
+    buryNewSiblings: buryNewSiblings ?? this.buryNewSiblings,
+    buryReviewSiblings: buryReviewSiblings ?? this.buryReviewSiblings,
     hlc: hlc ?? this.hlc,
   );
   PresetVersionRow copyWithCompanion(PresetVersionsCompanion data) {
@@ -6358,6 +6540,12 @@ class PresetVersionRow extends DataClass
       newCardOrder: data.newCardOrder.present
           ? data.newCardOrder.value
           : this.newCardOrder,
+      buryNewSiblings: data.buryNewSiblings.present
+          ? data.buryNewSiblings.value
+          : this.buryNewSiblings,
+      buryReviewSiblings: data.buryReviewSiblings.present
+          ? data.buryReviewSiblings.value
+          : this.buryReviewSiblings,
       hlc: data.hlc.present ? data.hlc.value : this.hlc,
     );
   }
@@ -6375,6 +6563,8 @@ class PresetVersionRow extends DataClass
           ..write('reviewsPerDay: $reviewsPerDay, ')
           ..write('newCardMix: $newCardMix, ')
           ..write('newCardOrder: $newCardOrder, ')
+          ..write('buryNewSiblings: $buryNewSiblings, ')
+          ..write('buryReviewSiblings: $buryReviewSiblings, ')
           ..write('hlc: $hlc')
           ..write(')'))
         .toString();
@@ -6392,6 +6582,8 @@ class PresetVersionRow extends DataClass
     reviewsPerDay,
     newCardMix,
     newCardOrder,
+    buryNewSiblings,
+    buryReviewSiblings,
     hlc,
   );
   @override
@@ -6408,6 +6600,8 @@ class PresetVersionRow extends DataClass
           other.reviewsPerDay == this.reviewsPerDay &&
           other.newCardMix == this.newCardMix &&
           other.newCardOrder == this.newCardOrder &&
+          other.buryNewSiblings == this.buryNewSiblings &&
+          other.buryReviewSiblings == this.buryReviewSiblings &&
           other.hlc == this.hlc);
 }
 
@@ -6422,6 +6616,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
   final Value<int> reviewsPerDay;
   final Value<NewCardMix> newCardMix;
   final Value<NewCardOrder> newCardOrder;
+  final Value<bool> buryNewSiblings;
+  final Value<bool> buryReviewSiblings;
   final Value<Hlc> hlc;
   final Value<int> rowid;
   const PresetVersionsCompanion({
@@ -6435,6 +6631,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     this.reviewsPerDay = const Value.absent(),
     this.newCardMix = const Value.absent(),
     this.newCardOrder = const Value.absent(),
+    this.buryNewSiblings = const Value.absent(),
+    this.buryReviewSiblings = const Value.absent(),
     this.hlc = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -6449,6 +6647,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     required int reviewsPerDay,
     required NewCardMix newCardMix,
     required NewCardOrder newCardOrder,
+    this.buryNewSiblings = const Value.absent(),
+    this.buryReviewSiblings = const Value.absent(),
     required Hlc hlc,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -6471,6 +6671,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     Expression<int>? reviewsPerDay,
     Expression<String>? newCardMix,
     Expression<String>? newCardOrder,
+    Expression<bool>? buryNewSiblings,
+    Expression<bool>? buryReviewSiblings,
     Expression<String>? hlc,
     Expression<int>? rowid,
   }) {
@@ -6485,6 +6687,9 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
       if (reviewsPerDay != null) 'reviews_per_day': reviewsPerDay,
       if (newCardMix != null) 'new_card_mix': newCardMix,
       if (newCardOrder != null) 'new_card_order': newCardOrder,
+      if (buryNewSiblings != null) 'bury_new_siblings': buryNewSiblings,
+      if (buryReviewSiblings != null)
+        'bury_review_siblings': buryReviewSiblings,
       if (hlc != null) 'hlc': hlc,
       if (rowid != null) 'rowid': rowid,
     });
@@ -6501,6 +6706,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     Value<int>? reviewsPerDay,
     Value<NewCardMix>? newCardMix,
     Value<NewCardOrder>? newCardOrder,
+    Value<bool>? buryNewSiblings,
+    Value<bool>? buryReviewSiblings,
     Value<Hlc>? hlc,
     Value<int>? rowid,
   }) {
@@ -6515,6 +6722,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
       reviewsPerDay: reviewsPerDay ?? this.reviewsPerDay,
       newCardMix: newCardMix ?? this.newCardMix,
       newCardOrder: newCardOrder ?? this.newCardOrder,
+      buryNewSiblings: buryNewSiblings ?? this.buryNewSiblings,
+      buryReviewSiblings: buryReviewSiblings ?? this.buryReviewSiblings,
       hlc: hlc ?? this.hlc,
       rowid: rowid ?? this.rowid,
     );
@@ -6565,6 +6774,12 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
         $PresetVersionsTable.$converternewCardOrder.toSql(newCardOrder.value),
       );
     }
+    if (buryNewSiblings.present) {
+      map['bury_new_siblings'] = Variable<bool>(buryNewSiblings.value);
+    }
+    if (buryReviewSiblings.present) {
+      map['bury_review_siblings'] = Variable<bool>(buryReviewSiblings.value);
+    }
     if (hlc.present) {
       map['hlc'] = Variable<String>(
         $PresetVersionsTable.$converterhlc.toSql(hlc.value),
@@ -6589,6 +6804,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
           ..write('reviewsPerDay: $reviewsPerDay, ')
           ..write('newCardMix: $newCardMix, ')
           ..write('newCardOrder: $newCardOrder, ')
+          ..write('buryNewSiblings: $buryNewSiblings, ')
+          ..write('buryReviewSiblings: $buryReviewSiblings, ')
           ..write('hlc: $hlc, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -13267,6 +13484,8 @@ typedef $$StudyCardsTableCreateCompanionBuilder = StudyCardsCompanion Function({
   required NoteId noteId,
   required StudyCardTemplateId templateId,
   required DeckId deckId,
+  Value<bool> suspended,
+  Value<DateTime?> buriedUntil,
   Value<int> rowid,
 });
 typedef $$StudyCardsTableUpdateCompanionBuilder = StudyCardsCompanion Function({
@@ -13277,6 +13496,8 @@ typedef $$StudyCardsTableUpdateCompanionBuilder = StudyCardsCompanion Function({
   Value<NoteId> noteId,
   Value<StudyCardTemplateId> templateId,
   Value<DeckId> deckId,
+  Value<bool> suspended,
+  Value<DateTime?> buriedUntil,
   Value<int> rowid,
 });
 
@@ -13394,6 +13615,17 @@ class $$StudyCardsTableFilterComposer
   ColumnWithTypeConverterFilters<DeckId, DeckId, Uint8List> get deckId =>
       $composableBuilder(
         column: $table.deckId,
+        builder: (column) => ColumnWithTypeConverterFilters(column),
+      );
+
+  ColumnFilters<bool> get suspended => $composableBuilder(
+    column: $table.suspended,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<DateTime?, DateTime, int> get buriedUntil =>
+      $composableBuilder(
+        column: $table.buriedUntil,
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
@@ -13528,6 +13760,16 @@ class $$StudyCardsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get suspended => $composableBuilder(
+    column: $table.suspended,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<int> get buriedUntil => $composableBuilder(
+    column: $table.buriedUntil,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CollectionsTableOrderingComposer get collectionId {
     final $$CollectionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -13598,6 +13840,15 @@ class $$StudyCardsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<DeckId, Uint8List> get deckId =>
       $composableBuilder(column: $table.deckId, builder: (column) => column);
+
+  GeneratedColumn<bool> get suspended =>
+      $composableBuilder(column: $table.suspended, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<DateTime?, int> get buriedUntil =>
+      $composableBuilder(
+        column: $table.buriedUntil,
+        builder: (column) => column,
+      );
 
   $$CollectionsTableAnnotationComposer get collectionId {
     final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
@@ -13737,6 +13988,8 @@ class $$StudyCardsTableTableManager
                 Value<NoteId> noteId = const Value.absent(),
                 Value<StudyCardTemplateId> templateId = const Value.absent(),
                 Value<DeckId> deckId = const Value.absent(),
+                Value<bool> suspended = const Value.absent(),
+                Value<DateTime?> buriedUntil = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudyCardsCompanion(
                 hlc: hlc,
@@ -13746,6 +13999,8 @@ class $$StudyCardsTableTableManager
                 noteId: noteId,
                 templateId: templateId,
                 deckId: deckId,
+                suspended: suspended,
+                buriedUntil: buriedUntil,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -13757,6 +14012,8 @@ class $$StudyCardsTableTableManager
                 required NoteId noteId,
                 required StudyCardTemplateId templateId,
                 required DeckId deckId,
+                Value<bool> suspended = const Value.absent(),
+                Value<DateTime?> buriedUntil = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudyCardsCompanion.insert(
                 hlc: hlc,
@@ -13766,6 +14023,8 @@ class $$StudyCardsTableTableManager
                 noteId: noteId,
                 templateId: templateId,
                 deckId: deckId,
+                suspended: suspended,
+                buriedUntil: buriedUntil,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -14984,6 +15243,8 @@ typedef $$PresetVersionsTableCreateCompanionBuilder =
       required int reviewsPerDay,
       required NewCardMix newCardMix,
       required NewCardOrder newCardOrder,
+      Value<bool> buryNewSiblings,
+      Value<bool> buryReviewSiblings,
       required Hlc hlc,
       Value<int> rowid,
     });
@@ -14999,6 +15260,8 @@ typedef $$PresetVersionsTableUpdateCompanionBuilder =
       Value<int> reviewsPerDay,
       Value<NewCardMix> newCardMix,
       Value<NewCardOrder> newCardOrder,
+      Value<bool> buryNewSiblings,
+      Value<bool> buryReviewSiblings,
       Value<Hlc> hlc,
       Value<int> rowid,
     });
@@ -15103,6 +15366,16 @@ class $$PresetVersionsTableFilterComposer
     builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
+  ColumnFilters<bool> get buryNewSiblings => $composableBuilder(
+    column: $table.buryNewSiblings,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get buryReviewSiblings => $composableBuilder(
+    column: $table.buryReviewSiblings,
+    builder: (column) => ColumnFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
       $composableBuilder(
         column: $table.hlc,
@@ -15194,6 +15467,16 @@ class $$PresetVersionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<bool> get buryNewSiblings => $composableBuilder(
+    column: $table.buryNewSiblings,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get buryReviewSiblings => $composableBuilder(
+    column: $table.buryReviewSiblings,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get hlc => $composableBuilder(
     column: $table.hlc,
     builder: (column) => ColumnOrderings(column),
@@ -15257,6 +15540,16 @@ class $$PresetVersionsTableAnnotationComposer
         column: $table.newCardOrder,
         builder: (column) => column,
       );
+
+  GeneratedColumn<bool> get buryNewSiblings => $composableBuilder(
+    column: $table.buryNewSiblings,
+    builder: (column) => column,
+  );
+
+  GeneratedColumn<bool> get buryReviewSiblings => $composableBuilder(
+    column: $table.buryReviewSiblings,
+    builder: (column) => column,
+  );
 
   GeneratedColumnWithTypeConverter<Hlc, String> get hlc =>
       $composableBuilder(column: $table.hlc, builder: (column) => column);
@@ -15328,6 +15621,8 @@ class $$PresetVersionsTableTableManager
                 Value<int> reviewsPerDay = const Value.absent(),
                 Value<NewCardMix> newCardMix = const Value.absent(),
                 Value<NewCardOrder> newCardOrder = const Value.absent(),
+                Value<bool> buryNewSiblings = const Value.absent(),
+                Value<bool> buryReviewSiblings = const Value.absent(),
                 Value<Hlc> hlc = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PresetVersionsCompanion(
@@ -15341,6 +15636,8 @@ class $$PresetVersionsTableTableManager
                 reviewsPerDay: reviewsPerDay,
                 newCardMix: newCardMix,
                 newCardOrder: newCardOrder,
+                buryNewSiblings: buryNewSiblings,
+                buryReviewSiblings: buryReviewSiblings,
                 hlc: hlc,
                 rowid: rowid,
               ),
@@ -15356,6 +15653,8 @@ class $$PresetVersionsTableTableManager
                 required int reviewsPerDay,
                 required NewCardMix newCardMix,
                 required NewCardOrder newCardOrder,
+                Value<bool> buryNewSiblings = const Value.absent(),
+                Value<bool> buryReviewSiblings = const Value.absent(),
                 required Hlc hlc,
                 Value<int> rowid = const Value.absent(),
               }) => PresetVersionsCompanion.insert(
@@ -15369,6 +15668,8 @@ class $$PresetVersionsTableTableManager
                 reviewsPerDay: reviewsPerDay,
                 newCardMix: newCardMix,
                 newCardOrder: newCardOrder,
+                buryNewSiblings: buryNewSiblings,
+                buryReviewSiblings: buryReviewSiblings,
                 hlc: hlc,
                 rowid: rowid,
               ),

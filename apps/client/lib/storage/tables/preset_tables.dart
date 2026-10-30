@@ -51,6 +51,10 @@ class PresetVersions extends Table {
   IntColumn get reviewsPerDay => integer()();
   TextColumn get newCardMix => textEnum<NewCardMix>()();
   TextColumn get newCardOrder => textEnum<NewCardOrder>()();
+  BoolColumn get buryNewSiblings =>
+      boolean().withDefault(const Constant(true))();
+  BoolColumn get buryReviewSiblings =>
+      boolean().withDefault(const Constant(true))();
   TextColumn get hlc => text().map(const HlcConverter())();
 
   @override

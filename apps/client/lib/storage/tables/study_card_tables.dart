@@ -24,6 +24,9 @@ class StudyCards extends Table with SyncedColumns {
       .map(studyCardTemplateIdConverter)
       .references(StudyCardTemplates, #id)();
   BlobColumn get deckId => blob().map(deckIdConverter)();
+  BoolColumn get suspended => boolean().withDefault(const Constant(false))();
+  IntColumn get buriedUntil =>
+      integer().map(const UtcMillisConverter()).nullable()();
 
   @override
   Set<Column> get primaryKey => {id};

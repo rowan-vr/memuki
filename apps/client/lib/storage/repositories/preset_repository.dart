@@ -199,6 +199,8 @@ Future<void> _insertVersion(
         reviewsPerDay: version.reviewsPerDay,
         newCardMix: version.newCardMix,
         newCardOrder: version.newCardOrder,
+        buryNewSiblings: Value(version.buryNewSiblings),
+        buryReviewSiblings: Value(version.buryReviewSiblings),
         hlc: hlc,
       ),
     );
@@ -215,6 +217,8 @@ PresetVersion _version(PresetVersionRow row) => PresetVersion(
   reviewsPerDay: row.reviewsPerDay,
   newCardMix: row.newCardMix,
   newCardOrder: row.newCardOrder,
+  buryNewSiblings: row.buryNewSiblings,
+  buryReviewSiblings: row.buryReviewSiblings,
 );
 
 EntityNotFoundException _notFound(PresetId id) =>
