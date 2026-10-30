@@ -127,6 +127,11 @@ H{sub | 2}O
 
 - **Marks are semantic.** They say what text is (a reading, emphasis, a language), never how it looks. There are no colour, size, or font marks; the design system styles each kind.
 - **Kinds are a registry.** Each kind defines its arguments, how it renders, how it is added in the editor, how Anki HTML maps to it, and its plain-text fallback. New kinds (pitch accent, tone, formulas) are new entries, and language packs and plugins can add them. A kind the app does not know shows its content.
+- **Reading:** reading never fails. A malformed part (an unclosed `{`, a stray `}`, an unterminated quote) is kept as literal text and reported with its position, so imported or hand-edited text loses nothing and the source view can point at the problem. A mark that is never closed keeps its opening as text and its content as read. Marks nest at most 64 deep; a deeper mark is kept whole as text. Reading takes linear time.
+- **Comments:** `{# …}` is a comment. It runs to the matching `}`, so braces inside it must pair up or be escaped, and whitespace at its ends is dropped. Comments are kept in the source and read as nothing.
+- **Whitespace:** whitespace right after `|` and right before `}` is not part of the content, so templates can be indented; `\ ` keeps a space there.
+- **Writing:** the writer produces one canonical form: arguments quoted only when needed, and only `\`, `{`, and `}` escaped in text and comments. Reading what it writes gives back the same content. Keys and argument names are a letter followed by letters, digits, `_`, `-`, `.`, or `:`, so plugins can namespace their kinds (`jp:pitch`).
+- **Kinds** declare their positional and named arguments, whether they take content, and whether they belong in fields, templates, or both; a check reports marks used against their kind, and marks of a kind it does not know, which still show their content. The built-in kinds are `ruby`, `em`, `sub`, `sup`, and `lang` for fields, and `front`, `back`, `field`, `if`, and `requires` for templates (`lang` in both). The format lives in `domain/content`, free of Flutter, so import, search, and the editors share it.
 - **Plain text** is the content with the marks dropped (`今日は天気がいいです`). Search, duplicate detection, sorting, and typed-answer comparison use it.
 - **Language:** each field definition has a language, and a `lang` mark overrides it for a span. The language selects glyph forms for shared Han characters, text direction, and font fallback.
 - **Editing:** fields are edited directly in their rendered form; selecting text offers the marks that apply. A toggle shows the source.
@@ -147,6 +152,7 @@ A template is content in the same format, whose marks place fields:
 {requires Word}
 ```
 
+- A template has exactly one `front` and one `back`. They and `requires` stand at the top level, outside any other mark, and nothing but whitespace and comments is left outside them; the check reports a side that is missing, repeated, or nested, and anything outside the sides.
 - Fields are placed by role; the role decides their styling. Templates carry no styling of their own.
 - `if` shows its content only when the field is not empty; `requires` lists the fields a note must fill for the template to generate a card.
 - Cloze and typed answer are template kinds that refer to a field.
@@ -284,6 +290,9 @@ memuki/
 | D43 | Field values and templates share one text format of semantic marks, `{key args \| content}`, with a registry of mark kinds | Decided | 3 |
 | D44 | Fields are edited directly in their rendered form; the source is available behind a toggle | Decided | 3 |
 | D45 | Each field definition has a language, overridable per span, which selects glyph forms, text direction, and font fallback | Decided | 3 |
+| D46 | Reading content never fails: malformed parts are kept as literal text and reported; whitespace at the ends of a mark's content is not part of it | Decided | 3 |
+| D47 | Content has comments, written `{# …}` | Decided | 3 |
+| D48 | A template has one `front` and one `back` at its top level, with nothing but whitespace and comments outside them | Decided | 3 |
 
 ## Open questions
 
