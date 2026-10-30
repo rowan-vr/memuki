@@ -1,4 +1,5 @@
 import '../domain/ids.dart';
+import '../domain/preset.dart';
 import '../domain/review.dart';
 import 'scheduler.dart';
 import 'scheduler_registry.dart';
@@ -14,6 +15,19 @@ final class SchedulingSettings {
     this.leechThreshold = 8,
     this.dayStart = StudyDay.defaultStart,
   });
+
+  /// The settings of a preset version in a collection whose study day starts
+  /// at [dayStart].
+  SchedulingSettings.fromPreset(
+    PresetVersion version, {
+    required Duration dayStart,
+  }) : this(
+         schedulerId: version.schedulerId,
+         schedulerConfig: version.schedulerConfig,
+         burnThreshold: version.burnThreshold,
+         leechThreshold: version.leechThreshold,
+         dayStart: dayStart,
+       );
 
   /// The scheduler that new reviews use, in its latest version.
   final String schedulerId;

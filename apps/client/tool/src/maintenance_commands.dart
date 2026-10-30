@@ -4,6 +4,10 @@ import 'dart:math';
 import 'package:args/command_runner.dart';
 import 'package:drift/drift.dart';
 import 'package:memuki/dev/collection_generator.dart';
+import 'package:memuki/domain/ids.dart';
+import 'package:memuki/scheduler/scheduler_registry.dart';
+import 'package:memuki/scheduler/steps_sm2/steps_sm2_scheduler.dart';
+import 'package:memuki/services/rebuild_service.dart';
 import 'package:path/path.dart' as p;
 
 import 'runner.dart';
@@ -23,6 +27,18 @@ List<Command<void>> maintenanceCommands() => [
       ..addOption('tags', defaultsTo: '6')
       ..addOption('reviews', defaultsTo: '4', help: 'Most reviews per card.')
       ..addOption('media', defaultsTo: '3'),
+  ),
+  ActionCommand(
+    'rebuild',
+    'Rebuild the scheduling state of every card in a collection by '
+        'replaying its review history.',
+    _rebuild,
+    arguments: '<collection>',
+    options: (p) => p.addFlag(
+      'check',
+      negatable: false,
+      help: 'Only report the cards whose state would change.',
+    ),
   ),
   ActionCommand(
     'sql',
@@ -125,4 +141,32 @@ class _ResetCommand extends Command<void> {
     }
     out.writeln('Moved to ${backup.path}.');
   }
+}
+
+Future<void> _rebuild(ActionCommand c, Session s) async {
+  final collection = CollectionId.parse(
+    await s.resolve('collections', c.arg(0, 'collection'), label: 'collection'),
+  );
+  final check = c.flag('check');
+  final report = await RebuildService(
+    db: s.db,
+    collections: s.repos.collections,
+    presets: s.repos.presets,
+    cards: s.repos.cards,
+    reviews: s.repos.reviews,
+    schedulers: SchedulerRegistry([const StepsSm2Scheduler()]),
+  ).rebuildCollection(collection, write: !check);
+  for (final MapEntry(key: card, value: warnings) in report.warnings.entries) {
+    for (final warning in warnings) {
+      s.out.writeln('Warning: card ${short(card)}: $warning');
+    }
+  }
+  for (final MapEntry(key: card, value: error) in report.failures.entries) {
+    s.out.writeln('Failed: card ${short(card)} kept its state: $error');
+  }
+  s.out.writeln(
+    '${report.cards} cards replayed; ${report.changed.length} '
+    '${check ? 'would change' : 'changed'}, ${report.warnings.length} with '
+    'warnings, ${report.failures.length} failed.',
+  );
 }

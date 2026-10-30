@@ -78,7 +78,8 @@ Decided in Phase 1. See [ROADMAP.md](ROADMAP.md#phase-1--domain-models-and-persi
 - Undo appends a compensating event; it does not delete the original event.
 - Deleting a card tombstones the card and keeps its events, so recreating the card (same derived ID) restores its history. Whether events are removed when tombstones are purged is open (Phase 8).
 - Each event records the scheduler ID, scheduler version, and preset version used, and the reviewing device's UTC offset. Replay applies each event with the scheduler version recorded on it, so every released scheduler version stays available, and computes study days in the recorded offset rather than the replaying device's time zone. Every device therefore rebuilds the same state from the same events.
-- Replay uses the configuration recorded on each event. Applying new configuration to existing cards is an explicit reschedule operation, never a side effect of replay.
+- Replay uses the preset version recorded on each event, and the collection's current study day start. An event whose scheduler version or preset version is unknown (such as old test data) is replayed with the card's current preset and the latest version of its scheduler, and reported. A card whose history cannot be replayed at all keeps its stored state and is reported. Replay has no side effects such as leech tags.
+- Applying new configuration to existing cards is an explicit reschedule operation, never a side effect of replay.
 
 With this model, merging concurrent reviews from different devices reduces to merging event logs and replaying.
 

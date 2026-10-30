@@ -10,6 +10,9 @@ import '../domain/note_type.dart';
 import '../domain/preset.dart';
 import '../domain/review.dart';
 import '../domain/study_card.dart';
+import '../scheduler/scheduler_registry.dart';
+import '../scheduler/scheduling_engine.dart';
+import '../scheduler/steps_sm2/steps_sm2_scheduler.dart';
 import '../storage/repositories/media_repository.dart';
 import '../storage/repositories/repositories.dart';
 
@@ -19,9 +22,10 @@ final generatorEpoch = DateTime.utc(2026);
 /// A media file of a [GeneratedCollection].
 typedef GeneratedMedia = ({String name, List<int> bytes});
 
-/// A collection generated from a seed: a default preset, decks and tags in random trees, a
-/// note type with two fields and two templates, notes with tags and a card
-/// per template, review history with scheduling state, and media files.
+/// A collection generated from a seed: a default preset, decks and tags in
+/// random trees, a note type with two fields and two templates, notes with
+/// tags and a card per template, review history with the scheduling state it
+/// produces, and media files.
 ///
 /// The same seed and sizes always give the same entities, IDs included, so a
 /// test failure can be reproduced from its seed. Used by tests and by
@@ -112,6 +116,13 @@ class GeneratedCollection {
       );
     }
 
+    final engine = SchedulingEngine(
+      SchedulerRegistry([const StepsSm2Scheduler()]),
+    );
+    final settings = SchedulingSettings.fromPreset(
+      preset.version,
+      dayStart: collection.dayStart,
+    );
     final [front, back] = noteType.fields;
     final noteList = <Note>[];
     final noteTags = <NoteId, Set<TagId>>{};
@@ -143,7 +154,7 @@ class GeneratedCollection {
           deckId: deckList[random.nextInt(deckList.length)].id,
         );
         cards.add(card);
-        final history = [
+        final recorded = [
           for (var r = random.nextInt(maxReviews + 1), day = 0; r > 0; r--)
             ReviewEvent(
               id: ReviewEventId.parse(ids.next()),
@@ -160,23 +171,15 @@ class GeneratedCollection {
               presetVersionId: preset.version.id,
             ),
         ];
-        reviews.addAll(history);
-        states.add(
-          history.isEmpty
-              ? SchedulingState(
-                  studyCardId: card.id,
-                  state: StudyCardState.newCard,
-                )
-              : SchedulingState(
-                  studyCardId: card.id,
-                  state: StudyCardState.review,
-                  due: history.last.at.add(Duration(days: history.length * 2)),
-                  interval: Duration(days: history.length * 2),
-                  ease: 2.5,
-                  reviewCount: history.length,
-                  lastEventId: history.last.id,
-                ),
-        );
+        // Scheduling state and due times come from replaying the history,
+        // so a rebuild leaves them unchanged.
+        var state = engine.initial(card.id);
+        for (final event in recorded) {
+          final next = engine.apply(state, event, settings);
+          reviews.add(event.copyWith(dueBefore: state.due, dueAfter: next.due));
+          state = next;
+        }
+        states.add(state);
       }
     }
 

@@ -39,6 +39,10 @@ void main() {
     expect(await memuki(['outbox', '--limit', '1']), contains('entries'));
     expect(await memuki(['check']), contains('No problems found.'));
     expect(
+      await memuki(['rebuild', 'Collection 5', '--check']),
+      contains('12 cards replayed; 0 would change, 0 with warnings, 0 failed.'),
+    );
+    expect(
       await memuki(['sql', 'SELECT name FROM decks ORDER BY name LIMIT 1']),
       contains('Deck 0'),
     );
@@ -77,6 +81,10 @@ void main() {
       contains('Recorded review'),
     );
     expect(await memuki(['show', cardId]), contains('history (1)'));
+    expect(
+      await memuki(['rebuild', 'Japanese']),
+      contains('1 cards replayed; 0 changed'),
+    );
 
     await memuki(['deck', 'delete', 'Default']);
     expect(await memuki(['show', noteId]), contains('hidden'));
