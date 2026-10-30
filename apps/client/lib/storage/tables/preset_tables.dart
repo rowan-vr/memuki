@@ -1,6 +1,7 @@
 import 'package:drift/drift.dart';
 
-import '../../domain/preset.dart' show NewCardMix, NewCardOrder;
+import '../../domain/preset.dart'
+    show LearningSiblingBury, NewCardMix, NewCardOrder;
 import '../converters.dart';
 import 'collection_tables.dart';
 import 'sync_tables.dart';
@@ -55,6 +56,8 @@ class PresetVersions extends Table {
       boolean().withDefault(const Constant(true))();
   BoolColumn get buryReviewSiblings =>
       boolean().withDefault(const Constant(true))();
+  TextColumn get buryLearningSiblings => textEnum<LearningSiblingBury>()
+      .withDefault(Constant(LearningSiblingBury.session.name))();
   TextColumn get hlc => text().map(const HlcConverter())();
 
   @override

@@ -44,8 +44,9 @@ final class QueueCard {
 /// Burned cards are never in the queue.
 ///
 /// Once a card of a note has been studied today, the note's other new and
-/// review cards are buried for the day, as the preset sets. Learning cards
-/// are never buried, since their steps are due at set times.
+/// review cards are buried, as the preset sets: for the day, or after
+/// studying a learning card for the session. Learning cards are never
+/// buried, since their steps are due at set times.
 final class StudyQueue {
   const StudyQueue._({
     required this.next,
@@ -65,8 +66,9 @@ final class StudyQueue {
   /// apply. [cards] are their
   /// cards, oldest note first and a note's cards in template order.
   /// [newDone] and [reviewsDone] count the new cards and reviews studied
-  /// today, by deck of the card. [studiedToday] are the cards studied today
-  /// in the whole collection, with their notes, for sibling burying. [skip]
+  /// today, by deck of the card. [studiedToday] are the cards of the whole
+  /// collection whose reviews today bury their siblings now, with their
+  /// notes. [skip]
   /// are cards left out for this session only. [mix], [order],
   /// [buryNewSiblings], and [buryReviewSiblings] come from the studied deck's
   /// preset.

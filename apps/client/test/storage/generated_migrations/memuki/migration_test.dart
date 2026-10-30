@@ -607,6 +607,7 @@ void main() {
       final settings = (await repos.presets.preset(preset))!.version;
       expect(settings.buryNewSiblings, isTrue);
       expect(settings.buryReviewSiblings, isTrue);
+      expect(settings.buryLearningSiblings, LearningSiblingBury.session);
     });
   });
 }

@@ -5271,6 +5271,7 @@ final class Schema8 extends i0.VersionedSchema {
         _column_72,
         _column_74,
         _column_75,
+        _column_76,
         _column_0,
       ],
       attachedDatabase: database,
@@ -5468,8 +5469,8 @@ final class Schema8 extends i0.VersionedSchema {
         _column_13,
         _column_14,
         _column_15,
-        _column_76,
         _column_77,
+        _column_78,
       ],
       attachedDatabase: database,
     ),
@@ -5876,6 +5877,8 @@ class Shape27 extends i0.VersionedTable {
       columnsByName['bury_new_siblings']! as i1.GeneratedColumn<int>;
   i1.GeneratedColumn<int> get buryReviewSiblings =>
       columnsByName['bury_review_siblings']! as i1.GeneratedColumn<int>;
+  i1.GeneratedColumn<String> get buryLearningSiblings =>
+      columnsByName['bury_learning_siblings']! as i1.GeneratedColumn<String>;
   i1.GeneratedColumn<String> get hlc =>
       columnsByName['hlc']! as i1.GeneratedColumn<String>;
 }
@@ -5900,6 +5903,15 @@ i1.GeneratedColumn<int> _column_75(String aliasedName) =>
           'NOT NULL DEFAULT 1 CHECK (bury_review_siblings IN (0, 1))',
       defaultValue: const i1.CustomExpression('1'),
     );
+i1.GeneratedColumn<String> _column_76(String aliasedName) =>
+    i1.GeneratedColumn<String>(
+      'bury_learning_siblings',
+      aliasedName,
+      false,
+      type: i1.DriftSqlType.string,
+      $customConstraints: 'NOT NULL DEFAULT \'session\'',
+      defaultValue: const i1.CustomExpression('\'session\''),
+    );
 
 class Shape28 extends i0.VersionedTable {
   Shape28({required super.source, required super.alias}) : super.aliased();
@@ -5923,7 +5935,7 @@ class Shape28 extends i0.VersionedTable {
       columnsByName['buried_until']! as i1.GeneratedColumn<int>;
 }
 
-i1.GeneratedColumn<int> _column_76(String aliasedName) =>
+i1.GeneratedColumn<int> _column_77(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'suspended',
       aliasedName,
@@ -5932,7 +5944,7 @@ i1.GeneratedColumn<int> _column_76(String aliasedName) =>
       $customConstraints: 'NOT NULL DEFAULT 0 CHECK (suspended IN (0, 1))',
       defaultValue: const i1.CustomExpression('0'),
     );
-i1.GeneratedColumn<int> _column_77(String aliasedName) =>
+i1.GeneratedColumn<int> _column_78(String aliasedName) =>
     i1.GeneratedColumn<int>(
       'buried_until',
       aliasedName,

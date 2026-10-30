@@ -843,6 +843,16 @@ class PresetVersions extends Table
         'NOT NULL DEFAULT 1 CHECK (bury_review_siblings IN (0, 1))',
     defaultValue: const CustomExpression('1'),
   );
+  late final GeneratedColumn<String> buryLearningSiblings =
+      GeneratedColumn<String>(
+        'bury_learning_siblings',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        $customConstraints: 'NOT NULL DEFAULT \'session\'',
+        defaultValue: const CustomExpression('\'session\''),
+      );
   late final GeneratedColumn<String> hlc = GeneratedColumn<String>(
     'hlc',
     aliasedName,
@@ -865,6 +875,7 @@ class PresetVersions extends Table
     newCardOrder,
     buryNewSiblings,
     buryReviewSiblings,
+    buryLearningSiblings,
     hlc,
   ];
   @override
@@ -930,6 +941,10 @@ class PresetVersions extends Table
         DriftSqlType.int,
         data['${effectivePrefix}bury_review_siblings'],
       )!,
+      buryLearningSiblings: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}bury_learning_siblings'],
+      )!,
       hlc: attachedDatabase.typeMapping.read(
         DriftSqlType.string,
         data['${effectivePrefix}hlc'],
@@ -966,6 +981,7 @@ class PresetVersionsData extends DataClass
   final String newCardOrder;
   final int buryNewSiblings;
   final int buryReviewSiblings;
+  final String buryLearningSiblings;
   final String hlc;
   const PresetVersionsData({
     required this.id,
@@ -980,6 +996,7 @@ class PresetVersionsData extends DataClass
     required this.newCardOrder,
     required this.buryNewSiblings,
     required this.buryReviewSiblings,
+    required this.buryLearningSiblings,
     required this.hlc,
   });
   @override
@@ -1001,6 +1018,7 @@ class PresetVersionsData extends DataClass
     map['new_card_order'] = Variable<String>(newCardOrder);
     map['bury_new_siblings'] = Variable<int>(buryNewSiblings);
     map['bury_review_siblings'] = Variable<int>(buryReviewSiblings);
+    map['bury_learning_siblings'] = Variable<String>(buryLearningSiblings);
     map['hlc'] = Variable<String>(hlc);
     return map;
   }
@@ -1023,6 +1041,7 @@ class PresetVersionsData extends DataClass
       newCardOrder: Value(newCardOrder),
       buryNewSiblings: Value(buryNewSiblings),
       buryReviewSiblings: Value(buryReviewSiblings),
+      buryLearningSiblings: Value(buryLearningSiblings),
       hlc: Value(hlc),
     );
   }
@@ -1045,6 +1064,9 @@ class PresetVersionsData extends DataClass
       newCardOrder: serializer.fromJson<String>(json['newCardOrder']),
       buryNewSiblings: serializer.fromJson<int>(json['buryNewSiblings']),
       buryReviewSiblings: serializer.fromJson<int>(json['buryReviewSiblings']),
+      buryLearningSiblings: serializer.fromJson<String>(
+        json['buryLearningSiblings'],
+      ),
       hlc: serializer.fromJson<String>(json['hlc']),
     );
   }
@@ -1064,6 +1086,7 @@ class PresetVersionsData extends DataClass
       'newCardOrder': serializer.toJson<String>(newCardOrder),
       'buryNewSiblings': serializer.toJson<int>(buryNewSiblings),
       'buryReviewSiblings': serializer.toJson<int>(buryReviewSiblings),
+      'buryLearningSiblings': serializer.toJson<String>(buryLearningSiblings),
       'hlc': serializer.toJson<String>(hlc),
     };
   }
@@ -1081,6 +1104,7 @@ class PresetVersionsData extends DataClass
     String? newCardOrder,
     int? buryNewSiblings,
     int? buryReviewSiblings,
+    String? buryLearningSiblings,
     String? hlc,
   }) => PresetVersionsData(
     id: id ?? this.id,
@@ -1099,6 +1123,7 @@ class PresetVersionsData extends DataClass
     newCardOrder: newCardOrder ?? this.newCardOrder,
     buryNewSiblings: buryNewSiblings ?? this.buryNewSiblings,
     buryReviewSiblings: buryReviewSiblings ?? this.buryReviewSiblings,
+    buryLearningSiblings: buryLearningSiblings ?? this.buryLearningSiblings,
     hlc: hlc ?? this.hlc,
   );
   PresetVersionsData copyWithCompanion(PresetVersionsCompanion data) {
@@ -1135,6 +1160,9 @@ class PresetVersionsData extends DataClass
       buryReviewSiblings: data.buryReviewSiblings.present
           ? data.buryReviewSiblings.value
           : this.buryReviewSiblings,
+      buryLearningSiblings: data.buryLearningSiblings.present
+          ? data.buryLearningSiblings.value
+          : this.buryLearningSiblings,
       hlc: data.hlc.present ? data.hlc.value : this.hlc,
     );
   }
@@ -1154,6 +1182,7 @@ class PresetVersionsData extends DataClass
           ..write('newCardOrder: $newCardOrder, ')
           ..write('buryNewSiblings: $buryNewSiblings, ')
           ..write('buryReviewSiblings: $buryReviewSiblings, ')
+          ..write('buryLearningSiblings: $buryLearningSiblings, ')
           ..write('hlc: $hlc')
           ..write(')'))
         .toString();
@@ -1173,6 +1202,7 @@ class PresetVersionsData extends DataClass
     newCardOrder,
     buryNewSiblings,
     buryReviewSiblings,
+    buryLearningSiblings,
     hlc,
   );
   @override
@@ -1191,6 +1221,7 @@ class PresetVersionsData extends DataClass
           other.newCardOrder == this.newCardOrder &&
           other.buryNewSiblings == this.buryNewSiblings &&
           other.buryReviewSiblings == this.buryReviewSiblings &&
+          other.buryLearningSiblings == this.buryLearningSiblings &&
           other.hlc == this.hlc);
 }
 
@@ -1207,6 +1238,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionsData> {
   final Value<String> newCardOrder;
   final Value<int> buryNewSiblings;
   final Value<int> buryReviewSiblings;
+  final Value<String> buryLearningSiblings;
   final Value<String> hlc;
   final Value<int> rowid;
   const PresetVersionsCompanion({
@@ -1222,6 +1254,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionsData> {
     this.newCardOrder = const Value.absent(),
     this.buryNewSiblings = const Value.absent(),
     this.buryReviewSiblings = const Value.absent(),
+    this.buryLearningSiblings = const Value.absent(),
     this.hlc = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -1238,6 +1271,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionsData> {
     required String newCardOrder,
     this.buryNewSiblings = const Value.absent(),
     this.buryReviewSiblings = const Value.absent(),
+    this.buryLearningSiblings = const Value.absent(),
     required String hlc,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -1262,6 +1296,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionsData> {
     Expression<String>? newCardOrder,
     Expression<int>? buryNewSiblings,
     Expression<int>? buryReviewSiblings,
+    Expression<String>? buryLearningSiblings,
     Expression<String>? hlc,
     Expression<int>? rowid,
   }) {
@@ -1279,6 +1314,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionsData> {
       if (buryNewSiblings != null) 'bury_new_siblings': buryNewSiblings,
       if (buryReviewSiblings != null)
         'bury_review_siblings': buryReviewSiblings,
+      if (buryLearningSiblings != null)
+        'bury_learning_siblings': buryLearningSiblings,
       if (hlc != null) 'hlc': hlc,
       if (rowid != null) 'rowid': rowid,
     });
@@ -1297,6 +1334,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionsData> {
     Value<String>? newCardOrder,
     Value<int>? buryNewSiblings,
     Value<int>? buryReviewSiblings,
+    Value<String>? buryLearningSiblings,
     Value<String>? hlc,
     Value<int>? rowid,
   }) {
@@ -1313,6 +1351,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionsData> {
       newCardOrder: newCardOrder ?? this.newCardOrder,
       buryNewSiblings: buryNewSiblings ?? this.buryNewSiblings,
       buryReviewSiblings: buryReviewSiblings ?? this.buryReviewSiblings,
+      buryLearningSiblings: buryLearningSiblings ?? this.buryLearningSiblings,
       hlc: hlc ?? this.hlc,
       rowid: rowid ?? this.rowid,
     );
@@ -1357,6 +1396,11 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionsData> {
     if (buryReviewSiblings.present) {
       map['bury_review_siblings'] = Variable<int>(buryReviewSiblings.value);
     }
+    if (buryLearningSiblings.present) {
+      map['bury_learning_siblings'] = Variable<String>(
+        buryLearningSiblings.value,
+      );
+    }
     if (hlc.present) {
       map['hlc'] = Variable<String>(hlc.value);
     }
@@ -1381,6 +1425,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionsData> {
           ..write('newCardOrder: $newCardOrder, ')
           ..write('buryNewSiblings: $buryNewSiblings, ')
           ..write('buryReviewSiblings: $buryReviewSiblings, ')
+          ..write('buryLearningSiblings: $buryLearningSiblings, ')
           ..write('hlc: $hlc, ')
           ..write('rowid: $rowid')
           ..write(')'))

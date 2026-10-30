@@ -47,6 +47,19 @@ enum NewCardOrder {
   random,
 }
 
+/// How long studying a learning or relearning card keeps the note's other
+/// new and review cards out of the queue.
+enum LearningSiblingBury {
+  /// For the rest of the study day, like studying a new or review card.
+  day,
+
+  /// For the rest of the study session in which it was studied.
+  session,
+
+  /// Not at all.
+  never,
+}
+
 /// One immutable version of a preset's settings.
 @freezed
 abstract class PresetVersion with _$PresetVersion {
@@ -93,12 +106,16 @@ abstract class PresetVersion with _$PresetVersion {
     @Default(NewCardMix.mixed) NewCardMix newCardMix,
     @Default(NewCardOrder.created) NewCardOrder newCardOrder,
 
-    /// Whether studying a card keeps the note's other new cards out of the
-    /// day's queue.
+    /// Whether studying a new or review card keeps the note's other new cards
+    /// out of the day's queue.
     @Default(true) bool buryNewSiblings,
 
-    /// Whether studying a card keeps the note's other review cards out of
-    /// the day's queue.
+    /// Whether studying a new or review card keeps the note's other review
+    /// cards out of the day's queue.
     @Default(true) bool buryReviewSiblings,
+
+    /// How long studying a learning card buries its siblings.
+    @Default(LearningSiblingBury.session)
+    LearningSiblingBury buryLearningSiblings,
   }) = _PresetVersion;
 }

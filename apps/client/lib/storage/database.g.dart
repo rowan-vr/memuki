@@ -6120,6 +6120,19 @@ class $PresetVersionsTable extends PresetVersions
     defaultValue: const Constant(true),
   );
   @override
+  late final GeneratedColumnWithTypeConverter<LearningSiblingBury, String>
+  buryLearningSiblings =
+      GeneratedColumn<String>(
+        'bury_learning_siblings',
+        aliasedName,
+        false,
+        type: DriftSqlType.string,
+        requiredDuringInsert: false,
+        defaultValue: Constant(LearningSiblingBury.session.name),
+      ).withConverter<LearningSiblingBury>(
+        $PresetVersionsTable.$converterburyLearningSiblings,
+      );
+  @override
   late final GeneratedColumnWithTypeConverter<Hlc, String> hlc =
       GeneratedColumn<String>(
         'hlc',
@@ -6142,6 +6155,7 @@ class $PresetVersionsTable extends PresetVersions
     newCardOrder,
     buryNewSiblings,
     buryReviewSiblings,
+    buryLearningSiblings,
     hlc,
   ];
   @override
@@ -6296,6 +6310,13 @@ class $PresetVersionsTable extends PresetVersions
         DriftSqlType.bool,
         data['${effectivePrefix}bury_review_siblings'],
       )!,
+      buryLearningSiblings: $PresetVersionsTable.$converterburyLearningSiblings
+          .fromSql(
+            attachedDatabase.typeMapping.read(
+              DriftSqlType.string,
+              data['${effectivePrefix}bury_learning_siblings'],
+            )!,
+          ),
       hlc: $PresetVersionsTable.$converterhlc.fromSql(
         attachedDatabase.typeMapping.read(
           DriftSqlType.string,
@@ -6322,6 +6343,10 @@ class $PresetVersionsTable extends PresetVersions
   $converternewCardOrder = const EnumNameConverter<NewCardOrder>(
     NewCardOrder.values,
   );
+  static JsonTypeConverter2<LearningSiblingBury, String, String>
+  $converterburyLearningSiblings = const EnumNameConverter<LearningSiblingBury>(
+    LearningSiblingBury.values,
+  );
   static TypeConverter<Hlc, String> $converterhlc = const HlcConverter();
 }
 
@@ -6341,6 +6366,7 @@ class PresetVersionRow extends DataClass
   final NewCardOrder newCardOrder;
   final bool buryNewSiblings;
   final bool buryReviewSiblings;
+  final LearningSiblingBury buryLearningSiblings;
   final Hlc hlc;
   const PresetVersionRow({
     required this.id,
@@ -6355,6 +6381,7 @@ class PresetVersionRow extends DataClass
     required this.newCardOrder,
     required this.buryNewSiblings,
     required this.buryReviewSiblings,
+    required this.buryLearningSiblings,
     required this.hlc,
   });
   @override
@@ -6397,6 +6424,13 @@ class PresetVersionRow extends DataClass
     map['bury_new_siblings'] = Variable<bool>(buryNewSiblings);
     map['bury_review_siblings'] = Variable<bool>(buryReviewSiblings);
     {
+      map['bury_learning_siblings'] = Variable<String>(
+        $PresetVersionsTable.$converterburyLearningSiblings.toSql(
+          buryLearningSiblings,
+        ),
+      );
+    }
+    {
       map['hlc'] = Variable<String>(
         $PresetVersionsTable.$converterhlc.toSql(hlc),
       );
@@ -6422,6 +6456,7 @@ class PresetVersionRow extends DataClass
       newCardOrder: Value(newCardOrder),
       buryNewSiblings: Value(buryNewSiblings),
       buryReviewSiblings: Value(buryReviewSiblings),
+      buryLearningSiblings: Value(buryLearningSiblings),
       hlc: Value(hlc),
     );
   }
@@ -6450,6 +6485,8 @@ class PresetVersionRow extends DataClass
       ),
       buryNewSiblings: serializer.fromJson<bool>(json['buryNewSiblings']),
       buryReviewSiblings: serializer.fromJson<bool>(json['buryReviewSiblings']),
+      buryLearningSiblings: $PresetVersionsTable.$converterburyLearningSiblings
+          .fromJson(serializer.fromJson<String>(json['buryLearningSiblings'])),
       hlc: serializer.fromJson<Hlc>(json['hlc']),
     );
   }
@@ -6475,6 +6512,11 @@ class PresetVersionRow extends DataClass
       ),
       'buryNewSiblings': serializer.toJson<bool>(buryNewSiblings),
       'buryReviewSiblings': serializer.toJson<bool>(buryReviewSiblings),
+      'buryLearningSiblings': serializer.toJson<String>(
+        $PresetVersionsTable.$converterburyLearningSiblings.toJson(
+          buryLearningSiblings,
+        ),
+      ),
       'hlc': serializer.toJson<Hlc>(hlc),
     };
   }
@@ -6492,6 +6534,7 @@ class PresetVersionRow extends DataClass
     NewCardOrder? newCardOrder,
     bool? buryNewSiblings,
     bool? buryReviewSiblings,
+    LearningSiblingBury? buryLearningSiblings,
     Hlc? hlc,
   }) => PresetVersionRow(
     id: id ?? this.id,
@@ -6510,6 +6553,7 @@ class PresetVersionRow extends DataClass
     newCardOrder: newCardOrder ?? this.newCardOrder,
     buryNewSiblings: buryNewSiblings ?? this.buryNewSiblings,
     buryReviewSiblings: buryReviewSiblings ?? this.buryReviewSiblings,
+    buryLearningSiblings: buryLearningSiblings ?? this.buryLearningSiblings,
     hlc: hlc ?? this.hlc,
   );
   PresetVersionRow copyWithCompanion(PresetVersionsCompanion data) {
@@ -6546,6 +6590,9 @@ class PresetVersionRow extends DataClass
       buryReviewSiblings: data.buryReviewSiblings.present
           ? data.buryReviewSiblings.value
           : this.buryReviewSiblings,
+      buryLearningSiblings: data.buryLearningSiblings.present
+          ? data.buryLearningSiblings.value
+          : this.buryLearningSiblings,
       hlc: data.hlc.present ? data.hlc.value : this.hlc,
     );
   }
@@ -6565,6 +6612,7 @@ class PresetVersionRow extends DataClass
           ..write('newCardOrder: $newCardOrder, ')
           ..write('buryNewSiblings: $buryNewSiblings, ')
           ..write('buryReviewSiblings: $buryReviewSiblings, ')
+          ..write('buryLearningSiblings: $buryLearningSiblings, ')
           ..write('hlc: $hlc')
           ..write(')'))
         .toString();
@@ -6584,6 +6632,7 @@ class PresetVersionRow extends DataClass
     newCardOrder,
     buryNewSiblings,
     buryReviewSiblings,
+    buryLearningSiblings,
     hlc,
   );
   @override
@@ -6602,6 +6651,7 @@ class PresetVersionRow extends DataClass
           other.newCardOrder == this.newCardOrder &&
           other.buryNewSiblings == this.buryNewSiblings &&
           other.buryReviewSiblings == this.buryReviewSiblings &&
+          other.buryLearningSiblings == this.buryLearningSiblings &&
           other.hlc == this.hlc);
 }
 
@@ -6618,6 +6668,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
   final Value<NewCardOrder> newCardOrder;
   final Value<bool> buryNewSiblings;
   final Value<bool> buryReviewSiblings;
+  final Value<LearningSiblingBury> buryLearningSiblings;
   final Value<Hlc> hlc;
   final Value<int> rowid;
   const PresetVersionsCompanion({
@@ -6633,6 +6684,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     this.newCardOrder = const Value.absent(),
     this.buryNewSiblings = const Value.absent(),
     this.buryReviewSiblings = const Value.absent(),
+    this.buryLearningSiblings = const Value.absent(),
     this.hlc = const Value.absent(),
     this.rowid = const Value.absent(),
   });
@@ -6649,6 +6701,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     required NewCardOrder newCardOrder,
     this.buryNewSiblings = const Value.absent(),
     this.buryReviewSiblings = const Value.absent(),
+    this.buryLearningSiblings = const Value.absent(),
     required Hlc hlc,
     this.rowid = const Value.absent(),
   }) : id = Value(id),
@@ -6673,6 +6726,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     Expression<String>? newCardOrder,
     Expression<bool>? buryNewSiblings,
     Expression<bool>? buryReviewSiblings,
+    Expression<String>? buryLearningSiblings,
     Expression<String>? hlc,
     Expression<int>? rowid,
   }) {
@@ -6690,6 +6744,8 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
       if (buryNewSiblings != null) 'bury_new_siblings': buryNewSiblings,
       if (buryReviewSiblings != null)
         'bury_review_siblings': buryReviewSiblings,
+      if (buryLearningSiblings != null)
+        'bury_learning_siblings': buryLearningSiblings,
       if (hlc != null) 'hlc': hlc,
       if (rowid != null) 'rowid': rowid,
     });
@@ -6708,6 +6764,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     Value<NewCardOrder>? newCardOrder,
     Value<bool>? buryNewSiblings,
     Value<bool>? buryReviewSiblings,
+    Value<LearningSiblingBury>? buryLearningSiblings,
     Value<Hlc>? hlc,
     Value<int>? rowid,
   }) {
@@ -6724,6 +6781,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
       newCardOrder: newCardOrder ?? this.newCardOrder,
       buryNewSiblings: buryNewSiblings ?? this.buryNewSiblings,
       buryReviewSiblings: buryReviewSiblings ?? this.buryReviewSiblings,
+      buryLearningSiblings: buryLearningSiblings ?? this.buryLearningSiblings,
       hlc: hlc ?? this.hlc,
       rowid: rowid ?? this.rowid,
     );
@@ -6780,6 +6838,13 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
     if (buryReviewSiblings.present) {
       map['bury_review_siblings'] = Variable<bool>(buryReviewSiblings.value);
     }
+    if (buryLearningSiblings.present) {
+      map['bury_learning_siblings'] = Variable<String>(
+        $PresetVersionsTable.$converterburyLearningSiblings.toSql(
+          buryLearningSiblings.value,
+        ),
+      );
+    }
     if (hlc.present) {
       map['hlc'] = Variable<String>(
         $PresetVersionsTable.$converterhlc.toSql(hlc.value),
@@ -6806,6 +6871,7 @@ class PresetVersionsCompanion extends UpdateCompanion<PresetVersionRow> {
           ..write('newCardOrder: $newCardOrder, ')
           ..write('buryNewSiblings: $buryNewSiblings, ')
           ..write('buryReviewSiblings: $buryReviewSiblings, ')
+          ..write('buryLearningSiblings: $buryLearningSiblings, ')
           ..write('hlc: $hlc, ')
           ..write('rowid: $rowid')
           ..write(')'))
@@ -15245,6 +15311,7 @@ typedef $$PresetVersionsTableCreateCompanionBuilder =
       required NewCardOrder newCardOrder,
       Value<bool> buryNewSiblings,
       Value<bool> buryReviewSiblings,
+      Value<LearningSiblingBury> buryLearningSiblings,
       required Hlc hlc,
       Value<int> rowid,
     });
@@ -15262,6 +15329,7 @@ typedef $$PresetVersionsTableUpdateCompanionBuilder =
       Value<NewCardOrder> newCardOrder,
       Value<bool> buryNewSiblings,
       Value<bool> buryReviewSiblings,
+      Value<LearningSiblingBury> buryLearningSiblings,
       Value<Hlc> hlc,
       Value<int> rowid,
     });
@@ -15376,6 +15444,16 @@ class $$PresetVersionsTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnWithTypeConverterFilters<
+    LearningSiblingBury,
+    LearningSiblingBury,
+    String
+  >
+  get buryLearningSiblings => $composableBuilder(
+    column: $table.buryLearningSiblings,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
   ColumnWithTypeConverterFilters<Hlc, Hlc, String> get hlc =>
       $composableBuilder(
         column: $table.hlc,
@@ -15477,6 +15555,11 @@ class $$PresetVersionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get buryLearningSiblings => $composableBuilder(
+    column: $table.buryLearningSiblings,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   ColumnOrderings<String> get hlc => $composableBuilder(
     column: $table.hlc,
     builder: (column) => ColumnOrderings(column),
@@ -15548,6 +15631,12 @@ class $$PresetVersionsTableAnnotationComposer
 
   GeneratedColumn<bool> get buryReviewSiblings => $composableBuilder(
     column: $table.buryReviewSiblings,
+    builder: (column) => column,
+  );
+
+  GeneratedColumnWithTypeConverter<LearningSiblingBury, String>
+  get buryLearningSiblings => $composableBuilder(
+    column: $table.buryLearningSiblings,
     builder: (column) => column,
   );
 
@@ -15623,6 +15712,8 @@ class $$PresetVersionsTableTableManager
                 Value<NewCardOrder> newCardOrder = const Value.absent(),
                 Value<bool> buryNewSiblings = const Value.absent(),
                 Value<bool> buryReviewSiblings = const Value.absent(),
+                Value<LearningSiblingBury> buryLearningSiblings =
+                    const Value.absent(),
                 Value<Hlc> hlc = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => PresetVersionsCompanion(
@@ -15638,6 +15729,7 @@ class $$PresetVersionsTableTableManager
                 newCardOrder: newCardOrder,
                 buryNewSiblings: buryNewSiblings,
                 buryReviewSiblings: buryReviewSiblings,
+                buryLearningSiblings: buryLearningSiblings,
                 hlc: hlc,
                 rowid: rowid,
               ),
@@ -15655,6 +15747,8 @@ class $$PresetVersionsTableTableManager
                 required NewCardOrder newCardOrder,
                 Value<bool> buryNewSiblings = const Value.absent(),
                 Value<bool> buryReviewSiblings = const Value.absent(),
+                Value<LearningSiblingBury> buryLearningSiblings =
+                    const Value.absent(),
                 required Hlc hlc,
                 Value<int> rowid = const Value.absent(),
               }) => PresetVersionsCompanion.insert(
@@ -15670,6 +15764,7 @@ class $$PresetVersionsTableTableManager
                 newCardOrder: newCardOrder,
                 buryNewSiblings: buryNewSiblings,
                 buryReviewSiblings: buryReviewSiblings,
+                buryLearningSiblings: buryLearningSiblings,
                 hlc: hlc,
                 rowid: rowid,
               ),

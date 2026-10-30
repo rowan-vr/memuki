@@ -1969,6 +1969,20 @@
             "dsl_features": []
           },
           {
+            "name": "bury_learning_siblings",
+            "getter_name": "buryLearningSiblings",
+            "moor_type": "string",
+            "nullable": false,
+            "customConstraints": null,
+            "default_dart": "const CustomExpression('\\'session\\'')",
+            "default_client_dart": null,
+            "dsl_features": [],
+            "type_converter": {
+              "dart_expr": "const EnumNameConverter<LearningSiblingBury>(LearningSiblingBury.values)",
+              "dart_type_name": "LearningSiblingBury"
+            }
+          },
+          {
             "name": "hlc",
             "getter_name": "hlc",
             "moor_type": "string",
@@ -3815,7 +3829,7 @@
       "sql": [
         {
           "dialect": "sqlite",
-          "sql": "CREATE TABLE IF NOT EXISTS \"preset_versions\" (\"id\" BLOB NOT NULL, \"preset_id\" BLOB NOT NULL, \"scheduler_id\" TEXT NOT NULL, \"scheduler_config\" TEXT NOT NULL, \"burn_threshold_days\" INTEGER NULL, \"leech_threshold\" INTEGER NULL, \"new_cards_per_day\" INTEGER NOT NULL, \"reviews_per_day\" INTEGER NOT NULL, \"new_card_mix\" TEXT NOT NULL, \"new_card_order\" TEXT NOT NULL, \"bury_new_siblings\" INTEGER NOT NULL DEFAULT 1 CHECK (\"bury_new_siblings\" IN (0, 1)), \"bury_review_siblings\" INTEGER NOT NULL DEFAULT 1 CHECK (\"bury_review_siblings\" IN (0, 1)), \"hlc\" TEXT NOT NULL, PRIMARY KEY (\"id\"), UNIQUE (\"preset_id\", \"id\"), FOREIGN KEY (preset_id) REFERENCES presets (id) DEFERRABLE INITIALLY DEFERRED);"
+          "sql": "CREATE TABLE IF NOT EXISTS \"preset_versions\" (\"id\" BLOB NOT NULL, \"preset_id\" BLOB NOT NULL, \"scheduler_id\" TEXT NOT NULL, \"scheduler_config\" TEXT NOT NULL, \"burn_threshold_days\" INTEGER NULL, \"leech_threshold\" INTEGER NULL, \"new_cards_per_day\" INTEGER NOT NULL, \"reviews_per_day\" INTEGER NOT NULL, \"new_card_mix\" TEXT NOT NULL, \"new_card_order\" TEXT NOT NULL, \"bury_new_siblings\" INTEGER NOT NULL DEFAULT 1 CHECK (\"bury_new_siblings\" IN (0, 1)), \"bury_review_siblings\" INTEGER NOT NULL DEFAULT 1 CHECK (\"bury_review_siblings\" IN (0, 1)), \"bury_learning_siblings\" TEXT NOT NULL DEFAULT 'session', \"hlc\" TEXT NOT NULL, PRIMARY KEY (\"id\"), UNIQUE (\"preset_id\", \"id\"), FOREIGN KEY (preset_id) REFERENCES presets (id) DEFERRABLE INITIALLY DEFERRED);"
         }
       ]
     },

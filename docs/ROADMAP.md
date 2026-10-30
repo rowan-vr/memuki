@@ -220,7 +220,7 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 | Learning ahead | When nothing else is left, learning cards due within 20 minutes are shown early | Decided |
 | Suspending | A synced flag on the card; a suspended card keeps its scheduling state and is left out of every queue until unsuspended | Decided |
 | Burying | A synced time on the card until which it is left out of queues, chosen per bury (e.g. later today or the next study day); a study session can also skip cards for that session only, without storing anything | Decided |
-| Sibling burying | Once a card of a note is studied today, the note's other new and review cards are left out of the day's queue, per preset (both on by default, using the studied deck's preset); learning cards are never buried. Computed from today's events in effect, so an undo brings the sibling back | Decided |
+| Sibling burying | Once a new or review card of a note is studied today, the note's other new and review cards are left out of the day's queue, per preset (both on by default, using the studied deck's preset). Studying a learning card buries them for the current session by default, or for the day, or not at all. Learning cards are never buried. Computed from today's events in effect, so an undo brings the sibling back | Decided |
 | FSRS | Separate later phase; placement TBD | Decided |
 
 ### Acceptance Criteria

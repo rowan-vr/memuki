@@ -273,6 +273,50 @@ void main() {
       expect((await queues.queue(japanese.deck.id)).newCount, 0);
     });
 
+    group('after studying a learning card', () {
+      late DateTime sessionStart;
+
+      Future<void> setLearningBury(LearningSiblingBury bury) =>
+          repos.presets.updateSettings(
+            japanese.preset.id,
+            PresetVersion(
+              id: PresetVersionId.generate(),
+              buryLearningSiblings: bury,
+            ),
+          );
+
+      Future<int> newCount({DateTime? session}) async => (await queues.queue(
+        japanese.deck.id,
+        sessionStart: session,
+      )).newCount;
+
+      setUp(() async {
+        // Learning the next day, with the sibling still new.
+        await reviews.review(first.id, Grade.good);
+        now = now.add(const Duration(days: 1));
+        sessionStart = now;
+        now = now.add(const Duration(minutes: 1));
+        await reviews.review(first.id, Grade.good);
+        now = now.add(const Duration(minutes: 1));
+      });
+
+      test('buries its siblings for the session by default', () async {
+        expect(await newCount(session: sessionStart), 0);
+        expect(await newCount(session: now), 1);
+        expect(await newCount(), 1);
+      });
+
+      test('can bury them for the day', () async {
+        await setLearningBury(LearningSiblingBury.day);
+        expect(await newCount(), 0);
+      });
+
+      test('can leave them alone', () async {
+        await setLearningBury(LearningSiblingBury.never);
+        expect(await newCount(session: sessionStart), 1);
+      });
+    });
+
     test('can be turned off in the preset', () async {
       await repos.presets.updateSettings(
         japanese.preset.id,

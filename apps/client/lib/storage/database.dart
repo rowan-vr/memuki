@@ -8,7 +8,8 @@ import 'package:path/path.dart' as p;
 import '../domain/ids.dart';
 import '../domain/note.dart' show SourceKind;
 import '../domain/note_type.dart' show FieldType;
-import '../domain/preset.dart' show NewCardMix, NewCardOrder, PresetVersion;
+import '../domain/preset.dart'
+    show LearningSiblingBury, NewCardMix, NewCardOrder, PresetVersion;
 import '../domain/review.dart';
 import 'converters.dart';
 import 'database.steps.dart';
@@ -434,7 +435,8 @@ class MemukiDatabase extends _$MemukiDatabase {
 
   /// Adds suspending and burying of cards, and the sibling burying settings
   /// of presets. No card is suspended or buried, and existing preset
-  /// versions bury both new and review siblings.
+  /// versions bury new and review siblings for the day, and the siblings of
+  /// learning cards for the session.
   Future<void> _from7To8(Migrator m, Schema8 schema) async {
     await m.addColumn(schema.studyCards, schema.studyCards.suspended);
     await m.addColumn(schema.studyCards, schema.studyCards.buriedUntil);
@@ -445,6 +447,10 @@ class MemukiDatabase extends _$MemukiDatabase {
     await m.addColumn(
       schema.presetVersions,
       schema.presetVersions.buryReviewSiblings,
+    );
+    await m.addColumn(
+      schema.presetVersions,
+      schema.presetVersions.buryLearningSiblings,
     );
   }
 
