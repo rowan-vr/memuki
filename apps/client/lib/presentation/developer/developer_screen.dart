@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../components/rows.dart';
+import '../components/screen.dart';
 import '../routing/router.dart';
 import '../theme/spacing.dart';
 
@@ -11,8 +12,8 @@ class DeveloperScreen extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(title: const Text('Developer')),
+    return Screen(
+      title: 'Developer',
       body: ListView(
         padding: const EdgeInsets.all(Spacing.lg),
         children: [

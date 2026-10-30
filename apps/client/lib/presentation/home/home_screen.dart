@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../components/screen.dart';
 import '../theme/spacing.dart';
 
 class HomeScreen extends StatelessWidget {
@@ -10,8 +11,8 @@ class HomeScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     final l10n = AppLocalizations.of(context);
     final textTheme = Theme.of(context).textTheme;
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.navHome)),
+    return Screen(
+      title: l10n.navHome,
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(Spacing.lg),

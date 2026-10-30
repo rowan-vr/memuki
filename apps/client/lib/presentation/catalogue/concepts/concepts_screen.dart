@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 
+import '../../components/screen.dart';
 import '../../theme/app_theme.dart';
 import '../../theme/spacing.dart';
 import 'chunky_review.dart';
@@ -30,8 +31,8 @@ class _ConceptsScreenState extends State<ConceptsScreen> {
   Widget build(BuildContext context) {
     final brightness = _brightness ?? Theme.of(context).brightness;
     final dark = brightness == Brightness.dark;
-    return Scaffold(
-      appBar: AppBar(title: const Text('Visual concepts')),
+    return Screen(
+      title: 'Visual concepts',
       body: Column(
         children: [
           Padding(

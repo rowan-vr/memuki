@@ -27,6 +27,11 @@ void main() {
 
     expect(find.byType(CatalogueScreen), findsOneWidget);
     expect(find.text('Surfaces and text'), findsOneWidget);
+
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await tester.pumpAndSettle();
+    expect(find.byType(CatalogueScreen), findsNothing);
+    expect(find.text('Component catalogue'), findsOneWidget);
   });
 
   testWidgets('every section renders, at the largest text scale', (

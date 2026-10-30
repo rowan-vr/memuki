@@ -6,6 +6,7 @@ import '../components/indicators.dart';
 import '../components/panel.dart';
 import '../components/pressable.dart';
 import '../components/rows.dart';
+import '../components/screen.dart';
 import '../components/segmented_choice.dart';
 import '../theme/app_theme.dart';
 import '../theme/breakpoints.dart';
@@ -73,8 +74,8 @@ class _CatalogueScreenState extends State<CatalogueScreen> {
         data: MediaQuery.of(context)
             .copyWith(textScaler: TextScaler.linear(_textScale)),
         child: Builder(
-          builder: (context) => Scaffold(
-            appBar: AppBar(title: const Text('Catalogue')),
+          builder: (context) => Screen(
+            title: 'Catalogue',
             body: Column(
               crossAxisAlignment: CrossAxisAlignment.stretch,
               children: [
@@ -128,7 +129,12 @@ class _Toolbar extends StatelessWidget {
     List<Choice<T>> named<T extends Enum>(List<T> values) => [
       for (final v in values) Choice(v, v.name),
     ];
-    const padding = EdgeInsets.fromLTRB(Spacing.lg, 0, Spacing.lg, Spacing.md);
+    const padding = EdgeInsets.fromLTRB(
+      Spacing.lg,
+      Spacing.sm,
+      Spacing.lg,
+      Spacing.md,
+    );
     final controls = Wrap(
       spacing: Spacing.lg,
       runSpacing: Spacing.sm,

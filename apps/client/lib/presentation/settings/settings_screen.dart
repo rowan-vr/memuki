@@ -4,6 +4,7 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../components/icons.dart';
 import '../components/panel.dart';
+import '../components/screen.dart';
 import '../components/segmented_choice.dart';
 import '../theme/app_theme.dart';
 import '../theme/spacing.dart';
@@ -16,8 +17,8 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final themeMode = ref.watch(themeModeProvider);
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.navSettings)),
+    return Screen(
+      title: l10n.navSettings,
       body: ListView(
         padding: const EdgeInsets.all(Spacing.lg),
         children: [
