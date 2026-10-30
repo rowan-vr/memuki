@@ -1,6 +1,6 @@
 # Memuki — Development Roadmap
 
-> **Last updated:** 2026-10-29
+> **Last updated:** 2026-10-30
 > **Scope:** 8 milestones, 21 phases (0–19, with Phase 5 split into 5a and 5b)
 > **Sequence:** Linux → Sync → Mobile → Web → Advanced Mining → Extensions → Education
 
@@ -240,7 +240,7 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 
 ## Phase 3 — Notes, Fields, and Templates
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** Users define what information is stored and how it is studied.
 
@@ -281,12 +281,21 @@ Initial templates:
 
 ### Decisions
 
-| Decision | Status |
-|---|---|
-| Native Flutter rendering from Memuki templates; templates define structure, the design system defines styling; no user HTML/CSS/JS | Decided |
-| Visual direction (palette, type scale, iconography, motion) | Open |
-| Rich-text field storage format (representation of the restricted subset, including furigana) | Open |
-| Template model representation | Open |
+| Decision | Direction | Status |
+|---|---|---|
+| Card rendering | Native Flutter rendering from Memuki templates; templates define structure, the design system defines styling; no user HTML/CSS/JS | Decided |
+| Visual identity | Memuki has its own look: colours, type, shapes, icons, and motion come from Memuki's tokens and components, not Material or Cupertino defaults | Proposed |
+| Components | Memuki's own components, built on Flutter's widgets layer; Material remains only as app plumbing (localization, text selection, navigation), themed from Memuki's tokens | Decided |
+| Icons | An open icon set behind Memuki's own icon API, so icons can be replaced or redrawn without changing screens | Decided |
+| Visual direction | Cute but polished; light and dark themes designed equally, neither derived from the other. Palette, type scale, iconography, and motion are settled while the first screens are built, using the component catalogue | Proposed |
+| Grade and card-state styling | Again, Hard, Good, Easy, and burned cards are part of the palette, distinguished by more than colour | Proposed |
+| Card typeface | Sans and serif card faces are compared on real cards across scripts | Open |
+| Content format | One construct, `{key arg … name="value" \| content}`, for both field values and templates; quoted values for arguments with spaces; content can nest further marks | Decided |
+| Marks | Marks say what text is (reading, emphasis, cloze, language), never how it looks; the design system styles each kind. Each kind is a registry entry with its arguments, rendering, editing controls, Anki mapping, and plain-text fallback. Unknown kinds show their content | Decided |
+| Plain text | A field's plain text is its content with the marks dropped; search, duplicate detection, sorting, and typed-answer comparison use it | Decided |
+| Field editing | Direct editing on the rendered field: select text, then add a mark. A toggle shows the source | Decided |
+| Field language | Each field definition has a language; a `lang` mark overrides it for a span. Text direction and font fallback follow from the language | Decided |
+| Templates | A template is content in the same format whose marks place fields by role (`{front \| …}`, `{back \| …}`, `{field Word role=prompt}`, `{if Example \| …}`, `{requires Word}`); cloze and typed answer are template kinds. Edited visually by arranging fields, with the same source toggle. Templates carry no styling | Decided |
 
 ### Acceptance Criteria
 

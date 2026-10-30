@@ -105,9 +105,53 @@ With this model, merging concurrent reviews from different devices reduces to me
 
 - Templates describe structure: which fields appear, in what order and position, with which semantic role (e.g. prompt, answer, reading, example, media).
 - Styling comes from the design system and adapts to theme, platform, and text scale.
-- Field content supports a restricted rich-text subset (emphasis, furigana/ruby, lists, media references). Arbitrary HTML, CSS, and JavaScript are not supported.
-- Cloze and typed-answer behavior are template features, not markup conventions.
-- Anki import converts templates to this model and reports what could not be carried over.
+- Arbitrary HTML, CSS, and JavaScript are not supported.
+- Cloze and typed-answer behavior are template features, not conventions in field text.
+- Anki import converts templates and field HTML to this model and reports what could not be carried over.
+
+### Content format
+
+Field values and templates are stored as text in one format. Text is plain except for marks:
+
+```
+{key arg … name="value" | content}
+```
+
+The key names the kind of mark. Arguments follow, positional or named, quoted when they contain spaces. Content after `|` is optional and can contain further marks. `\` escapes `{`, `}`, `|`, and itself.
+
+```
+今日は{ruby てんき | 天気}が{em | いい}です。
+{lang zh-Hans | {ruby "nǐ hǎo" | 你好}}
+H{sub | 2}O
+```
+
+- **Marks are semantic.** They say what text is (a reading, emphasis, a language), never how it looks. There are no colour, size, or font marks; the design system styles each kind.
+- **Kinds are a registry.** Each kind defines its arguments, how it renders, how it is added in the editor, how Anki HTML maps to it, and its plain-text fallback. New kinds (pitch accent, tone, formulas) are new entries, and language packs and plugins can add them. A kind the app does not know shows its content.
+- **Plain text** is the content with the marks dropped (`今日は天気がいいです`). Search, duplicate detection, sorting, and typed-answer comparison use it.
+- **Language:** each field definition has a language, and a `lang` mark overrides it for a span. The language selects glyph forms for shared Han characters, text direction, and font fallback.
+- **Editing:** fields are edited directly in their rendered form; selecting text offers the marks that apply. A toggle shows the source.
+
+### Templates
+
+A template is content in the same format, whose marks place fields:
+
+```
+{front |
+  {field Word role=prompt}
+}
+{back |
+  {field Reading role=reading}
+  {field Meaning role=answer}
+  {if Example | {field Example role=example}}
+}
+{requires Word}
+```
+
+- Fields are placed by role; the role decides their styling. Templates carry no styling of their own.
+- `if` shows its content only when the field is not empty; `requires` lists the fields a note must fill for the template to generate a card.
+- Cloze and typed answer are template kinds that refer to a field.
+- Templates are edited visually by arranging fields on the front and back, with the same source toggle.
+- The format is stored on `StudyCardTemplate`; template IDs, and so card identity, do not depend on it.
 
 ## Storage
 
@@ -237,6 +281,9 @@ memuki/
 | D40 | Preset settings are immutable versions identified by UUID; review events record the version ID; each collection has an undeletable default preset | Decided | 2 |
 | D41 | Study queues are computed from scheduling state and today's history in effect; learning cards first, then reviews and new cards ordered per preset | Decided | 2 |
 | D42 | Suspending and burying are synced card properties; sibling burying is computed from today's events in effect | Decided | 2 |
+| D43 | Field values and templates share one text format of semantic marks, `{key args \| content}`, with a registry of mark kinds | Decided | 3 |
+| D44 | Fields are edited directly in their rendered form; the source is available behind a toggle | Decided | 3 |
+| D45 | Each field definition has a language, overridable per span, which selects glyph forms, text direction, and font fallback | Decided | 3 |
 
 ## Open questions
 
