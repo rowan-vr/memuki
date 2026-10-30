@@ -2,6 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../components/animations.dart';
+import '../components/icons.dart';
+import '../components/panel.dart';
+import '../components/screen.dart';
+import '../components/segmented_choice.dart';
+import '../theme/app_theme.dart';
 import '../theme/spacing.dart';
 import 'theme_mode_provider.dart';
 
@@ -12,37 +18,40 @@ class SettingsScreen extends ConsumerWidget {
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final themeMode = ref.watch(themeModeProvider);
-    return Scaffold(
-      appBar: AppBar(title: Text(l10n.navSettings)),
+    return Screen(
+      title: l10n.navSettings,
       body: ListView(
-        padding: const EdgeInsets.symmetric(vertical: Spacing.sm),
+        padding: const EdgeInsets.all(Spacing.lg),
         children: [
-          ListTile(
-            title: Text(l10n.settingsThemeMode),
-            subtitle: Padding(
-              padding: const EdgeInsets.only(top: Spacing.sm),
-              child: SegmentedButton<ThemeMode>(
-                segments: [
-                  ButtonSegment(
-                    value: ThemeMode.system,
-                    icon: const Icon(Icons.brightness_auto),
-                    label: Text(l10n.settingsThemeModeSystem),
-                  ),
-                  ButtonSegment(
-                    value: ThemeMode.light,
-                    icon: const Icon(Icons.light_mode),
-                    label: Text(l10n.settingsThemeModeLight),
-                  ),
-                  ButtonSegment(
-                    value: ThemeMode.dark,
-                    icon: const Icon(Icons.dark_mode),
-                    label: Text(l10n.settingsThemeModeDark),
+          Entrance(
+            child: Panel(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                children: [
+                  Text(l10n.settingsThemeMode, style: context.type.bodyStrong),
+                  const SizedBox(height: Spacing.sm),
+                  SegmentedChoice(
+                    choices: [
+                      Choice(
+                        ThemeMode.system,
+                        l10n.settingsThemeModeSystem,
+                        icon: MemukiIcons.systemTheme,
+                      ),
+                      Choice(
+                        ThemeMode.light,
+                        l10n.settingsThemeModeLight,
+                        icon: MemukiIcons.lightTheme,
+                      ),
+                      Choice(
+                        ThemeMode.dark,
+                        l10n.settingsThemeModeDark,
+                        icon: MemukiIcons.darkTheme,
+                      ),
+                    ],
+                    selected: themeMode,
+                    onSelected: ref.read(themeModeProvider.notifier).select,
                   ),
                 ],
-                selected: {themeMode},
-                onSelectionChanged: (selection) => ref
-                    .read(themeModeProvider.notifier)
-                    .select(selection.single),
               ),
             ),
           ),

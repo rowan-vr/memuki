@@ -1,6 +1,6 @@
 # Memuki — Development Roadmap
 
-> **Last updated:** 2026-10-29
+> **Last updated:** 2026-10-30
 > **Scope:** 8 milestones, 21 phases (0–19, with Phase 5 split into 5a and 5b)
 > **Sequence:** Linux → Sync → Mobile → Web → Advanced Mining → Extensions → Education
 
@@ -240,7 +240,7 @@ These shape the schema and the sync design in Phases 7–8, so they are settled 
 
 ## Phase 3 — Notes, Fields, and Templates
 
-**Status:** Not started
+**Status:** In progress
 
 **Goal:** Users define what information is stored and how it is studied.
 
@@ -281,12 +281,23 @@ Initial templates:
 
 ### Decisions
 
-| Decision | Status |
-|---|---|
-| Native Flutter rendering from Memuki templates; templates define structure, the design system defines styling; no user HTML/CSS/JS | Decided |
-| Visual direction (palette, type scale, iconography, motion) | Open |
-| Rich-text field storage format (representation of the restricted subset, including furigana) | Open |
-| Template model representation | Open |
+| Decision | Direction | Status |
+|---|---|---|
+| Card rendering | Native Flutter rendering from Memuki templates; templates define structure, the design system defines styling; no user HTML/CSS/JS | Decided |
+| Visual identity | Memuki has its own look: colours, type, shapes, icons, and motion come from Memuki's tokens and components, not Material or Cupertino defaults | Proposed |
+| Components | Memuki's own components, built on Flutter's widgets layer; Material remains only as app plumbing (localization, text selection, navigation), themed from Memuki's tokens | Decided |
+| Icons | An open icon set behind Memuki's own icon API, so icons can be replaced or redrawn without changing screens | Decided |
+| Visual direction | "Study desk": warm and calm, cute but polished. Cream paper surfaces in light mode, neutral charcoal in dark mode, muted accents (coral, mustard, sage, dusty blue) with deep navy for primary actions, notecard-style cards, and stationery-inspired details. Light, dark, and sepia palettes are tuned separately | Decided |
+| Appearance settings | Mode (system, light, dark, sepia), accent colour from a curated palette, card style (default, notecard, minimal), and density (comfortable, compact). Components read all of them from tokens | Proposed |
+| Selectable styles | Further styles with their own shape language and palette (paper, stationery, chunky) are added later through the same tokens | Proposed |
+| Grade and card-state styling | Again, Hard, Good, Easy, and burned cards are part of the palette, distinguished by more than colour. Grade buttons are tonal: a soft tint of the grade's colour with text in that colour, not solid fills | Proposed |
+| Heading typeface | Zen Maru Gothic, a rounded face, for headings; Japanese and other scripts it lacks fall back to Noto Sans JP | Decided |
+| Content format | One construct, `{key arg … name="value" \| content}`, for both field values and templates; quoted values for arguments with spaces; content can nest further marks | Decided |
+| Marks | Marks say what text is (reading, emphasis, cloze, language), never how it looks; the design system styles each kind. Each kind is a registry entry with its arguments, rendering, editing controls, Anki mapping, and plain-text fallback. Unknown kinds show their content | Decided |
+| Plain text | A field's plain text is its content with the marks dropped; search, duplicate detection, sorting, and typed-answer comparison use it | Decided |
+| Field editing | Direct editing on the rendered field: select text, then add a mark. A toggle shows the source | Decided |
+| Field language | Each field definition has a language; a `lang` mark overrides it for a span. Text direction and font fallback follow from the language | Decided |
+| Templates | A template is content in the same format whose marks place fields by role (`{front \| …}`, `{back \| …}`, `{field Word role=prompt}`, `{if Example \| …}`, `{requires Word}`); cloze and typed answer are template kinds. Edited visually by arranging fields, with the same source toggle. Templates carry no styling | Decided |
 
 ### Acceptance Criteria
 
@@ -683,7 +694,14 @@ Third-party dictionary databases are not synced. Each device installs packages i
 - Native conventions where beneficial.
 - Android build and test workflows.
 - macOS CI for iOS builds and TestFlight.
+- Release channels: dev and beta builds through TestFlight groups and Play testing tracks.
 - Testing on physical devices.
+
+### Decisions
+
+| Decision | Direction | Status |
+|---|---|---|
+| Release channels | Dev, beta, and later stable builds of one app identity per platform; installing one channel replaces another. The channel is set at build time. Dev builds every merge to main, enables the Developer destination in release builds, and keeps its data in a separate folder, so it never migrates or changes the data of beta and stable. Beta builds tagged releases. On iOS, dev and beta are TestFlight groups (dev internal, beta internal or external); on Android, dev uses the internal testing track and beta the closed or open testing track | Proposed |
 
 ### Acceptance Criteria
 

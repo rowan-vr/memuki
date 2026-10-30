@@ -25,9 +25,9 @@ Code starts inside `apps/client/lib/` and is extracted into `packages/` only whe
 
 - **Routing:** go_router. Routes are classes annotated with `@TypedGoRoute` and compiled by go_router_builder into `$appRoutes`, so paths and parameters are type-checked. Top-level destinations are branches of a `StatefulShellRoute`; each branch keeps its own navigation stack.
 - **State and dependencies:** Riverpod. Services, repositories, and UI state are exposed as providers, and tests replace them with `ProviderScope` overrides. There is no separate service locator.
-- **Layout:** Material 3 window size classes: compact (< 600 px) uses a bottom navigation bar, medium (600–839 px) a navigation rail, and expanded (≥ 840 px) an extended rail.
-- **Theme:** light and dark themes generated from one seed color. Spacing follows a 4 px scale.
-- **Typography:** Noto Sans JP is bundled and used for all text. It covers Latin, kana, and kanji with Japanese glyph forms, so rendering does not depend on installed system fonts. It is a variable font; text theme weights set its `wght` axis.
+- **Layout:** Material 3 window size classes, with Memuki's own navigation components: compact (< 600 px) uses a bottom navigation bar, medium (600–839 px) a rail of icons with labels, and expanded (≥ 840 px) a sidebar with the app's name.
+- **Theme:** Memuki's design tokens (colours, type scale, layout, radii, motion) are theme extensions, read through `context.colors`, `context.type`, and `context.layout`. The theme is built from the user's appearance: colour mode (light, dark, sepia, each with its own palette), accent colour, card style, and density. Soft backgrounds and the text colours on coloured surfaces are derived from each colour so they meet WCAG AA contrast, which a test checks for every mode and accent. Material's `ThemeData` is mapped from the tokens and serves only as plumbing. Spacing follows a 4 px scale. Motion is short and calm, with a slight spring only on small details: pages slide and fade in, switching destinations fades the page in, selection highlights slide between items, a selected navigation icon gives a small bounce, and content fades up in a short stagger when it first appears. With the platform's reduced-motion setting, movement is left out or replaced by a fade. Debug builds add a Developer destination for development tools, left out of release builds; its component catalogue shows the tokens with every appearance setting and at large text scales.
+- **Typography:** Noto Sans JP is bundled and used for body text, and backs every other face for glyphs it lacks, including Japanese in headings. Headings use Zen Maru Gothic, a rounded face. Noto Sans JP is a variable font; text theme weights set its `wght` axis.
 - **Logging:** the `logging` package with named loggers (`memuki.<area>`). Records go to `dart:developer` and the console. Uncaught framework and asynchronous errors are logged at the top level.
 - **Domain models:** immutable classes generated with `freezed`, in `lib/domain/`, with no dependency on storage or Flutter. Card types are prefixed `StudyCard` (`StudyCard`, `StudyCardTemplate`, `StudyCardId`, `StudyCardState`), so they do not clash with Flutter's `Card` widget. Entities validate their invariants on construction and in `copyWith`; invariants that span entities are enforced by repositories. Each entity has its own ID type (an extension type over the UUID string). Database rows are mapped to and from domain models in the storage module.
 - **Generated code:** route, localization, and model code is generated and committed. CI regenerates it and fails if the result differs.
@@ -105,9 +105,53 @@ With this model, merging concurrent reviews from different devices reduces to me
 
 - Templates describe structure: which fields appear, in what order and position, with which semantic role (e.g. prompt, answer, reading, example, media).
 - Styling comes from the design system and adapts to theme, platform, and text scale.
-- Field content supports a restricted rich-text subset (emphasis, furigana/ruby, lists, media references). Arbitrary HTML, CSS, and JavaScript are not supported.
-- Cloze and typed-answer behavior are template features, not markup conventions.
-- Anki import converts templates to this model and reports what could not be carried over.
+- Arbitrary HTML, CSS, and JavaScript are not supported.
+- Cloze and typed-answer behavior are template features, not conventions in field text.
+- Anki import converts templates and field HTML to this model and reports what could not be carried over.
+
+### Content format
+
+Field values and templates are stored as text in one format. Text is plain except for marks:
+
+```
+{key arg … name="value" | content}
+```
+
+The key names the kind of mark. Arguments follow, positional or named, quoted when they contain spaces. Content after `|` is optional and can contain further marks. `\` escapes `{`, `}`, `|`, and itself.
+
+```
+今日は{ruby てんき | 天気}が{em | いい}です。
+{lang zh-Hans | {ruby "nǐ hǎo" | 你好}}
+H{sub | 2}O
+```
+
+- **Marks are semantic.** They say what text is (a reading, emphasis, a language), never how it looks. There are no colour, size, or font marks; the design system styles each kind.
+- **Kinds are a registry.** Each kind defines its arguments, how it renders, how it is added in the editor, how Anki HTML maps to it, and its plain-text fallback. New kinds (pitch accent, tone, formulas) are new entries, and language packs and plugins can add them. A kind the app does not know shows its content.
+- **Plain text** is the content with the marks dropped (`今日は天気がいいです`). Search, duplicate detection, sorting, and typed-answer comparison use it.
+- **Language:** each field definition has a language, and a `lang` mark overrides it for a span. The language selects glyph forms for shared Han characters, text direction, and font fallback.
+- **Editing:** fields are edited directly in their rendered form; selecting text offers the marks that apply. A toggle shows the source.
+
+### Templates
+
+A template is content in the same format, whose marks place fields:
+
+```
+{front |
+  {field Word role=prompt}
+}
+{back |
+  {field Reading role=reading}
+  {field Meaning role=answer}
+  {if Example | {field Example role=example}}
+}
+{requires Word}
+```
+
+- Fields are placed by role; the role decides their styling. Templates carry no styling of their own.
+- `if` shows its content only when the field is not empty; `requires` lists the fields a note must fill for the template to generate a card.
+- Cloze and typed answer are template kinds that refer to a field.
+- Templates are edited visually by arranging fields on the front and back, with the same source toggle.
+- The format is stored on `StudyCardTemplate`; template IDs, and so card identity, do not depend on it.
 
 ## Storage
 
@@ -237,6 +281,9 @@ memuki/
 | D40 | Preset settings are immutable versions identified by UUID; review events record the version ID; each collection has an undeletable default preset | Decided | 2 |
 | D41 | Study queues are computed from scheduling state and today's history in effect; learning cards first, then reviews and new cards ordered per preset | Decided | 2 |
 | D42 | Suspending and burying are synced card properties; sibling burying is computed from today's events in effect | Decided | 2 |
+| D43 | Field values and templates share one text format of semantic marks, `{key args \| content}`, with a registry of mark kinds | Decided | 3 |
+| D44 | Fields are edited directly in their rendered form; the source is available behind a toggle | Decided | 3 |
+| D45 | Each field definition has a language, overridable per span, which selects glyph forms, text direction, and font fallback | Decided | 3 |
 
 ## Open questions
 

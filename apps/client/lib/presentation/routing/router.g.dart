@@ -38,6 +38,27 @@ RouteBase get $shellRouteData => StatefulShellRouteData.$route(
         ),
       ],
     ),
+    StatefulShellBranchData.$branch(
+      routes: [
+        GoRouteData.$route(
+          path: '/developer',
+          hasOverriddenOnExit: false,
+          factory: $DeveloperRoute._fromState,
+          routes: [
+            GoRouteData.$route(
+              path: 'catalogue',
+              hasOverriddenOnExit: false,
+              factory: $CatalogueRoute._fromState,
+            ),
+            GoRouteData.$route(
+              path: 'concepts',
+              hasOverriddenOnExit: false,
+              factory: $ConceptsRoute._fromState,
+            ),
+          ],
+        ),
+      ],
+    ),
   ],
 );
 
@@ -91,6 +112,68 @@ mixin $SettingsRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/settings');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $DeveloperRoute on GoRouteData {
+  static DeveloperRoute _fromState(GoRouterState state) =>
+      const DeveloperRoute();
+
+  @override
+  String get location => GoRouteData.$location('/developer');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $CatalogueRoute on GoRouteData {
+  static CatalogueRoute _fromState(GoRouterState state) =>
+      const CatalogueRoute();
+
+  @override
+  String get location => GoRouteData.$location('/developer/catalogue');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $ConceptsRoute on GoRouteData {
+  static ConceptsRoute _fromState(GoRouterState state) => const ConceptsRoute();
+
+  @override
+  String get location => GoRouteData.$location('/developer/concepts');
 
   @override
   void go(BuildContext context) => context.go(location);

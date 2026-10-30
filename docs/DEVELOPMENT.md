@@ -50,7 +50,7 @@ fvm flutter pub get        # Installs dependencies and generates localizations
 fvm flutter run -d linux
 ```
 
-A window titled "Memuki" opens with Home, Decks, and Settings in a navigation rail. Narrowing the window switches to a bottom navigation bar.
+A window titled "Memuki" opens with Home, Decks, and Settings in a sidebar (plus Developer in debug builds). Narrowing the window switches to a rail of icons, then to a bottom navigation bar.
 
 ## Daily workflow
 
