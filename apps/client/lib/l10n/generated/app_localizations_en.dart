@@ -32,18 +32,6 @@ class AppLocalizationsEn extends AppLocalizations {
   String get decksEmpty => 'No decks yet.';
 
   @override
-  String get settingsThemeMode => 'Theme';
-
-  @override
-  String get settingsThemeModeSystem => 'System';
-
-  @override
-  String get settingsThemeModeLight => 'Light';
-
-  @override
-  String get settingsThemeModeDark => 'Dark';
-
-  @override
   String get startupErrorTitle => 'Memuki could not open your data';
 
   @override
@@ -60,4 +48,104 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get startupErrorDetails => 'Details';
+
+  @override
+  String get settingsAppearance => 'Appearance';
+
+  @override
+  String get settingsMode => 'Mode';
+
+  @override
+  String get settingsModeSystem => 'System';
+
+  @override
+  String get settingsModeLight => 'Light';
+
+  @override
+  String get settingsModeDark => 'Dark';
+
+  @override
+  String get settingsModeSepia => 'Sepia';
+
+  @override
+  String get settingsAccent => 'Accent colour';
+
+  @override
+  String get accentCoral => 'Coral';
+
+  @override
+  String get accentOrange => 'Orange';
+
+  @override
+  String get accentMustard => 'Mustard';
+
+  @override
+  String get accentGreen => 'Green';
+
+  @override
+  String get accentBlue => 'Blue';
+
+  @override
+  String get accentPurple => 'Purple';
+
+  @override
+  String get accentGrey => 'Grey';
+
+  @override
+  String get settingsCardStyle => 'Card style';
+
+  @override
+  String get cardStyleStandard => 'Standard';
+
+  @override
+  String get cardStyleNotecard => 'Notecard';
+
+  @override
+  String get cardStyleMinimal => 'Minimal';
+
+  @override
+  String get settingsDensity => 'Density';
+
+  @override
+  String get densityComfortable => 'Comfortable';
+
+  @override
+  String get densityCompact => 'Compact';
+
+  @override
+  String get settingsPreviewMeaning => 'cat';
+
+  @override
+  String get gradeAgain => 'Again';
+
+  @override
+  String get gradeHard => 'Hard';
+
+  @override
+  String get gradeGood => 'Good';
+
+  @override
+  String get gradeEasy => 'Easy';
+
+  @override
+  String durationMinutes(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count min',
+      one: '1 min',
+    );
+    return '$_temp0';
+  }
+
+  @override
+  String durationDays(int count) {
+    String _temp0 = intl.Intl.pluralLogic(
+      count,
+      locale: localeName,
+      other: '$count days',
+      one: '1 day',
+    );
+    return '$_temp0';
+  }
 }

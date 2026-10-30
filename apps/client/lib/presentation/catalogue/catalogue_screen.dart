@@ -1,7 +1,9 @@
 import 'package:flutter/material.dart';
 
+import '../components/accent_picker.dart';
 import '../components/animations.dart';
 import '../components/buttons.dart';
+import '../components/card_frame.dart';
 import '../components/icons.dart';
 import '../components/indicators.dart';
 import '../components/panel.dart';
@@ -151,7 +153,7 @@ class _Toolbar extends StatelessWidget {
         ),
         _Labelled(
           label: 'Accent',
-          child: _AccentPicker(
+          child: AccentPicker(
             selected: a.accent,
             onSelected: (v) => onChanged(a.copyWith(accent: v)),
           ),
@@ -217,52 +219,6 @@ class _Labelled extends StatelessWidget {
         ),
         const SizedBox(height: Spacing.xs),
         child,
-      ],
-    );
-  }
-}
-
-class _AccentPicker extends StatelessWidget {
-  const _AccentPicker({required this.selected, required this.onSelected});
-
-  final MemukiAccent selected;
-  final ValueChanged<MemukiAccent> onSelected;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Wrap(
-      spacing: Spacing.xs + 2,
-      runSpacing: Spacing.xs,
-      children: [
-        for (final accent in MemukiAccent.values)
-          Pressable(
-            onPressed: () => onSelected(accent),
-            selected: accent == selected,
-            semanticLabel: accent.name,
-            borderRadius: BorderRadius.circular(Radii.pill),
-            builder: (context, state) => AnimatedContainer(
-              duration: Motion.quick,
-              width: 30,
-              height: 30,
-              padding: const EdgeInsets.all(3),
-              decoration: BoxDecoration(
-                shape: BoxShape.circle,
-                border: Border.all(
-                  color: accent == selected
-                      ? colors.text
-                      : const Color(0x00000000),
-                  width: 2,
-                ),
-              ),
-              child: DecoratedBox(
-                decoration: BoxDecoration(
-                  shape: BoxShape.circle,
-                  color: colors.swatches[accent]!.base,
-                ),
-              ),
-            ),
-          ),
       ],
     );
   }
@@ -980,109 +936,6 @@ class _StudyCard extends StatelessWidget {
         ],
       ),
     );
-    return switch (context.layout.cardStyle) {
-      CardStyle.minimal => content,
-      CardStyle.standard => Container(
-        decoration: BoxDecoration(
-          color: colors.surface,
-          borderRadius: BorderRadius.circular(Radii.lg),
-          border: Border.all(color: colors.border),
-          boxShadow: paperShadow(colors),
-        ),
-        child: content,
-      ),
-      CardStyle.notecard => DecoratedBox(
-        decoration: ShapeDecoration(
-          color: colors.surface,
-          shape: const _FoldedCorner(),
-          shadows: paperShadow(colors),
-        ),
-        child: CustomPaint(
-          foregroundPainter: _NotecardPainter(colors),
-          child: content,
-        ),
-      ),
-    };
+    return CardFrame(child: content);
   }
-}
-
-/// A card outline with its top-right corner folded over.
-class _FoldedCorner extends ShapeBorder {
-  const _FoldedCorner();
-
-  static const fold = 22.0;
-  static const radius = 6.0;
-
-  @override
-  EdgeInsetsGeometry get dimensions => EdgeInsets.zero;
-
-  @override
-  Path getOuterPath(Rect rect, {TextDirection? textDirection}) => Path()
-    ..moveTo(rect.left + radius, rect.top)
-    ..lineTo(rect.right - fold, rect.top)
-    ..lineTo(rect.right, rect.top + fold)
-    ..lineTo(rect.right, rect.bottom - radius)
-    ..quadraticBezierTo(
-      rect.right,
-      rect.bottom,
-      rect.right - radius,
-      rect.bottom,
-    )
-    ..lineTo(rect.left + radius, rect.bottom)
-    ..quadraticBezierTo(rect.left, rect.bottom, rect.left, rect.bottom - radius)
-    ..lineTo(rect.left, rect.top + radius)
-    ..quadraticBezierTo(rect.left, rect.top, rect.left + radius, rect.top)
-    ..close();
-
-  @override
-  Path getInnerPath(Rect rect, {TextDirection? textDirection}) =>
-      getOuterPath(rect, textDirection: textDirection);
-
-  @override
-  void paint(Canvas canvas, Rect rect, {TextDirection? textDirection}) {}
-
-  @override
-  ShapeBorder scale(double t) => this;
-}
-
-/// The folded flap and the coloured rule under a notecard's header.
-class _NotecardPainter extends CustomPainter {
-  _NotecardPainter(this.colors);
-
-  final MemukiColors colors;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    const fold = _FoldedCorner.fold;
-    final flap = Path()
-      ..moveTo(size.width - fold, 0)
-      ..lineTo(size.width - fold, fold - 3)
-      ..quadraticBezierTo(size.width - fold, fold, size.width - fold + 3, fold)
-      ..lineTo(size.width, fold)
-      ..close();
-    // The back of the paper: a shade towards the ink, so lighter in dark
-    // mode and darker on paper.
-    canvas.drawPath(
-      flap,
-      Paint()..color = Color.lerp(colors.surface, colors.text, 0.08)!,
-    );
-    canvas.drawPath(
-      flap,
-      Paint()
-        ..color = colors.border
-        ..style = PaintingStyle.stroke,
-    );
-    canvas.drawLine(
-      const Offset(Spacing.lg, 56),
-      Offset(size.width - Spacing.lg, 56),
-      Paint()
-        ..color = colors.swatches[MemukiAccent.coral]!.base.withValues(
-          alpha: 0.45,
-        )
-        ..strokeWidth = 1.5,
-    );
-  }
-
-  @override
-  bool shouldRepaint(_NotecardPainter old) => old.colors != colors;
 }

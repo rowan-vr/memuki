@@ -28,22 +28,6 @@
   "@decksEmpty": {
     "description": "Shown on the decks screen when there are no decks."
   },
-  "settingsThemeMode": "Theme",
-  "@settingsThemeMode": {
-    "description": "Label for the light/dark theme setting."
-  },
-  "settingsThemeModeSystem": "System",
-  "@settingsThemeModeSystem": {
-    "description": "Theme option that follows the operating system setting."
-  },
-  "settingsThemeModeLight": "Light",
-  "@settingsThemeModeLight": {
-    "description": "Light theme option."
-  },
-  "settingsThemeModeDark": "Dark",
-  "@settingsThemeModeDark": {
-    "description": "Dark theme option."
-  },
   "startupErrorTitle": "Memuki could not open your data",
   "@startupErrorTitle": {
     "description": "Heading shown instead of the app when the database cannot be opened at startup."
@@ -63,5 +47,127 @@
   "startupErrorDetails": "Details",
   "@startupErrorDetails": {
     "description": "Label above the technical error details on the startup error screen."
+  },
+  "settingsAppearance": "Appearance",
+  "@settingsAppearance": {
+    "description": "Heading of the appearance section in settings."
+  },
+  "settingsMode": "Mode",
+  "@settingsMode": {
+    "description": "Label for the colour mode setting (system, light, dark, sepia)."
+  },
+  "settingsModeSystem": "System",
+  "@settingsModeSystem": {
+    "description": "Colour mode that follows the operating system between light and dark."
+  },
+  "settingsModeLight": "Light",
+  "@settingsModeLight": {
+    "description": "Light colour mode."
+  },
+  "settingsModeDark": "Dark",
+  "@settingsModeDark": {
+    "description": "Dark colour mode."
+  },
+  "settingsModeSepia": "Sepia",
+  "@settingsModeSepia": {
+    "description": "Colour mode with warm, aged-paper colours."
+  },
+  "settingsAccent": "Accent colour",
+  "@settingsAccent": {
+    "description": "Label for the accent colour setting."
+  },
+  "accentCoral": "Coral",
+  "@accentCoral": {
+    "description": "Name of the coral accent colour, read by screen readers."
+  },
+  "accentOrange": "Orange",
+  "@accentOrange": {
+    "description": "Name of the orange accent colour, read by screen readers."
+  },
+  "accentMustard": "Mustard",
+  "@accentMustard": {
+    "description": "Name of the mustard accent colour, read by screen readers."
+  },
+  "accentGreen": "Green",
+  "@accentGreen": {
+    "description": "Name of the green accent colour, read by screen readers."
+  },
+  "accentBlue": "Blue",
+  "@accentBlue": {
+    "description": "Name of the blue accent colour, read by screen readers."
+  },
+  "accentPurple": "Purple",
+  "@accentPurple": {
+    "description": "Name of the purple accent colour, read by screen readers."
+  },
+  "accentGrey": "Grey",
+  "@accentGrey": {
+    "description": "Name of the grey accent colour, read by screen readers."
+  },
+  "settingsCardStyle": "Card style",
+  "@settingsCardStyle": {
+    "description": "Label for the setting for how study cards are drawn."
+  },
+  "cardStyleStandard": "Standard",
+  "@cardStyleStandard": {
+    "description": "Card style: a plain rounded card."
+  },
+  "cardStyleNotecard": "Notecard",
+  "@cardStyleNotecard": {
+    "description": "Card style: a ruled notecard with a folded corner."
+  },
+  "cardStyleMinimal": "Minimal",
+  "@cardStyleMinimal": {
+    "description": "Card style: no card frame, content directly on the page."
+  },
+  "settingsDensity": "Density",
+  "@settingsDensity": {
+    "description": "Label for the setting for how much space the interface uses."
+  },
+  "densityComfortable": "Comfortable",
+  "@densityComfortable": {
+    "description": "Density option with more space."
+  },
+  "densityCompact": "Compact",
+  "@densityCompact": {
+    "description": "Density option with less space, fitting more on screen."
+  },
+  "settingsPreviewMeaning": "cat",
+  "@settingsPreviewMeaning": {
+    "description": "Meaning of 猫 (ねこ) on the sample card in the appearance preview."
+  },
+  "gradeAgain": "Again",
+  "@gradeAgain": {
+    "description": "Grade: the answer was forgotten."
+  },
+  "gradeHard": "Hard",
+  "@gradeHard": {
+    "description": "Grade: recalled with difficulty."
+  },
+  "gradeGood": "Good",
+  "@gradeGood": {
+    "description": "Grade: recalled correctly."
+  },
+  "gradeEasy": "Easy",
+  "@gradeEasy": {
+    "description": "Grade: recalled easily."
+  },
+  "durationMinutes": "{count, plural, =1{1 min} other{{count} min}}",
+  "@durationMinutes": {
+    "description": "A duration in minutes, such as the interval shown on a grade button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
+  },
+  "durationDays": "{count, plural, =1{1 day} other{{count} days}}",
+  "@durationDays": {
+    "description": "A duration in days, such as the interval shown on a grade button.",
+    "placeholders": {
+      "count": {
+        "type": "int"
+      }
+    }
   }
 }

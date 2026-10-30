@@ -1,7 +1,7 @@
 import 'package:flutter/material.dart';
 
 import '../../l10n/generated/app_localizations.dart';
-import '../theme/app_theme.dart';
+import '../settings/appearance_settings.dart';
 import '../theme/spacing.dart';
 
 /// Why the app could not start.
@@ -23,9 +23,13 @@ class StartupErrorApp extends StatelessWidget {
     super.key,
     required this.error,
     required this.details,
+    this.appearance = const AppearanceSettings(),
   });
 
   final StartupError error;
+
+  /// The device's appearance, read before storage failed to open.
+  final AppearanceSettings appearance;
 
   /// Technical details for bug reports.
   final String details;
@@ -34,8 +38,9 @@ class StartupErrorApp extends StatelessWidget {
   Widget build(BuildContext context) {
     return MaterialApp(
       onGenerateTitle: (context) => AppLocalizations.of(context).appTitle,
-      theme: AppTheme.light(),
-      darkTheme: AppTheme.dark(),
+      theme: appearance.theme,
+      darkTheme: appearance.darkTheme,
+      themeMode: appearance.themeMode,
       localizationsDelegates: AppLocalizations.localizationsDelegates,
       supportedLocales: AppLocalizations.supportedLocales,
       home: _StartupErrorScreen(error: error, details: details),

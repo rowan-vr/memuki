@@ -136,30 +136,6 @@ abstract class AppLocalizations {
   /// **'No decks yet.'**
   String get decksEmpty;
 
-  /// Label for the light/dark theme setting.
-  ///
-  /// In en, this message translates to:
-  /// **'Theme'**
-  String get settingsThemeMode;
-
-  /// Theme option that follows the operating system setting.
-  ///
-  /// In en, this message translates to:
-  /// **'System'**
-  String get settingsThemeModeSystem;
-
-  /// Light theme option.
-  ///
-  /// In en, this message translates to:
-  /// **'Light'**
-  String get settingsThemeModeLight;
-
-  /// Dark theme option.
-  ///
-  /// In en, this message translates to:
-  /// **'Dark'**
-  String get settingsThemeModeDark;
-
   /// Heading shown instead of the app when the database cannot be opened at startup.
   ///
   /// In en, this message translates to:
@@ -189,6 +165,174 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Details'**
   String get startupErrorDetails;
+
+  /// Heading of the appearance section in settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Appearance'**
+  String get settingsAppearance;
+
+  /// Label for the colour mode setting (system, light, dark, sepia).
+  ///
+  /// In en, this message translates to:
+  /// **'Mode'**
+  String get settingsMode;
+
+  /// Colour mode that follows the operating system between light and dark.
+  ///
+  /// In en, this message translates to:
+  /// **'System'**
+  String get settingsModeSystem;
+
+  /// Light colour mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Light'**
+  String get settingsModeLight;
+
+  /// Dark colour mode.
+  ///
+  /// In en, this message translates to:
+  /// **'Dark'**
+  String get settingsModeDark;
+
+  /// Colour mode with warm, aged-paper colours.
+  ///
+  /// In en, this message translates to:
+  /// **'Sepia'**
+  String get settingsModeSepia;
+
+  /// Label for the accent colour setting.
+  ///
+  /// In en, this message translates to:
+  /// **'Accent colour'**
+  String get settingsAccent;
+
+  /// Name of the coral accent colour, read by screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Coral'**
+  String get accentCoral;
+
+  /// Name of the orange accent colour, read by screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Orange'**
+  String get accentOrange;
+
+  /// Name of the mustard accent colour, read by screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Mustard'**
+  String get accentMustard;
+
+  /// Name of the green accent colour, read by screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Green'**
+  String get accentGreen;
+
+  /// Name of the blue accent colour, read by screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Blue'**
+  String get accentBlue;
+
+  /// Name of the purple accent colour, read by screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Purple'**
+  String get accentPurple;
+
+  /// Name of the grey accent colour, read by screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Grey'**
+  String get accentGrey;
+
+  /// Label for the setting for how study cards are drawn.
+  ///
+  /// In en, this message translates to:
+  /// **'Card style'**
+  String get settingsCardStyle;
+
+  /// Card style: a plain rounded card.
+  ///
+  /// In en, this message translates to:
+  /// **'Standard'**
+  String get cardStyleStandard;
+
+  /// Card style: a ruled notecard with a folded corner.
+  ///
+  /// In en, this message translates to:
+  /// **'Notecard'**
+  String get cardStyleNotecard;
+
+  /// Card style: no card frame, content directly on the page.
+  ///
+  /// In en, this message translates to:
+  /// **'Minimal'**
+  String get cardStyleMinimal;
+
+  /// Label for the setting for how much space the interface uses.
+  ///
+  /// In en, this message translates to:
+  /// **'Density'**
+  String get settingsDensity;
+
+  /// Density option with more space.
+  ///
+  /// In en, this message translates to:
+  /// **'Comfortable'**
+  String get densityComfortable;
+
+  /// Density option with less space, fitting more on screen.
+  ///
+  /// In en, this message translates to:
+  /// **'Compact'**
+  String get densityCompact;
+
+  /// Meaning of 猫 (ねこ) on the sample card in the appearance preview.
+  ///
+  /// In en, this message translates to:
+  /// **'cat'**
+  String get settingsPreviewMeaning;
+
+  /// Grade: the answer was forgotten.
+  ///
+  /// In en, this message translates to:
+  /// **'Again'**
+  String get gradeAgain;
+
+  /// Grade: recalled with difficulty.
+  ///
+  /// In en, this message translates to:
+  /// **'Hard'**
+  String get gradeHard;
+
+  /// Grade: recalled correctly.
+  ///
+  /// In en, this message translates to:
+  /// **'Good'**
+  String get gradeGood;
+
+  /// Grade: recalled easily.
+  ///
+  /// In en, this message translates to:
+  /// **'Easy'**
+  String get gradeEasy;
+
+  /// A duration in minutes, such as the interval shown on a grade button.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 min} other{{count} min}}'**
+  String durationMinutes(int count);
+
+  /// A duration in days, such as the interval shown on a grade button.
+  ///
+  /// In en, this message translates to:
+  /// **'{count, plural, =1{1 day} other{{count} days}}'**
+  String durationDays(int count);
 }
 
 class _AppLocalizationsDelegate
