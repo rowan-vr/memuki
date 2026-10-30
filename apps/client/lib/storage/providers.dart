@@ -1,6 +1,7 @@
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 
 import 'database.dart';
+import 'device_preferences.dart';
 import 'media/media_store.dart';
 import 'repositories/collection_repository.dart';
 import 'repositories/media_repository.dart';
@@ -21,6 +22,13 @@ final databaseProvider = Provider<MemukiDatabase>(
 /// startup.
 final mediaStoreProvider = Provider<MediaStore>(
   (ref) => throw UnimplementedError('mediaStoreProvider must be overridden'),
+);
+
+/// This device's preferences. `main` overrides it with the store it opened
+/// at startup.
+final devicePreferencesProvider = Provider<DevicePreferences>(
+  (ref) =>
+      throw UnimplementedError('devicePreferencesProvider must be overridden'),
 );
 
 final collectionRepositoryProvider = Provider(

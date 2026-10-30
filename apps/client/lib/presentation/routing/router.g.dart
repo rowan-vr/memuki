@@ -35,6 +35,13 @@ RouteBase get $shellRouteData => StatefulShellRouteData.$route(
           path: '/settings',
           hasOverriddenOnExit: false,
           factory: $SettingsRoute._fromState,
+          routes: [
+            GoRouteData.$route(
+              path: 'appearance',
+              hasOverriddenOnExit: false,
+              factory: $AppearanceRoute._fromState,
+            ),
+          ],
         ),
       ],
     ),
@@ -112,6 +119,27 @@ mixin $SettingsRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/settings');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $AppearanceRoute on GoRouteData {
+  static AppearanceRoute _fromState(GoRouterState state) =>
+      const AppearanceRoute();
+
+  @override
+  String get location => GoRouteData.$location('/settings/appearance');
 
   @override
   void go(BuildContext context) => context.go(location);

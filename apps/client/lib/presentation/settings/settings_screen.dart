@@ -4,54 +4,49 @@ import 'package:flutter_riverpod/flutter_riverpod.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../components/animations.dart';
 import '../components/icons.dart';
-import '../components/panel.dart';
+import '../components/rows.dart';
 import '../components/screen.dart';
-import '../components/segmented_choice.dart';
+import '../routing/router.dart';
 import '../theme/app_theme.dart';
 import '../theme/spacing.dart';
-import 'theme_mode_provider.dart';
+import 'appearance_settings.dart';
 
+/// The settings, grouped into pages.
 class SettingsScreen extends ConsumerWidget {
   const SettingsScreen({super.key});
 
   @override
   Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
-    final themeMode = ref.watch(themeModeProvider);
+    final mode = switch (ref.watch(appearanceProvider).mode) {
+      ModeChoice.system => l10n.settingsModeSystem,
+      ModeChoice.light => l10n.settingsModeLight,
+      ModeChoice.dark => l10n.settingsModeDark,
+      ModeChoice.sepia => l10n.settingsModeSepia,
+    };
     return Screen(
       title: l10n.navSettings,
       body: ListView(
         padding: const EdgeInsets.all(Spacing.lg),
         children: [
-          Entrance(
-            child: Panel(
-              child: Column(
-                crossAxisAlignment: CrossAxisAlignment.start,
-                children: [
-                  Text(l10n.settingsThemeMode, style: context.type.bodyStrong),
-                  const SizedBox(height: Spacing.sm),
-                  SegmentedChoice(
-                    choices: [
-                      Choice(
-                        ThemeMode.system,
-                        l10n.settingsThemeModeSystem,
-                        icon: MemukiIcons.systemTheme,
+          Align(
+            alignment: AlignmentDirectional.topStart,
+            child: ConstrainedBox(
+              constraints: const BoxConstraints(maxWidth: 640),
+              child: Entrance(
+                child: RowGroup(
+                  children: [
+                    ListRow(
+                      leading: Icon(
+                        MemukiIcons.appearance,
+                        color: context.colors.textMuted,
                       ),
-                      Choice(
-                        ThemeMode.light,
-                        l10n.settingsThemeModeLight,
-                        icon: MemukiIcons.lightTheme,
-                      ),
-                      Choice(
-                        ThemeMode.dark,
-                        l10n.settingsThemeModeDark,
-                        icon: MemukiIcons.darkTheme,
-                      ),
-                    ],
-                    selected: themeMode,
-                    onSelected: ref.read(themeModeProvider.notifier).select,
-                  ),
-                ],
+                      title: l10n.settingsAppearance,
+                      subtitle: mode,
+                      onTap: () => const AppearanceRoute().go(context),
+                    ),
+                  ],
+                ),
               ),
             ),
           ),
