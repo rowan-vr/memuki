@@ -12,6 +12,8 @@ import '../components/pressable.dart';
 import '../components/rows.dart';
 import '../components/screen.dart';
 import '../components/segmented_choice.dart';
+import '../content/field_editor.dart';
+import '../content/marked_text_controller.dart';
 import '../theme/app_theme.dart';
 import '../theme/memuki_type.dart';
 import '../theme/motion.dart';
@@ -66,6 +68,10 @@ class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
   var _scope = MarkScope.field;
   final _open = <String>{};
 
+  /// The field in the rich editor, while it is shown; it writes the field's
+  /// source as it changes.
+  MarkedTextController? _rich;
+
   MarkKinds get _kinds => widget.kinds ?? MarkKinds.builtIn;
 
   @override
@@ -74,13 +80,32 @@ class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
       source.dispose();
     }
     _filter.dispose();
+    _rich?.dispose();
     super.dispose();
   }
 
   void _try(MarkKind kind) => setState(() {
     _scope = kind.scopes.first;
     _sources[_scope]!.text = kind.example;
+    if (_scope == MarkScope.field) {
+      _rich?.nodes = parseContent(kind.example).nodes;
+    }
   });
+
+  void _setRich(bool rich) => setState(() {
+    _rich?.dispose();
+    _rich = rich
+        ? (MarkedTextController(
+            parseContent(_sources[MarkScope.field]!.text).nodes,
+          )..addListener(_richChanged))
+        : null;
+  });
+
+  void _richChanged() {
+    final source = writeContent(_rich!.nodes);
+    final field = _sources[MarkScope.field]!;
+    if (field.text != source) field.text = source;
+  }
 
   /// The kinds whose key or description contains the filter.
   List<MarkKind> _matching() {
@@ -101,6 +126,8 @@ class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
         scope: _scope,
         kinds: _kinds,
         onScope: (scope) => setState(() => _scope = scope),
+        rich: _scope == MarkScope.field ? _rich : null,
+        onRich: _setRich,
       ),
     ];
     final matching = _matching();
@@ -184,12 +211,18 @@ class _Playground extends StatelessWidget {
     required this.scope,
     required this.kinds,
     required this.onScope,
+    required this.rich,
+    required this.onRich,
   });
 
   final TextEditingController source;
   final MarkScope scope;
   final MarkKinds kinds;
   final ValueChanged<MarkScope> onScope;
+
+  /// The rich editor's controller while a field is edited in it.
+  final MarkedTextController? rich;
+  final ValueChanged<bool> onRich;
 
   @override
   Widget build(BuildContext context) {
@@ -208,16 +241,35 @@ class _Playground extends StatelessWidget {
         return Column(
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
-            Row(
+            // The choices move under the heading when there is no room.
+            Wrap(
+              alignment: WrapAlignment.spaceBetween,
+              crossAxisAlignment: WrapCrossAlignment.center,
+              runSpacing: Spacing.sm,
               children: [
-                Expanded(child: Text('Source', style: type.heading)),
-                SegmentedChoice(
-                  choices: const [
-                    Choice(MarkScope.field, 'Field'),
-                    Choice(MarkScope.template, 'Template'),
+                Text('Source', style: type.heading),
+                Wrap(
+                  spacing: Spacing.sm,
+                  runSpacing: Spacing.sm,
+                  children: [
+                    if (scope == MarkScope.field)
+                      SegmentedChoice(
+                        choices: const [
+                          Choice(true, 'Rich'),
+                          Choice(false, 'Source'),
+                        ],
+                        selected: rich != null,
+                        onSelected: onRich,
+                      ),
+                    SegmentedChoice(
+                      choices: const [
+                        Choice(MarkScope.field, 'Field'),
+                        Choice(MarkScope.template, 'Template'),
+                      ],
+                      selected: scope,
+                      onSelected: onScope,
+                    ),
                   ],
-                  selected: scope,
-                  onSelected: onScope,
                 ),
               ],
             ),
@@ -235,23 +287,26 @@ class _Playground extends StatelessWidget {
                       child: WarningBanner(warnings),
                     ),
             ),
-            TextField(
-              controller: source,
-              minLines: 3,
-              maxLines: 10,
-              style: type.body.copyWith(
-                fontFamily: 'monospace',
-                fontFamilyFallback: _monoFallback,
-              ),
-              decoration: InputDecoration(
-                filled: true,
-                fillColor: colors.surfaceSunken,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(Radii.sm),
-                  borderSide: BorderSide.none,
+            if (rich case final rich?)
+              FieldEditor(controller: rich, kinds: kinds)
+            else
+              TextField(
+                controller: source,
+                minLines: 3,
+                maxLines: 10,
+                style: type.body.copyWith(
+                  fontFamily: 'monospace',
+                  fontFamilyFallback: _monoFallback,
+                ),
+                decoration: InputDecoration(
+                  filled: true,
+                  fillColor: colors.surfaceSunken,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(Radii.sm),
+                    borderSide: BorderSide.none,
+                  ),
                 ),
               ),
-            ),
             const SizedBox(height: Spacing.lg),
             Text('Preview', style: type.heading),
             const SizedBox(height: Spacing.sm),
