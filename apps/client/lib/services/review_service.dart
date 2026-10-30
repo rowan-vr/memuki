@@ -18,7 +18,8 @@ import 'rebuild_service.dart';
 /// The current time in UTC and the device's offset from UTC.
 typedef DeviceNow = ({DateTime at, Duration utcOffset}) Function();
 
-({DateTime at, Duration utcOffset}) _deviceNow() {
+/// The device's current time and UTC offset.
+({DateTime at, Duration utcOffset}) deviceNow() {
   final now = DateTime.now();
   return (at: now.toUtc(), utcOffset: now.timeZoneOffset);
 }
@@ -36,7 +37,7 @@ class ReviewService {
     required this._tags,
     required this._reviews,
     required this._schedulers,
-    this._now = _deviceNow,
+    this._now = deviceNow,
   }) : _engine = SchedulingEngine(_schedulers),
        _rebuild = RebuildService(
          db: _db,

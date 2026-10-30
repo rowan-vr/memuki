@@ -310,7 +310,9 @@ mixin _$PresetVersion {
  Map<String, Object?> get schedulerConfig;/// Graduated cards whose next interval reaches this are burned. Null
 /// disables burning.
  Duration? get burnThreshold;/// Lapses at which a card becomes a leech. Null disables leeches.
- int? get leechThreshold; int get newCardsPerDay; int get reviewsPerDay;
+ int? get leechThreshold; int get newCardsPerDay;/// The limit on cards in review falling due; learning and relearning
+/// cards are not limited.
+ int get reviewsPerDay; NewCardMix get newCardMix; NewCardOrder get newCardOrder;
 /// Create a copy of PresetVersion
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -322,20 +324,20 @@ $PresetVersionCopyWith<PresetVersion> get copyWith => _$PresetVersionCopyWithImp
 @override
 bool operator ==(Object other) {
   final _this = this as PresetVersion;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is PresetVersion&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.schedulerId, _this.schedulerId) || other.schedulerId == _this.schedulerId)&&const DeepCollectionEquality().equals(other.schedulerConfig, _this.schedulerConfig)&&(identical(other.burnThreshold, _this.burnThreshold) || other.burnThreshold == _this.burnThreshold)&&(identical(other.leechThreshold, _this.leechThreshold) || other.leechThreshold == _this.leechThreshold)&&(identical(other.newCardsPerDay, _this.newCardsPerDay) || other.newCardsPerDay == _this.newCardsPerDay)&&(identical(other.reviewsPerDay, _this.reviewsPerDay) || other.reviewsPerDay == _this.reviewsPerDay));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is PresetVersion&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.schedulerId, _this.schedulerId) || other.schedulerId == _this.schedulerId)&&const DeepCollectionEquality().equals(other.schedulerConfig, _this.schedulerConfig)&&(identical(other.burnThreshold, _this.burnThreshold) || other.burnThreshold == _this.burnThreshold)&&(identical(other.leechThreshold, _this.leechThreshold) || other.leechThreshold == _this.leechThreshold)&&(identical(other.newCardsPerDay, _this.newCardsPerDay) || other.newCardsPerDay == _this.newCardsPerDay)&&(identical(other.reviewsPerDay, _this.reviewsPerDay) || other.reviewsPerDay == _this.reviewsPerDay)&&(identical(other.newCardMix, _this.newCardMix) || other.newCardMix == _this.newCardMix)&&(identical(other.newCardOrder, _this.newCardOrder) || other.newCardOrder == _this.newCardOrder));
 }
 
 
 @override
 int get hashCode {
   final _this = this as PresetVersion;
-  return Object.hash(runtimeType,_this.id,_this.schedulerId,const DeepCollectionEquality().hash(_this.schedulerConfig),_this.burnThreshold,_this.leechThreshold,_this.newCardsPerDay,_this.reviewsPerDay);
+  return Object.hash(runtimeType,_this.id,_this.schedulerId,const DeepCollectionEquality().hash(_this.schedulerConfig),_this.burnThreshold,_this.leechThreshold,_this.newCardsPerDay,_this.reviewsPerDay,_this.newCardMix,_this.newCardOrder);
 }
 
 @override
 String toString() {
   final _this = this as PresetVersion;
-  return 'PresetVersion(id: ${_this.id}, schedulerId: ${_this.schedulerId}, schedulerConfig: ${_this.schedulerConfig}, burnThreshold: ${_this.burnThreshold}, leechThreshold: ${_this.leechThreshold}, newCardsPerDay: ${_this.newCardsPerDay}, reviewsPerDay: ${_this.reviewsPerDay})';
+  return 'PresetVersion(id: ${_this.id}, schedulerId: ${_this.schedulerId}, schedulerConfig: ${_this.schedulerConfig}, burnThreshold: ${_this.burnThreshold}, leechThreshold: ${_this.leechThreshold}, newCardsPerDay: ${_this.newCardsPerDay}, reviewsPerDay: ${_this.reviewsPerDay}, newCardMix: ${_this.newCardMix}, newCardOrder: ${_this.newCardOrder})';
 }
 
 
@@ -346,7 +348,7 @@ abstract mixin class $PresetVersionCopyWith<$Res>  {
   factory $PresetVersionCopyWith(PresetVersion value, $Res Function(PresetVersion) _then) = _$PresetVersionCopyWithImpl;
 @useResult
 $Res call({
- PresetVersionId id, String schedulerId, Map<String, Object?> schedulerConfig, Duration? burnThreshold, int? leechThreshold, int newCardsPerDay, int reviewsPerDay
+ PresetVersionId id, String schedulerId, Map<String, Object?> schedulerConfig, Duration? burnThreshold, int? leechThreshold, int newCardsPerDay, int reviewsPerDay, NewCardMix newCardMix, NewCardOrder newCardOrder
 });
 
 
@@ -363,7 +365,7 @@ class _$PresetVersionCopyWithImpl<$Res>
 
 /// Create a copy of PresetVersion
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? schedulerId = null,Object? schedulerConfig = null,Object? burnThreshold = freezed,Object? leechThreshold = freezed,Object? newCardsPerDay = null,Object? reviewsPerDay = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? schedulerId = null,Object? schedulerConfig = null,Object? burnThreshold = freezed,Object? leechThreshold = freezed,Object? newCardsPerDay = null,Object? reviewsPerDay = null,Object? newCardMix = null,Object? newCardOrder = null,}) {
   return _then(PresetVersion(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as PresetVersionId,schedulerId: null == schedulerId ? _self.schedulerId : schedulerId // ignore: cast_nullable_to_non_nullable
@@ -372,7 +374,9 @@ as Map<String, Object?>,burnThreshold: freezed == burnThreshold ? _self.burnThre
 as Duration?,leechThreshold: freezed == leechThreshold ? _self.leechThreshold : leechThreshold // ignore: cast_nullable_to_non_nullable
 as int?,newCardsPerDay: null == newCardsPerDay ? _self.newCardsPerDay : newCardsPerDay // ignore: cast_nullable_to_non_nullable
 as int,reviewsPerDay: null == reviewsPerDay ? _self.reviewsPerDay : reviewsPerDay // ignore: cast_nullable_to_non_nullable
-as int,
+as int,newCardMix: null == newCardMix ? _self.newCardMix : newCardMix // ignore: cast_nullable_to_non_nullable
+as NewCardMix,newCardOrder: null == newCardOrder ? _self.newCardOrder : newCardOrder // ignore: cast_nullable_to_non_nullable
+as NewCardOrder,
   ));
 }
 
@@ -457,10 +461,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PresetVersionId id,  String schedulerId,  Map<String, Object?> schedulerConfig,  Duration? burnThreshold,  int? leechThreshold,  int newCardsPerDay,  int reviewsPerDay)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( PresetVersionId id,  String schedulerId,  Map<String, Object?> schedulerConfig,  Duration? burnThreshold,  int? leechThreshold,  int newCardsPerDay,  int reviewsPerDay,  NewCardMix newCardMix,  NewCardOrder newCardOrder)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _PresetVersion() when $default != null:
-return $default(_that.id,_that.schedulerId,_that.schedulerConfig,_that.burnThreshold,_that.leechThreshold,_that.newCardsPerDay,_that.reviewsPerDay);case _:
+return $default(_that.id,_that.schedulerId,_that.schedulerConfig,_that.burnThreshold,_that.leechThreshold,_that.newCardsPerDay,_that.reviewsPerDay,_that.newCardMix,_that.newCardOrder);case _:
   return orElse();
 
 }
@@ -478,10 +482,10 @@ return $default(_that.id,_that.schedulerId,_that.schedulerConfig,_that.burnThres
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PresetVersionId id,  String schedulerId,  Map<String, Object?> schedulerConfig,  Duration? burnThreshold,  int? leechThreshold,  int newCardsPerDay,  int reviewsPerDay)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( PresetVersionId id,  String schedulerId,  Map<String, Object?> schedulerConfig,  Duration? burnThreshold,  int? leechThreshold,  int newCardsPerDay,  int reviewsPerDay,  NewCardMix newCardMix,  NewCardOrder newCardOrder)  $default,) {final _that = this;
 switch (_that) {
 case _PresetVersion():
-return $default(_that.id,_that.schedulerId,_that.schedulerConfig,_that.burnThreshold,_that.leechThreshold,_that.newCardsPerDay,_that.reviewsPerDay);case _:
+return $default(_that.id,_that.schedulerId,_that.schedulerConfig,_that.burnThreshold,_that.leechThreshold,_that.newCardsPerDay,_that.reviewsPerDay,_that.newCardMix,_that.newCardOrder);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -498,10 +502,10 @@ return $default(_that.id,_that.schedulerId,_that.schedulerConfig,_that.burnThres
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PresetVersionId id,  String schedulerId,  Map<String, Object?> schedulerConfig,  Duration? burnThreshold,  int? leechThreshold,  int newCardsPerDay,  int reviewsPerDay)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( PresetVersionId id,  String schedulerId,  Map<String, Object?> schedulerConfig,  Duration? burnThreshold,  int? leechThreshold,  int newCardsPerDay,  int reviewsPerDay,  NewCardMix newCardMix,  NewCardOrder newCardOrder)?  $default,) {final _that = this;
 switch (_that) {
 case _PresetVersion() when $default != null:
-return $default(_that.id,_that.schedulerId,_that.schedulerConfig,_that.burnThreshold,_that.leechThreshold,_that.newCardsPerDay,_that.reviewsPerDay);case _:
+return $default(_that.id,_that.schedulerId,_that.schedulerConfig,_that.burnThreshold,_that.leechThreshold,_that.newCardsPerDay,_that.reviewsPerDay,_that.newCardMix,_that.newCardOrder);case _:
   return null;
 
 }
@@ -513,7 +517,7 @@ return $default(_that.id,_that.schedulerId,_that.schedulerConfig,_that.burnThres
 
 
 class _PresetVersion extends PresetVersion {
-   _PresetVersion({required this.id, this.schedulerId = 'memuki.steps-sm2',  Map<String, Object?> schedulerConfig = const <String, Object?>{}, this.burnThreshold = const Duration(days: 365), this.leechThreshold = 8, this.newCardsPerDay = 50, this.reviewsPerDay = 500}): _schedulerConfig = schedulerConfig,super._();
+   _PresetVersion({required this.id, this.schedulerId = 'memuki.steps-sm2',  Map<String, Object?> schedulerConfig = const <String, Object?>{}, this.burnThreshold = const Duration(days: 365), this.leechThreshold = 8, this.newCardsPerDay = 50, this.reviewsPerDay = 500, this.newCardMix = NewCardMix.mixed, this.newCardOrder = NewCardOrder.created}): _schedulerConfig = schedulerConfig,super._();
   
 
 @override final  PresetVersionId id;
@@ -533,7 +537,11 @@ class _PresetVersion extends PresetVersion {
 /// Lapses at which a card becomes a leech. Null disables leeches.
 @override@JsonKey() final  int? leechThreshold;
 @override@JsonKey() final  int newCardsPerDay;
+/// The limit on cards in review falling due; learning and relearning
+/// cards are not limited.
 @override@JsonKey() final  int reviewsPerDay;
+@override@JsonKey() final  NewCardMix newCardMix;
+@override@JsonKey() final  NewCardOrder newCardOrder;
 
 /// Create a copy of PresetVersion
 /// with the given fields replaced by the non-null parameter values.
@@ -545,18 +553,18 @@ _$PresetVersionCopyWith<_PresetVersion> get copyWith => __$PresetVersionCopyWith
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PresetVersion&&(identical(other.id, id) || other.id == id)&&(identical(other.schedulerId, schedulerId) || other.schedulerId == schedulerId)&&const DeepCollectionEquality().equals(other.schedulerConfig, _schedulerConfig)&&(identical(other.burnThreshold, burnThreshold) || other.burnThreshold == burnThreshold)&&(identical(other.leechThreshold, leechThreshold) || other.leechThreshold == leechThreshold)&&(identical(other.newCardsPerDay, newCardsPerDay) || other.newCardsPerDay == newCardsPerDay)&&(identical(other.reviewsPerDay, reviewsPerDay) || other.reviewsPerDay == reviewsPerDay));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _PresetVersion&&(identical(other.id, id) || other.id == id)&&(identical(other.schedulerId, schedulerId) || other.schedulerId == schedulerId)&&const DeepCollectionEquality().equals(other.schedulerConfig, _schedulerConfig)&&(identical(other.burnThreshold, burnThreshold) || other.burnThreshold == burnThreshold)&&(identical(other.leechThreshold, leechThreshold) || other.leechThreshold == leechThreshold)&&(identical(other.newCardsPerDay, newCardsPerDay) || other.newCardsPerDay == newCardsPerDay)&&(identical(other.reviewsPerDay, reviewsPerDay) || other.reviewsPerDay == reviewsPerDay)&&(identical(other.newCardMix, newCardMix) || other.newCardMix == newCardMix)&&(identical(other.newCardOrder, newCardOrder) || other.newCardOrder == newCardOrder));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,schedulerId,const DeepCollectionEquality().hash(_schedulerConfig),burnThreshold,leechThreshold,newCardsPerDay,reviewsPerDay);
+    return Object.hash(runtimeType,id,schedulerId,const DeepCollectionEquality().hash(_schedulerConfig),burnThreshold,leechThreshold,newCardsPerDay,reviewsPerDay,newCardMix,newCardOrder);
 }
 
 @override
 String toString() {
-    return 'PresetVersion(id: $id, schedulerId: $schedulerId, schedulerConfig: $schedulerConfig, burnThreshold: $burnThreshold, leechThreshold: $leechThreshold, newCardsPerDay: $newCardsPerDay, reviewsPerDay: $reviewsPerDay)';
+    return 'PresetVersion(id: $id, schedulerId: $schedulerId, schedulerConfig: $schedulerConfig, burnThreshold: $burnThreshold, leechThreshold: $leechThreshold, newCardsPerDay: $newCardsPerDay, reviewsPerDay: $reviewsPerDay, newCardMix: $newCardMix, newCardOrder: $newCardOrder)';
 }
 
 
@@ -567,7 +575,7 @@ abstract mixin class _$PresetVersionCopyWith<$Res> implements $PresetVersionCopy
   factory _$PresetVersionCopyWith(_PresetVersion value, $Res Function(_PresetVersion) _then) = __$PresetVersionCopyWithImpl;
 @override @useResult
 $Res call({
- PresetVersionId id, String schedulerId, Map<String, Object?> schedulerConfig, Duration? burnThreshold, int? leechThreshold, int newCardsPerDay, int reviewsPerDay
+ PresetVersionId id, String schedulerId, Map<String, Object?> schedulerConfig, Duration? burnThreshold, int? leechThreshold, int newCardsPerDay, int reviewsPerDay, NewCardMix newCardMix, NewCardOrder newCardOrder
 });
 
 
@@ -584,7 +592,7 @@ class __$PresetVersionCopyWithImpl<$Res>
 
 /// Create a copy of PresetVersion
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? schedulerId = null,Object? schedulerConfig = null,Object? burnThreshold = freezed,Object? leechThreshold = freezed,Object? newCardsPerDay = null,Object? reviewsPerDay = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? schedulerId = null,Object? schedulerConfig = null,Object? burnThreshold = freezed,Object? leechThreshold = freezed,Object? newCardsPerDay = null,Object? reviewsPerDay = null,Object? newCardMix = null,Object? newCardOrder = null,}) {
   return _then(_PresetVersion(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as PresetVersionId,schedulerId: null == schedulerId ? _self.schedulerId : schedulerId // ignore: cast_nullable_to_non_nullable
@@ -593,7 +601,9 @@ as Map<String, Object?>,burnThreshold: freezed == burnThreshold ? _self.burnThre
 as Duration?,leechThreshold: freezed == leechThreshold ? _self.leechThreshold : leechThreshold // ignore: cast_nullable_to_non_nullable
 as int?,newCardsPerDay: null == newCardsPerDay ? _self.newCardsPerDay : newCardsPerDay // ignore: cast_nullable_to_non_nullable
 as int,reviewsPerDay: null == reviewsPerDay ? _self.reviewsPerDay : reviewsPerDay // ignore: cast_nullable_to_non_nullable
-as int,
+as int,newCardMix: null == newCardMix ? _self.newCardMix : newCardMix // ignore: cast_nullable_to_non_nullable
+as NewCardMix,newCardOrder: null == newCardOrder ? _self.newCardOrder : newCardOrder // ignore: cast_nullable_to_non_nullable
+as NewCardOrder,
   ));
 }
 

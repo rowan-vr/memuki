@@ -16,6 +16,9 @@ import '../storage/repositories/study_card_repository.dart';
 
 final _log = Logger('memuki.scheduler');
 
+/// An action in effect and the state the card was in before it.
+typedef ReplayStep = (ReviewEvent event, SchedulingState before);
+
 /// What a rebuild found.
 final class RebuildReport {
   RebuildReport._();
@@ -100,6 +103,38 @@ class RebuildService {
     );
   }
 
+  /// Replays the history of each card in [histories], whose collection's
+  /// study day starts at [dayStart], and returns each action in effect with
+  /// the state the card was in before it. Cards whose history cannot be
+  /// replayed are left out.
+  Future<Map<StudyCardId, List<ReplayStep>>> replaySteps(
+    Map<StudyCard, List<ReviewEvent>> histories, {
+    required Duration dayStart,
+  }) async {
+    final context = _Context(dayStart);
+    final steps = <StudyCardId, List<ReplayStep>>{};
+    for (final MapEntry(key: card, value: history) in histories.entries) {
+      final cardSteps = <ReplayStep>[];
+      try {
+        await _replay(
+          card,
+          history,
+          context,
+          RebuildReport._(),
+          onAction: (event, before) => cardSteps.add((event, before)),
+        );
+      } on UnknownSchedulerException catch (error) {
+        _log.warning('Card ${card.id}: cannot replay history', error);
+        continue;
+      } on UnimplementedError catch (error) {
+        _log.warning('Card ${card.id}: cannot replay history', error);
+        continue;
+      }
+      steps[card.id] = cardSteps;
+    }
+    return steps;
+  }
+
   /// Rebuilds every card in a collection. With [write] false, only reports
   /// what would change.
   Future<RebuildReport> rebuildCollection(
@@ -152,8 +187,9 @@ class RebuildService {
     StudyCard card,
     List<ReviewEvent> history,
     _Context context,
-    RebuildReport report,
-  ) async {
+    RebuildReport report, {
+    void Function(ReviewEvent event, SchedulingState before)? onAction,
+  }) async {
     var state = _engine.initial(card.id);
     for (var event in ReviewHistory(history).actions) {
       final recorded = await context.version(event.presetVersionId, _presets);
@@ -177,6 +213,7 @@ class RebuildService {
         _log.warning('Card ${card.id}: $warning');
         (report.warnings[card.id] ??= []).add(warning);
       }
+      onAction?.call(event, state);
       state = _engine.apply(
         state,
         event,

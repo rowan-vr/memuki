@@ -1,5 +1,6 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/ids.dart';
+import 'package:memuki/domain/note_type.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/domain/study_card.dart';
 import 'package:memuki/storage/repositories/repository_exceptions.dart';
@@ -57,6 +58,45 @@ void main() {
       unorderedEquals([top, nested]),
     );
   });
+
+  test(
+    'cardsWithState lists cards with their state in creation order',
+    () async {
+      final second = StudyCardTemplate(
+        id: StudyCardTemplateId.generate(),
+        name: 'Card 2',
+      );
+      // Listed before the first template, so position decides the order.
+      await repos.noteTypes.updateNoteType(
+        japanese.noteType.copyWith(
+          templates: [second, ...japanese.noteType.templates],
+        ),
+      );
+      final child = await japanese.addDeck('Child', parentId: japanese.deck.id);
+      final (older, olderCard) = await japanese.addNote('猫', deckId: child.id);
+      final (_, newerCard) = await japanese.addNote('犬');
+      final secondCard = StudyCard(
+        noteId: older.id,
+        templateId: second.id,
+        deckId: japanese.deck.id,
+      );
+      await repos.cards.createCard(secondCard);
+      final state = SchedulingState(
+        studyCardId: newerCard.id,
+        state: StudyCardState.review,
+        due: DateTime.utc(2026, 10, 29),
+        interval: const Duration(days: 3),
+        ease: 2.5,
+      );
+      await repos.cards.saveSchedulingState(state);
+
+      final listed = await repos.cards.cardsWithState(japanese.deck.id);
+      expect(listed.map((e) => e.$1), [secondCard, olderCard, newerCard]);
+      expect(listed.last.$2, state);
+      expect(listed.first.$2!.state, StudyCardState.newCard);
+      expect(await repos.cards.cardsWithState(child.id), hasLength(1));
+    },
+  );
 
   test('watching a deck emits when a deck above it is deleted', () async {
     final child = await japanese.addDeck('Child', parentId: japanese.deck.id);

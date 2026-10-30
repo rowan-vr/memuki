@@ -8,7 +8,7 @@ import 'package:path/path.dart' as p;
 import '../domain/ids.dart';
 import '../domain/note.dart' show SourceKind;
 import '../domain/note_type.dart' show FieldType;
-import '../domain/preset.dart' show PresetVersion;
+import '../domain/preset.dart' show NewCardMix, NewCardOrder, PresetVersion;
 import '../domain/review.dart' show Grade, ReviewEventKind, StudyCardState;
 import 'converters.dart';
 import 'database.steps.dart';
@@ -74,7 +74,7 @@ class MemukiDatabase extends _$MemukiDatabase {
   HlcClock get clock => _clock;
 
   @override
-  int get schemaVersion => 5;
+  int get schemaVersion => 6;
 
   /// Opens the database now rather than on the first query, creating or
   /// upgrading the schema. Throws [DatabaseTooNewException] or
@@ -149,6 +149,7 @@ class MemukiDatabase extends _$MemukiDatabase {
           from2To3: _from2To3,
           from3To4: _from3To4,
           from4To5: _from4To5,
+          from5To6: _from5To6,
         ),
       );
 
@@ -365,5 +366,23 @@ class MemukiDatabase extends _$MemukiDatabase {
       ),
     );
     await m.createView(schema.visiblePresets);
+  }
+
+  /// Adds the new-card order settings to presets. Existing versions mix new
+  /// cards among reviews and introduce them in creation order.
+  Future<void> _from5To6(Migrator m, Schema6 schema) async {
+    final versions = schema.presetVersions;
+    final mix = versions.columnsByName['new_card_mix']!;
+    final order = versions.columnsByName['new_card_order']!;
+    await m.alterTable(
+      TableMigration(
+        versions,
+        columnTransformer: {
+          mix: const Constant('mixed'),
+          order: const Constant('created'),
+        },
+        newColumns: [mix, order],
+      ),
+    );
   }
 }

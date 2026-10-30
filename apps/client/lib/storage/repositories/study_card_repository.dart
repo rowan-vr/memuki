@@ -49,6 +49,41 @@ class StudyCardRepository {
     )).map(_card).watch();
   }
 
+  /// Cards in [deckId] and the decks below it with their scheduling state,
+  /// oldest note first and a note's cards in template order. The state is
+  /// null for a card that has none saved.
+  Future<List<(StudyCard, SchedulingState?)>> cardsWithState(
+    DeckId deckId,
+  ) async {
+    final deckIds = (await _deckTree.subtree(deckId)).toList();
+    final cards = _db.studyCards;
+    final templates = _db.studyCardTemplates;
+    final states = _db.schedulingStates;
+    final query =
+        _db.select(cards).join([
+            innerJoin(templates, templates.id.equalsExp(cards.templateId)),
+            leftOuterJoin(states, states.studyCardId.equalsExp(cards.id)),
+          ])
+          ..where(
+            cards.deckId.isInValues(deckIds) & _db.isVisibleCard(cards.id),
+          )
+          // Note IDs are UUIDv7, so they sort by creation time.
+          ..orderBy([
+            OrderingTerm(expression: cards.noteId),
+            OrderingTerm(expression: templates.position),
+          ]);
+    return [
+      for (final row in await query.get())
+        (
+          _card(row.readTable(cards)),
+          switch (row.readTableOrNull(states)) {
+            final state? => _state(state),
+            null => null,
+          },
+        ),
+    ];
+  }
+
   /// Creates a card in a deck of its note's collection, with a new-card
   /// scheduling state. The template must belong to the note's note type.
   ///
