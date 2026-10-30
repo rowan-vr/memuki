@@ -50,7 +50,11 @@
   },
   "settingsAppearance": "Appearance",
   "@settingsAppearance": {
-    "description": "Heading of the appearance section in settings."
+    "description": "Settings page for mode, accent colour, card style, and density, and its heading."
+  },
+  "settingsPreview": "Preview",
+  "@settingsPreview": {
+    "description": "Heading above the sample card that shows the chosen appearance."
   },
   "settingsMode": "Mode",
   "@settingsMode": {

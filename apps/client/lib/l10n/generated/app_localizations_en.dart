@@ -53,6 +53,9 @@ class AppLocalizationsEn extends AppLocalizations {
   String get settingsAppearance => 'Appearance';
 
   @override
+  String get settingsPreview => 'Preview';
+
+  @override
   String get settingsMode => 'Mode';
 
   @override

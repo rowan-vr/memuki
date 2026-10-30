@@ -13,8 +13,10 @@ import '../../helpers/pump_app.dart';
 BuildContext _app(WidgetTester tester) =>
     tester.element(find.byType(Scaffold).last);
 
-Future<void> _openSettings(WidgetTester tester) async {
+Future<void> _openAppearance(WidgetTester tester) async {
   await tester.tap(find.text('Settings').first);
+  await tester.pumpAndSettle();
+  await tester.tap(find.text('Appearance'));
   await tester.pumpAndSettle();
 }
 
@@ -69,7 +71,7 @@ void main() {
   ) async {
     final prefs = MemoryDevicePreferences();
     await tester.pumpApp(size: const Size(1280, 1400), preferences: prefs);
-    await _openSettings(tester);
+    await _openAppearance(tester);
 
     await tester.tap(find.text('Sepia'));
     await tester.pumpAndSettle();
@@ -101,6 +103,11 @@ void main() {
     await tester.tap(find.text('Dark'));
     await tester.pumpAndSettle();
     expect(_app(tester).colors.mode, ColorMode.dark);
+
+    // Back on the settings list, the Appearance row names the mode.
+    await tester.tap(find.bySemanticsLabel('Back'));
+    await tester.pumpAndSettle();
+    expect(find.text('Dark'), findsOneWidget);
   });
 
   testWidgets('the app starts in the saved appearance', (tester) async {

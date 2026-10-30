@@ -8,6 +8,7 @@ import '../decks/decks_screen.dart';
 import '../developer/developer_screen.dart';
 import '../developer/developer_tools_provider.dart';
 import '../home/home_screen.dart';
+import '../settings/appearance_screen.dart';
 import '../settings/settings_screen.dart';
 import '../shell/app_shell.dart';
 
@@ -33,7 +34,12 @@ final routerProvider = Provider<GoRouter>((ref) {
       routes: [TypedGoRoute<DecksRoute>(path: '/decks')],
     ),
     TypedStatefulShellBranch<SettingsBranchData>(
-      routes: [TypedGoRoute<SettingsRoute>(path: '/settings')],
+      routes: [
+        TypedGoRoute<SettingsRoute>(
+          path: '/settings',
+          routes: [TypedGoRoute<AppearanceRoute>(path: 'appearance')],
+        ),
+      ],
     ),
     TypedStatefulShellBranch<DeveloperBranchData>(
       routes: [
@@ -98,6 +104,15 @@ class SettingsRoute extends GoRouteData with $SettingsRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const SettingsScreen();
+}
+
+/// Mode, accent colour, card style, and density.
+class AppearanceRoute extends GoRouteData with $AppearanceRoute {
+  const AppearanceRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const AppearanceScreen();
 }
 
 /// Development tools; redirects home when they are not available.

@@ -166,11 +166,17 @@ abstract class AppLocalizations {
   /// **'Details'**
   String get startupErrorDetails;
 
-  /// Heading of the appearance section in settings.
+  /// Settings page for mode, accent colour, card style, and density, and its heading.
   ///
   /// In en, this message translates to:
   /// **'Appearance'**
   String get settingsAppearance;
+
+  /// Heading above the sample card that shows the chosen appearance.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get settingsPreview;
 
   /// Label for the colour mode setting (system, light, dark, sepia).
   ///
