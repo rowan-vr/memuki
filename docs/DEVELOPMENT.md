@@ -184,7 +184,7 @@ Every schema version is kept as a snapshot in `drift_schemas/`, and a test fails
 3. Implement the step in `MemukiDatabase.upgradeSchema`.
 4. Fill in the test data in the generated migration test and run the tests.
 
-Upgrades run in a single transaction and are rejected if they leave foreign key violations. Native builds write a copy of the database (`memuki-v<old version>-<timestamp>.sqlite`) next to it before upgrading.
+Upgrades run in a single transaction and are rejected if they leave foreign key violations. Storage does not depend on the scheduler, so a step that derives data from review history replays it through the `ReplayHistory` function the database is opened with (`historyReplay` from the services layer); `main.dart`, the developer CLI, and migration tests pass one. Native builds write a copy of the database (`memuki-v<old version>-<timestamp>.sqlite`) next to it before upgrading.
 
 ## Continuous integration
 

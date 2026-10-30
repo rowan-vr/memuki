@@ -8,6 +8,7 @@ import '../domain/study_card.dart';
 import '../scheduler/scheduler_registry.dart';
 import '../scheduler/scheduling_engine.dart';
 import '../storage/database.dart';
+import '../storage/history_replay.dart';
 import '../storage/repositories/collection_repository.dart';
 import '../storage/repositories/preset_repository.dart';
 import '../storage/repositories/repository_exceptions.dart';
@@ -15,9 +16,6 @@ import '../storage/repositories/review_repository.dart';
 import '../storage/repositories/study_card_repository.dart';
 
 final _log = Logger('memuki.scheduler');
-
-/// An action in effect and the state the card was in before it.
-typedef ReplayStep = (ReviewEvent event, SchedulingState before);
 
 /// What a rebuild found.
 final class RebuildReport {
@@ -103,38 +101,6 @@ class RebuildService {
     );
   }
 
-  /// Replays the history of each card in [histories], whose collection's
-  /// study day starts at [dayStart], and returns each action in effect with
-  /// the state the card was in before it. Cards whose history cannot be
-  /// replayed are left out.
-  Future<Map<StudyCardId, List<ReplayStep>>> replaySteps(
-    Map<StudyCard, List<ReviewEvent>> histories, {
-    required Duration dayStart,
-  }) async {
-    final context = _Context(dayStart);
-    final steps = <StudyCardId, List<ReplayStep>>{};
-    for (final MapEntry(key: card, value: history) in histories.entries) {
-      final cardSteps = <ReplayStep>[];
-      try {
-        await _replay(
-          card,
-          history,
-          context,
-          RebuildReport._(),
-          onAction: (event, before) => cardSteps.add((event, before)),
-        );
-      } on UnknownSchedulerException catch (error) {
-        _log.warning('Card ${card.id}: cannot replay history', error);
-        continue;
-      } on UnimplementedError catch (error) {
-        _log.warning('Card ${card.id}: cannot replay history', error);
-        continue;
-      }
-      steps[card.id] = cardSteps;
-    }
-    return steps;
-  }
-
   /// Rebuilds every card in a collection. With [write] false, only reports
   /// what would change.
   Future<RebuildReport> rebuildCollection(
@@ -187,9 +153,8 @@ class RebuildService {
     StudyCard card,
     List<ReviewEvent> history,
     _Context context,
-    RebuildReport report, {
-    void Function(ReviewEvent event, SchedulingState before)? onAction,
-  }) async {
+    RebuildReport report,
+  ) async {
     var state = _engine.initial(card.id);
     for (var event in ReviewHistory(history).actions) {
       final recorded = await context.version(event.presetVersionId, _presets);
@@ -213,7 +178,6 @@ class RebuildService {
         _log.warning('Card ${card.id}: $warning');
         (report.warnings[card.id] ??= []).add(warning);
       }
-      onAction?.call(event, state);
       state = _engine.apply(
         state,
         event,
@@ -253,4 +217,64 @@ class _Context {
     PresetRepository presets,
   ) async =>
       _current[deckId] ??= (await presets.effectivePreset(deckId)).version;
+}
+
+/// Replays histories for schema upgrades (see [ReplayHistory]) with the
+/// rules of [RebuildService]: each event uses its recorded preset version and
+/// scheduler version, and an event whose preset or scheduler version is
+/// unknown uses the collection's default preset and the latest version of
+/// its scheduler. Events that cannot be applied, such as reschedules, leave
+/// the state unchanged.
+ReplayHistory historyReplay(SchedulerRegistry schedulers) {
+  final engine = SchedulingEngine(schedulers);
+
+  bool isKnown(ReviewEvent event) {
+    try {
+      schedulers.resolve(event.schedulerId, event.schedulerVersion);
+      return true;
+    } on UnknownSchedulerException {
+      return false;
+    }
+  }
+
+  SchedulingState apply(
+    SchedulingState state,
+    ReviewEvent event,
+    HistoryToReplay history,
+  ) {
+    var version = history.versions[event.presetVersionId];
+    if (version == null ||
+        (event.kind == ReviewEventKind.review && !isKnown(event))) {
+      version ??= history.fallback;
+      final scheduler = schedulers.latest(version.schedulerId);
+      event = event.copyWith(
+        schedulerId: scheduler.id,
+        schedulerVersion: scheduler.version,
+      );
+    }
+    try {
+      return engine.apply(
+        state,
+        event,
+        SchedulingSettings.fromPreset(version, dayStart: history.dayStart),
+      );
+    } on UnimplementedError catch (error) {
+      _log.warning('Event ${event.id}: skipped in replay', error);
+      return state;
+    }
+  }
+
+  return (history) {
+    final states = <ReviewEventId, StudyCardState>{};
+    for (final (i, event) in history.events.indexed) {
+      // Replays the events before this one, since an undo among them can
+      // cancel any earlier event.
+      var state = engine.initial(event.studyCardId);
+      for (final action in ReviewHistory(history.events.take(i)).actions) {
+        state = apply(state, action, history);
+      }
+      states[event.id] = state.state;
+    }
+    return states;
+  };
 }

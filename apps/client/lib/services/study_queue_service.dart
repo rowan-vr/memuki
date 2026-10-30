@@ -1,6 +1,6 @@
 import '../domain/ids.dart';
 import '../domain/review.dart';
-import '../domain/study_card.dart';
+import '../domain/review_history.dart';
 import '../scheduler/scheduler_registry.dart';
 import '../scheduler/scheduling_engine.dart';
 import '../scheduler/study_day.dart';
@@ -11,7 +11,6 @@ import '../storage/repositories/preset_repository.dart';
 import '../storage/repositories/repository_exceptions.dart';
 import '../storage/repositories/review_repository.dart';
 import '../storage/repositories/study_card_repository.dart';
-import 'rebuild_service.dart';
 import 'review_service.dart' show DeviceNow, deviceNow;
 
 /// Builds the study queue of a deck: what to show next and how much is left
@@ -20,7 +19,8 @@ import 'review_service.dart' show DeviceNow, deviceNow;
 /// What was already studied today comes from the review history in effect
 /// in the current study day, in the device's UTC offset, so an undo gives a
 /// card's slot back. A review counts as a new card if the card was new
-/// before it, and against the review limit if the card was in review.
+/// before it, and against the review limit if the card was in review, as
+/// recorded on the event.
 class StudyQueueService {
   StudyQueueService({
     required this._db,
@@ -30,22 +30,13 @@ class StudyQueueService {
     required this._reviews,
     required SchedulerRegistry schedulers,
     this._now = deviceNow,
-  }) : _rebuild = RebuildService(
-         db: _db,
-         collections: _collections,
-         presets: _presets,
-         cards: _cards,
-         reviews: _reviews,
-         schedulers: schedulers,
-       ),
-       _engine = SchedulingEngine(schedulers);
+  }) : _engine = SchedulingEngine(schedulers);
 
   final MemukiDatabase _db;
   final CollectionRepository _collections;
   final PresetRepository _presets;
   final StudyCardRepository _cards;
   final ReviewRepository _reviews;
-  final RebuildService _rebuild;
   final SchedulingEngine _engine;
   final DeviceNow _now;
 
@@ -93,7 +84,6 @@ class StudyQueueService {
       decks.keys.toSet(),
       collection.id,
       since: day.startOf(now.at),
-      dayStart: collection.dayStart,
     );
     final preset = (await _presets.effectivePreset(deckId)).version;
     return StudyQueue.build(
@@ -116,39 +106,30 @@ class StudyQueueService {
 
   /// The new cards and reviews studied since [since] in [deckIds], by deck
   /// of the card.
+  ///
+  /// Only today's events are read: an undo always comes after the event it
+  /// cancels, so whether one of today's events is in effect depends only on
+  /// later events.
   Future<({Map<DeckId, int> newDone, Map<DeckId, int> reviewsDone})>
   _studiedToday(
     Set<DeckId> deckIds,
     CollectionId collectionId, {
     required DateTime since,
-    required Duration dayStart,
   }) async {
-    final histories = <StudyCard, List<ReviewEvent>>{};
-    for (final MapEntry(key: id, value: history)
-        in (await _reviews.historiesSince(collectionId, since)).entries) {
-      final card = await _cards.card(id);
-      if (card != null && deckIds.contains(card.deckId)) {
-        histories[card] = history;
-      }
-    }
-    final steps = await _rebuild.replaySteps(histories, dayStart: dayStart);
-    final decks = {for (final card in histories.keys) card.id: card.deckId};
     final newDone = <DeckId, int>{};
     final reviewsDone = <DeckId, int>{};
-    for (final MapEntry(key: cardId, value: cardSteps) in steps.entries) {
-      final deckId = decks[cardId]!;
-      for (final (event, before) in cardSteps) {
-        if (event.kind != ReviewEventKind.review || event.at.isBefore(since)) {
-          continue;
-        }
-        switch (before.state) {
-          case StudyCardState.newCard:
-            newDone[deckId] = (newDone[deckId] ?? 0) + 1;
-          case StudyCardState.review:
-            reviewsDone[deckId] = (reviewsDone[deckId] ?? 0) + 1;
-          default:
-            break;
-        }
+    for (final MapEntry(key: cardId, value: events)
+        in (await _reviews.eventsSince(collectionId, since)).entries) {
+      final card = await _cards.card(cardId);
+      if (card == null || !deckIds.contains(card.deckId)) continue;
+      for (final event in ReviewHistory(events).actions) {
+        if (event.kind != ReviewEventKind.review) continue;
+        final done = switch (event.stateBefore) {
+          StudyCardState.newCard => newDone,
+          StudyCardState.review => reviewsDone,
+          _ => null,
+        };
+        done?.update(card.deckId, (n) => n + 1, ifAbsent: () => 1);
       }
     }
     return (newDone: newDone, reviewsDone: reviewsDone);

@@ -164,6 +164,8 @@ class GeneratedCollection {
                 Duration(days: day += 1 + random.nextInt(4)),
               ),
               utcOffset: Duration.zero,
+              // Set from the replay below.
+              stateBefore: StudyCardState.newCard,
               grade: Grade.values[random.nextInt(Grade.values.length)],
               responseTime: Duration(milliseconds: 500 + random.nextInt(9500)),
               schedulerId: 'memuki.steps-sm2',
@@ -176,7 +178,13 @@ class GeneratedCollection {
         var state = engine.initial(card.id);
         for (final event in recorded) {
           final next = engine.apply(state, event, settings);
-          reviews.add(event.copyWith(dueBefore: state.due, dueAfter: next.due));
+          reviews.add(
+            event.copyWith(
+              stateBefore: state.state,
+              dueBefore: state.due,
+              dueAfter: next.due,
+            ),
+          );
           state = next;
         }
         states.add(state);

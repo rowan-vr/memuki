@@ -9,6 +9,7 @@ import 'package:memuki/scheduler/scheduler_registry.dart';
 import 'package:memuki/scheduler/steps_sm2/steps_sm2_scheduler.dart';
 import 'package:memuki/services/rebuild_service.dart';
 import 'package:memuki/services/review_service.dart';
+import 'package:memuki/storage/history_replay.dart';
 import 'package:memuki/storage/media/io_media_store.dart';
 import 'package:memuki/storage/repositories/media_repository.dart';
 import 'package:memuki/storage/repositories/repository_exceptions.dart';
@@ -78,6 +79,7 @@ void main() {
     kind: kind,
     at: now,
     utcOffset: Duration.zero,
+    stateBefore: StudyCardState.newCard,
     grade: kind == ReviewEventKind.review ? Grade.good : null,
     schedulerId: schedulerId,
     schedulerVersion: 1,
@@ -266,5 +268,71 @@ void main() {
     expect(report.changed, isEmpty);
     expect(report.warnings, isEmpty);
     expect(report.failures, isEmpty);
+  });
+
+  group('historyReplay', () {
+    final replay = historyReplay(schedulers);
+    final cardId = StudyCardId.derive(
+      NoteId.generate(),
+      StudyCardTemplateId.generate(),
+    );
+    final version = PresetVersion(id: PresetVersionId.generate());
+    var minute = 0;
+
+    ReviewEvent replayed(
+      ReviewEventKind kind, {
+      PresetVersionId? presetVersionId,
+      ReviewEventId? undoes,
+    }) => ReviewEvent(
+      id: ReviewEventId.generate(),
+      studyCardId: cardId,
+      kind: kind,
+      at: now.add(Duration(minutes: minute++)),
+      utcOffset: Duration.zero,
+      stateBefore: StudyCardState.newCard,
+      grade: kind == ReviewEventKind.review ? Grade.easy : null,
+      undoneEventId: undoes,
+      schedulerId: 'memuki.steps-sm2',
+      schedulerVersion: 1,
+      presetVersionId: presetVersionId ?? version.id,
+    );
+
+    Map<ReviewEventId, StudyCardState> run(List<ReviewEvent> events) => replay(
+      HistoryToReplay(
+        events: events,
+        versions: {version.id: version},
+        fallback: version,
+        dayStart: const Duration(hours: 3),
+      ),
+    );
+
+    test('events of unknown preset versions use the fallback', () {
+      final first = replayed(
+        ReviewEventKind.review,
+        presetVersionId: PresetVersionId.generate(),
+      );
+      final second = replayed(ReviewEventKind.burn);
+      expect(run([first, second]), {
+        first.id: StudyCardState.newCard,
+        second.id: StudyCardState.review,
+      });
+    });
+
+    test('events that cannot be applied leave the state unchanged', () {
+      final reschedule = replayed(ReviewEventKind.reschedule);
+      final review = replayed(ReviewEventKind.review);
+      expect(run([reschedule, review])[review.id], StudyCardState.newCard);
+    });
+
+    test('an undo restores the state before the undone event', () {
+      final review = replayed(ReviewEventKind.review);
+      final undo = replayed(ReviewEventKind.undo, undoes: review.id);
+      final next = replayed(ReviewEventKind.burn);
+      expect(run([review, undo, next]), {
+        review.id: StudyCardState.newCard,
+        undo.id: StudyCardState.review,
+        next.id: StudyCardState.newCard,
+      });
+    });
   });
 }

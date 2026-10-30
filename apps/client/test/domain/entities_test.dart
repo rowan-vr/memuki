@@ -186,6 +186,7 @@ void main() {
       kind: kind,
       at: time ?? at,
       utcOffset: utcOffset,
+      stateBefore: StudyCardState.newCard,
       grade: grade,
       responseTime: responseTime,
       undoneEventId: undoneEventId,

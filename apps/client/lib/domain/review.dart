@@ -66,6 +66,11 @@ abstract class ReviewEvent with _$ReviewEvent {
     /// The reviewing device's offset from UTC at [at]. Study-day boundaries
     /// are computed in this offset, so every device rebuilds the same state.
     required Duration utcOffset,
+
+    /// The card's phase before the event, e.g. whether a review was of a new,
+    /// learning, or review card. Derivable by replay, but recorded so queues
+    /// and statistics do not need to replay history.
+    required StudyCardState stateBefore,
     Grade? grade,
     Duration? responseTime,
     DateTime? dueBefore,

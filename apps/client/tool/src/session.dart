@@ -2,6 +2,8 @@ import 'dart:io';
 
 import 'package:drift/drift.dart';
 import 'package:drift/native.dart';
+import 'package:memuki/scheduler/schedulers.dart';
+import 'package:memuki/services/rebuild_service.dart';
 import 'package:memuki/storage/database.dart';
 import 'package:memuki/storage/media/io_media_store.dart';
 import 'package:memuki/storage/repositories/media_repository.dart';
@@ -56,6 +58,7 @@ class Session {
     final db = MemukiDatabase(
       NativeDatabase(dbFile),
       backupDirectory: () async => dbFile.parent,
+      replayHistory: historyReplay(allSchedulers),
     );
     await db.ensureOpen();
     final store = await IoMediaStore.open(mediaDir);
