@@ -617,10 +617,10 @@ List<Widget> _shape(BuildContext context) {
         ],
       ),
     ),
-    _Specimen(
+    const _Specimen(
       name: 'Paper',
       note: 'Panels and cards lie on the desk with a soft shadow.',
-      child: const Panel(child: Text('A panel')),
+      child: Panel(child: Text('A panel')),
     ),
   ];
 }
@@ -749,10 +749,10 @@ List<Widget> _lists(BuildContext context) => [
 ];
 
 List<Widget> _choices(BuildContext context) => [
-  _Specimen(
+  const _Specimen(
     name: 'SegmentedChoice',
     note: 'Picks one of a few options. Wraps when space is tight.',
-    child: const _ChoiceDemo(),
+    child: _ChoiceDemo(),
   ),
 ];
 
