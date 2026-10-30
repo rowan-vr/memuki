@@ -1,20 +1,25 @@
 import 'package:flutter/material.dart';
+import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
 import '../../l10n/generated/app_localizations.dart';
+import '../developer/developer_tools_provider.dart';
 import '../theme/breakpoints.dart';
 
 /// The app frame around the top-level destinations.
 ///
 /// Uses a bottom navigation bar on compact windows, a navigation rail on
 /// medium windows, and an extended rail with labels on expanded windows.
-class AppShell extends StatelessWidget {
+///
+/// The Developer destination is shown only when developer tools are
+/// available. Its label is not localized.
+class AppShell extends ConsumerWidget {
   const AppShell({super.key, required this.navigationShell});
 
   final StatefulNavigationShell navigationShell;
 
   @override
-  Widget build(BuildContext context) {
+  Widget build(BuildContext context, WidgetRef ref) {
     final l10n = AppLocalizations.of(context);
     final destinations = [
       (icon: Icons.home_outlined, selected: Icons.home, label: l10n.navHome),
@@ -24,6 +29,8 @@ class AppShell extends StatelessWidget {
         selected: Icons.settings,
         label: l10n.navSettings,
       ),
+      if (ref.watch(developerToolsProvider))
+        (icon: Icons.code, selected: Icons.code, label: 'Developer'),
     ];
 
     final windowSize = WindowSize.of(context);

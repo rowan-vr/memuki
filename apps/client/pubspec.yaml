@@ -43,3 +43,17 @@ flutter:
     - family: NotoSansJP
       fonts:
         - asset: assets/fonts/NotoSansJP/NotoSansJP-Variable.ttf
+    - family: Fraunces
+      fonts:
+        - asset: assets/fonts/Fraunces/Fraunces-Variable.ttf
+    - family: SourceSerif4
+      fonts:
+        - asset: assets/fonts/SourceSerif4/SourceSerif4-Variable.ttf
+    - family: ZenMaruGothic
+      fonts:
+        - asset: assets/fonts/ZenMaruGothic/ZenMaruGothic-Bold.ttf
+          weight: 700
+    - family: MPLUSRounded1c
+      fonts:
+        - asset: assets/fonts/MPLUSRounded1c/MPLUSRounded1c-Bold.ttf
+          weight: 700

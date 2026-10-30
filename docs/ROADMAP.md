@@ -287,9 +287,11 @@ Initial templates:
 | Visual identity | Memuki has its own look: colours, type, shapes, icons, and motion come from Memuki's tokens and components, not Material or Cupertino defaults | Proposed |
 | Components | Memuki's own components, built on Flutter's widgets layer; Material remains only as app plumbing (localization, text selection, navigation), themed from Memuki's tokens | Decided |
 | Icons | An open icon set behind Memuki's own icon API, so icons can be replaced or redrawn without changing screens | Decided |
-| Visual direction | Cute but polished; light and dark themes designed equally, neither derived from the other. Palette, type scale, iconography, and motion are settled while the first screens are built, using the component catalogue | Proposed |
+| Visual direction | "Study desk": warm and calm, cute but polished. Cream paper surfaces in light mode, neutral charcoal in dark mode, muted accents (coral, mustard, sage, dusty blue) with deep navy for primary actions, notecard-style cards, and stationery-inspired details. Light, dark, and sepia palettes are tuned separately | Decided |
+| Appearance settings | Mode (system, light, dark, sepia), accent colour from a curated palette, card style (default, notecard, minimal), and density (comfortable, compact). Components read all of them from tokens | Proposed |
+| Selectable styles | Further styles with their own shape language and palette (paper, stationery, chunky) are added later through the same tokens | Proposed |
 | Grade and card-state styling | Again, Hard, Good, Easy, and burned cards are part of the palette, distinguished by more than colour | Proposed |
-| Card typeface | Sans and serif card faces are compared on real cards across scripts | Open |
+| Heading typeface | Zen Maru Gothic, a rounded face, for headings; Japanese and other scripts it lacks fall back to Noto Sans JP | Decided |
 | Content format | One construct, `{key arg … name="value" \| content}`, for both field values and templates; quoted values for arguments with spaces; content can nest further marks | Decided |
 | Marks | Marks say what text is (reading, emphasis, cloze, language), never how it looks; the design system styles each kind. Each kind is a registry entry with its arguments, rendering, editing controls, Anki mapping, and plain-text fallback. Unknown kinds show their content | Decided |
 | Plain text | A field's plain text is its content with the marks dropped; search, duplicate detection, sorting, and typed-answer comparison use it | Decided |
@@ -692,7 +694,14 @@ Third-party dictionary databases are not synced. Each device installs packages i
 - Native conventions where beneficial.
 - Android build and test workflows.
 - macOS CI for iOS builds and TestFlight.
+- Release channels: dev and beta builds through TestFlight groups and Play testing tracks.
 - Testing on physical devices.
+
+### Decisions
+
+| Decision | Direction | Status |
+|---|---|---|
+| Release channels | Dev, beta, and later stable builds of one app identity per platform; installing one channel replaces another. The channel is set at build time. Dev builds every merge to main, enables the Developer destination in release builds, and keeps its data in a separate folder, so it never migrates or changes the data of beta and stable. Beta builds tagged releases. On iOS, dev and beta are TestFlight groups (dev internal, beta internal or external); on Android, dev uses the internal testing track and beta the closed or open testing track | Proposed |
 
 ### Acceptance Criteria
 
