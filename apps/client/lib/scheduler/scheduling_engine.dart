@@ -1,6 +1,7 @@
 import '../domain/ids.dart';
 import '../domain/preset.dart';
 import '../domain/review.dart';
+import '../domain/review_history.dart';
 import 'scheduler.dart';
 import 'scheduler_registry.dart';
 import 'study_day.dart';
@@ -52,7 +53,8 @@ final class SchedulingSettings {
 /// Each review event is applied with the scheduler and version recorded on
 /// it, in the UTC offset recorded on it, so every device computes the same
 /// state from the same history. Burning and leech detection are handled here
-/// rather than by the schedulers.
+/// rather than by the schedulers. Undo events are not applied; a card's state
+/// after an undo is the replay of the actions in its [ReviewHistory].
 class SchedulingEngine {
   SchedulingEngine(this._schedulers);
 
@@ -97,9 +99,13 @@ class SchedulingEngine {
         settings,
       ).copyWith(reviewCount: state.reviewCount + 1),
       ReviewEventKind.burn => _burn(state),
-      ReviewEventKind.unburn ||
-      ReviewEventKind.reschedule ||
-      ReviewEventKind.undo => throw UnimplementedError(
+      ReviewEventKind.unburn => _unburn(state, event, settings),
+      ReviewEventKind.undo => throw ArgumentError.value(
+        event.id,
+        'event',
+        'is an undo; replay only the actions of a ReviewHistory',
+      ),
+      ReviewEventKind.reschedule => throw UnimplementedError(
         '${event.kind.name} events are not supported yet',
       ),
     };
@@ -143,4 +149,19 @@ class SchedulingEngine {
 
   SchedulingState _burn(SchedulingState state) =>
       state.copyWith(state: StudyCardState.burned, due: null);
+
+  /// Returns a burned card to reviews with its interval and ease, due at the
+  /// start of the current study day. Other cards are unchanged.
+  SchedulingState _unburn(
+    SchedulingState state,
+    ReviewEvent event,
+    SchedulingSettings settings,
+  ) {
+    if (state.state != StudyCardState.burned) return state;
+    final day = StudyDay(utcOffset: event.utcOffset, start: settings.dayStart);
+    return state.copyWith(
+      state: StudyCardState.review,
+      due: day.startOf(event.at),
+    );
+  }
 }

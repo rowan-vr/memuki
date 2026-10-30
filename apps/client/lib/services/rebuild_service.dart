@@ -3,6 +3,7 @@ import 'package:logging/logging.dart';
 import '../domain/ids.dart';
 import '../domain/preset.dart';
 import '../domain/review.dart';
+import '../domain/review_history.dart';
 import '../domain/study_card.dart';
 import '../scheduler/scheduler_registry.dart';
 import '../scheduler/scheduling_engine.dart';
@@ -37,9 +38,10 @@ final class RebuildReport {
 
 /// Rebuilds scheduling state by replaying review history.
 ///
-/// Each event is applied with the scheduler version, preset version, and UTC
-/// offset recorded on it, and the collection's current study day start.
-/// Replay has no side effects such as leech tags.
+/// Each action in effect is applied with the scheduler version, preset
+/// version, and UTC offset recorded on it, and the collection's current study
+/// day start; undone events and the undos themselves are skipped. Replay has
+/// no side effects such as leech tags.
 ///
 /// An event whose scheduler or preset version is unknown, e.g. from old test
 /// data, is replayed with the current preset of the card's deck and the
@@ -81,6 +83,22 @@ class RebuildService {
     );
     return report;
   });
+
+  /// The state of [card] after [history], without saving it. Throws if the
+  /// history cannot be replayed.
+  Future<SchedulingState> replay(
+    StudyCard card,
+    List<ReviewEvent> history,
+  ) async {
+    final preset = await _presets.effectivePreset(card.deckId);
+    final collection = (await _collections.collection(preset.collectionId))!;
+    return _replay(
+      card,
+      history,
+      _Context(collection.dayStart),
+      RebuildReport._(),
+    );
+  }
 
   /// Rebuilds every card in a collection. With [write] false, only reports
   /// what would change.
@@ -137,7 +155,7 @@ class RebuildService {
     RebuildReport report,
   ) async {
     var state = _engine.initial(card.id);
-    for (var event in history) {
+    for (var event in ReviewHistory(history).actions) {
       final recorded = await context.version(event.presetVersionId, _presets);
       var version = recorded;
       final problems = [

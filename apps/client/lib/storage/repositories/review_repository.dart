@@ -2,6 +2,7 @@ import 'package:drift/drift.dart';
 
 import '../../domain/ids.dart';
 import '../../domain/review.dart';
+import '../../domain/review_history.dart';
 import '../database.dart';
 import '../sync/change_recorder.dart';
 import 'repository_exceptions.dart';
@@ -53,7 +54,9 @@ class ReviewRepository {
     return histories;
   }
 
-  /// Appends an event. An undo event must undo an event of the same card.
+  /// Appends an event. An undo event must undo an event of the same card:
+  /// either its latest action in effect, or, as a redo, its latest undo that
+  /// can be redone (see [ReviewHistory]).
   Future<void> append(ReviewEvent event) => _changes.write((hlc) async {
     final card =
         await (_db.select(_db.studyCards)..where(
@@ -71,6 +74,14 @@ class ReviewRepository {
       if (undone == null || undone.studyCardId != event.studyCardId) {
         throw EntityNotFoundException(
           'Card ${event.studyCardId} has no event $undoneId to undo',
+        );
+      }
+      final history = ReviewHistory(await this.history(event.studyCardId));
+      if (undoneId != history.undoable?.id &&
+          undoneId != history.redoable?.id) {
+        throw InvalidReviewEventException(
+          'Event $undoneId of card ${event.studyCardId} is neither the latest '
+          'action nor the latest undo in effect',
         );
       }
     }

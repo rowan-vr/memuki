@@ -324,7 +324,8 @@ mixin _$SchedulingState {
  StudyCardId get studyCardId; StudyCardState get state;/// Null for new and burned cards.
  DateTime? get due; Duration get interval;/// SM-2-style ease multiplier; null until the card graduates.
  double? get ease;/// Index into the learning or relearning steps.
- int get step; int get lapses; int get reviewCount;/// The last event this state was computed from, or null for a new card.
+ int get step; int get lapses; int get reviewCount;/// The last action in effect this state was computed from, or null if
+/// there is none, e.g. for a new card or after undoing every action.
  ReviewEventId? get lastEventId;
 /// Create a copy of SchedulingState
 /// with the given fields replaced by the non-null parameter values.
@@ -544,7 +545,8 @@ class _SchedulingState extends SchedulingState {
 @override@JsonKey() final  int step;
 @override@JsonKey() final  int lapses;
 @override@JsonKey() final  int reviewCount;
-/// The last event this state was computed from, or null for a new card.
+/// The last action in effect this state was computed from, or null if
+/// there is none, e.g. for a new card or after undoing every action.
 @override final  ReviewEventId? lastEventId;
 
 /// Create a copy of SchedulingState

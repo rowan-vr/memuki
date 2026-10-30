@@ -49,3 +49,9 @@ class EntityInUseException extends RepositoryException {
 class NoteTypeMismatchException extends RepositoryException {
   const NoteTypeMismatchException(super.message);
 }
+
+/// The review event does not fit the card's history, e.g. an undo of an
+/// event that is not the latest one that can be undone or redone.
+class InvalidReviewEventException extends RepositoryException {
+  const InvalidReviewEventException(super.message);
+}
