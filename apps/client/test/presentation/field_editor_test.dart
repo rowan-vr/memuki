@@ -3,11 +3,14 @@ import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:memuki/domain/content/content_node.dart';
 import 'package:memuki/domain/content/content_parser.dart';
 import 'package:memuki/domain/content/content_writer.dart';
 import 'package:memuki/domain/content/mark_kinds.dart';
+import 'package:memuki/domain/content/marked_text.dart';
 import 'package:memuki/l10n/generated/app_localizations.dart';
 import 'package:memuki/presentation/content/field_editor.dart';
+import 'package:memuki/presentation/content/mark_editing.dart';
 import 'package:memuki/presentation/content/marked_text_controller.dart';
 import 'package:memuki/presentation/theme/app_theme.dart';
 
@@ -19,8 +22,9 @@ Future<void> _pump(
   WidgetTester tester,
   String source, {
   MarkKinds? kinds,
+  Map<String, MarkEditing>? editing,
 }) async {
-  _c = MarkedTextController(parseContent(source).nodes);
+  _c = MarkedTextController(parseContent(source).nodes, editing: editing);
   addTearDown(_c.dispose);
   await tester.pumpWidget(
     MaterialApp(
@@ -174,9 +178,7 @@ void main() {
       debugDefaultTargetPlatformOverride = null;
     });
 
-    testWidgets('a new ruby asks for its reading', (
-      tester,
-    ) async {
+    testWidgets('a new ruby asks for its reading', (tester) async {
       await _pump(tester, '天気');
       await _select(tester, 0, 2);
       await _shortcut(tester, LogicalKeyboardKey.keyR, alt: true);
@@ -368,5 +370,137 @@ void main() {
     await tester.pump();
     expect(_source, '{em | b}');
     expect(_c.canUndo, isTrue);
+  });
+
+  group('kinds of mark', () {
+    final kinds = MarkKinds([
+      const MarkKind(
+        'pitch',
+        description: 'Where the pitch drops.',
+        example: '{pitch 0}',
+        scopes: {MarkScope.field},
+        args: [MarkArgument('drop', 'The mora before the drop.')],
+        content: MarkContent.forbidden,
+      ),
+      const MarkKind(
+        'gloss',
+        description: 'A meaning shown above the text.',
+        example: '{gloss cross | わたる}',
+        scopes: {MarkScope.field},
+        args: [MarkArgument('meaning', 'What it means.')],
+      ),
+    ]);
+    final editing = {
+      'pitch': MarkEditing(
+        label: (_) => 'Pitch',
+        glyph: 'P',
+        shortcut: const MarkShortcut(LogicalKeyboardKey.keyP, alt: true),
+        argumentEditors: {
+          'drop': (context, argument) => TextButton(
+            focusNode: argument.focusNode,
+            onPressed: () {
+              argument.onChanged('2');
+              argument.onDone();
+            },
+            child: Text('Drop at 2, now ${argument.value}'),
+          ),
+        },
+      ),
+      'gloss': MarkEditing(
+        label: (_) => 'Gloss',
+        style: (_, _, _) => const TextStyle(fontStyle: FontStyle.italic),
+        extendsAtEnd: false,
+        annotation: (mark) => mark.args.firstOrNull,
+      ),
+    };
+
+    testWidgets('come from the registry: label, shortcut, annotation, and '
+        'how typing joins them', (tester) async {
+      await _pump(tester, 'わたる', kinds: kinds, editing: editing);
+      expect(_tool('Pitch'), findsOneWidget);
+      expect(find.text('P'), findsOneWidget);
+
+      await _select(tester, 0, 3);
+      await tester.tap(_tool('Gloss'));
+      await tester.pumpAndSettle();
+      expect(find.text('meaning'), findsOneWidget);
+      await tester.enterText(find.byType(TextField).last, 'to cross over');
+      await tester.pump();
+      expect(_source, '{gloss "to cross over" | わたる}');
+      expect(_c.annotationOf(_c.ranges.single), 'to cross over');
+
+      final RenderEditable editable = tester
+          .state<EditableTextState>(find.byType(EditableText).first)
+          .renderEditable;
+      final box = editable
+          .getBoxesForSelection(
+            const TextSelection(baseOffset: 0, extentOffset: 3),
+          )
+          .first;
+      expect(box.toRect().width, greaterThan(60));
+
+      await tester.testTextInput.receiveAction(TextInputAction.done);
+      await tester.pump();
+      await _type(tester, 'わたるよ', 4);
+      expect(_source, '{gloss "to cross over" | わたる}よ');
+    });
+
+    testWidgets('a kind without content goes in at the cursor, and its '
+        'arguments use their own editor', (tester) async {
+      await _pump(tester, 'はしを', kinds: kinds, editing: editing);
+      await _select(tester, 2, 2);
+      await _shortcut(tester, LogicalKeyboardKey.keyP, alt: true);
+      expect(_source, 'はし{pitch ""}を');
+      expect(_c.selection, const TextSelection.collapsed(offset: 3));
+
+      await tester.tap(find.text('Drop at 2, now '));
+      await tester.pumpAndSettle();
+      expect(_source, 'はし{pitch 2}を');
+      expect(find.text('pitch 2'), findsOneWidget);
+
+      // The arguments open again beside the atom, from either side.
+      await _select(tester, 2, 2);
+      await tester.pump();
+      expect(find.text('Drop at 2, now 2'), findsOneWidget);
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+      expect(_source, 'はしを');
+      _c.undo();
+      expect(_source, 'はし{pitch 2}を');
+    });
+  });
+
+  group('atoms', () {
+    test('the one beside the cursor is found, before it first', () {
+      final c = MarkedTextController(parseContent('{x}{y}a').nodes);
+      addTearDown(c.dispose);
+      bool any(MarkRange _) => true;
+      c.selection = const TextSelection.collapsed(offset: 1);
+      expect(c.atomAtSelection(any)?.key, 'x');
+      c.selection = const TextSelection.collapsed(offset: 0);
+      expect(c.atomAtSelection(any)?.key, 'x');
+      c.selection = const TextSelection(baseOffset: 1, extentOffset: 2);
+      expect(c.atomAtSelection(any)?.key, 'y');
+      c.selection = const TextSelection(baseOffset: 0, extentOffset: 2);
+      expect(c.atomAtSelection(any), isNull);
+      c.selection = const TextSelection.collapsed(offset: 3);
+      expect(c.atomAtSelection(any), isNull);
+      c.selection = const TextSelection.collapsed(offset: -1);
+      expect(c.atomAtSelection(any), isNull);
+    });
+
+    test('one put in replaces the selection, and joins the mark it is in, '
+        'as one step of undo', () {
+      final c = MarkedTextController(parseContent('{em | abc}').nodes);
+      addTearDown(c.dispose);
+      c.selection = const TextSelection(baseOffset: 1, extentOffset: 2);
+      c.insert(const ContentNode.mark('x'));
+      expect(writeContent(c.nodes), '{em | a{x}c}');
+      c.undo();
+      expect(writeContent(c.nodes), '{em | abc}');
+      c.selection = const TextSelection.collapsed(offset: -1);
+      c.insert(const ContentNode.mark('x'));
+      expect(writeContent(c.nodes), '{em | abc}');
+    });
   });
 }

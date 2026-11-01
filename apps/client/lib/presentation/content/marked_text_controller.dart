@@ -3,7 +3,7 @@ import 'package:flutter/widgets.dart';
 import '../../domain/content/content_node.dart';
 import '../../domain/content/marked_text.dart';
 import '../components/indicators.dart';
-import '../theme/app_theme.dart';
+import 'mark_editing.dart';
 
 /// A text controller for content: its text is the content's text, and its
 /// marks are ranges that follow edits.
@@ -11,14 +11,21 @@ import '../theme/app_theme.dart';
 /// Undo and redo cover the marks as well as the text, which Flutter's own
 /// undo, holding only text, cannot.
 class MarkedTextController extends TextEditingController {
-  MarkedTextController([List<ContentNode> nodes = const []])
-    : this._(MarkedText.fromNodes(nodes));
+  MarkedTextController(
+    List<ContentNode> nodes, {
+    Map<String, MarkEditing>? editing,
+  }) : this._(MarkedText.fromNodes(nodes), editing ?? MarkEditing.builtIn);
 
-  MarkedTextController._(MarkedText content)
+  MarkedTextController._(MarkedText content, this.editing)
     : _ranges = content.ranges,
       super(text: content.text) {
     _history.add((value, _ranges));
   }
+
+  /// How each kind of mark is shown and applied.
+  final Map<String, MarkEditing> editing;
+
+  bool _extendsAtEnd(String? key) => editing[key]?.extendsAtEnd ?? true;
 
   List<MarkRange> _ranges;
 
@@ -59,7 +66,13 @@ class MarkedTextController extends TextEditingController {
     final cursor = next.selection.isCollapsed
         ? next.selection.baseOffset
         : null;
-    _ranges = shiftRanges(_ranges, previous.text, next.text, cursor: cursor);
+    _ranges = shiftRanges(
+      _ranges,
+      previous.text,
+      next.text,
+      cursor: cursor,
+      extendsAtEnd: _extendsAtEnd,
+    );
     super.value = next;
     final edit = next.text.length > previous.text.length
         ? _Edit.insert
@@ -146,6 +159,41 @@ class MarkedTextController extends TextEditingController {
         .lastOrNull;
   }
 
+  /// The atom the cursor is beside, before it rather than after, or that
+  /// the selection is, when [test] accepts it.
+  MarkRange? atomAtSelection(bool Function(MarkRange range) test) {
+    if (!selection.isValid) return null;
+    final atoms = _ranges.where((r) => r.atom && test(r));
+    if (!selection.isCollapsed) {
+      return atoms
+          .where((r) => r.start == selection.start && r.end == selection.end)
+          .firstOrNull;
+    }
+    final at = selection.baseOffset;
+    return atoms.where((r) => r.end == at).firstOrNull ??
+        atoms.where((r) => r.start == at).firstOrNull;
+  }
+
+  /// Puts [node] in place of the selection, whole, as an atom.
+  void insert(ContentNode node) {
+    if (!selection.isValid) return;
+    final start = selection.start;
+    final next = value.replaced(selection, atomChar);
+    _ranges = nested([
+      ...shiftRanges(
+        _ranges,
+        text,
+        next.text,
+        cursor: start + 1,
+        extendsAtEnd: _extendsAtEnd,
+      ),
+      MarkRange(start, start + 1, node, atom: true),
+    ]);
+    _lastEdit = null;
+    super.value = next.copyWith(composing: TextRange.empty);
+    _commit();
+  }
+
   /// Replaces the node of [range], such as to change a ruby's reading. Typing
   /// in the same mark's arguments is one step of undo.
   void replace(MarkRange range, MarkNode mark) {
@@ -159,11 +207,19 @@ class MarkedTextController extends TextEditingController {
     notifyListeners();
   }
 
-  /// Takes [range] off, keeping its text.
-  void remove(MarkRange range) => _changeMarks([
-    for (final r in _ranges)
-      if (r != range) r,
-  ]);
+  /// Takes [range] off, keeping its text; an atom, being its character,
+  /// goes with it.
+  void remove(MarkRange range) {
+    if (range.atom) {
+      _lastEdit = null;
+      value = value.replaced(TextRange(start: range.start, end: range.end), '');
+      return;
+    }
+    _changeMarks([
+      for (final r in _ranges)
+        if (r != range) r,
+    ]);
+  }
 
   @override
   TextSpan buildTextSpan({
@@ -180,7 +236,7 @@ class MarkedTextController extends TextEditingController {
     }
     if (composing.isValid) cuts.addAll([composing.start, composing.end]);
     final points = cuts.where((c) => c <= text.length).toList()..sort();
-    final spread = _rubySpacing(context, style);
+    final spread = _annotationSpacing(context, style);
     final children = <InlineSpan>[];
     for (var i = 0; i + 1 < points.length; i++) {
       final a = points[i];
@@ -197,7 +253,7 @@ class MarkedTextController extends TextEditingController {
       }
       var s = const TextStyle();
       for (final r in active) {
-        s = s.merge(markStyle(context, r.node as MarkNode, style));
+        s = s.merge(markStyle(context, editing, r.node as MarkNode, style));
       }
       for (final r in active) {
         if (spread[r] case final spacing?) {
@@ -212,18 +268,28 @@ class MarkedTextController extends TextEditingController {
     return TextSpan(style: style, children: children);
   }
 
-  /// The letter spacing that widens the base text of each ruby whose reading
-  /// is wider, so that the reading fits over it rather than over its
+  /// The text painted above [range], such as a ruby's reading, if any.
+  String? annotationOf(MarkRange range) {
+    if (range.atom || range.end > text.length) return null;
+    final annotate = editing[range.key]?.annotation;
+    final annotation = annotate?.call(range.node as MarkNode);
+    return annotation == null || annotation.isEmpty ? null : annotation;
+  }
+
+  /// The letter spacing that widens the text of each mark whose annotation
+  /// is wider, so that the annotation fits over it rather than over its
   /// neighbours.
-  Map<MarkRange, double> _rubySpacing(BuildContext context, TextStyle? style) {
+  Map<MarkRange, double> _annotationSpacing(
+    BuildContext context,
+    TextStyle? style,
+  ) {
     final out = <MarkRange, double>{};
     for (final r in _ranges) {
-      if (r.key != 'ruby' || r.end > text.length) continue;
-      final reading = (r.node as MarkNode).args.firstOrNull ?? '';
-      if (reading.isEmpty) continue;
+      final annotation = annotationOf(r);
+      if (annotation == null) continue;
       final base = text.substring(r.start, r.end);
       final extra =
-          _width(reading, rubyReadingStyle(context), context) -
+          _width(annotation, annotationStyle(context), context) -
           _width(base, style, context);
       if (extra > 0) out[r] = extra / base.characters.length;
     }
@@ -243,52 +309,6 @@ class MarkedTextController extends TextEditingController {
 }
 
 enum _Edit { insert, delete, argument }
-
-/// How a ruby's reading looks over its base text.
-TextStyle rubyReadingStyle(BuildContext context) =>
-    context.type.caption.copyWith(color: context.colors.textMuted, height: 1);
-
-/// How text inside [mark] looks while editing.
-///
-/// Editable text cannot raise or lower glyphs, so subscript and superscript
-/// are smaller and use the font's own forms where it has them.
-TextStyle markStyle(BuildContext context, MarkNode mark, TextStyle? base) {
-  final colors = context.colors;
-  final size = base?.fontSize ?? context.type.body.fontSize!;
-  return switch (mark.key) {
-    'em' => TextStyle(fontWeight: FontWeight.w700, color: colors.accent.onSoft),
-    'sub' => TextStyle(
-      fontSize: size * 0.7,
-      fontFeatures: const [FontFeature.subscripts()],
-    ),
-    'sup' => TextStyle(
-      fontSize: size * 0.7,
-      fontFeatures: const [FontFeature.superscripts()],
-    ),
-    'lang' => TextStyle(locale: localeOf(mark.args.firstOrNull)),
-    'ruby' => TextStyle(
-      decoration: TextDecoration.underline,
-      decorationStyle: TextDecorationStyle.dotted,
-      decorationColor: colors.textFaint,
-    ),
-    _ => TextStyle(
-      decoration: TextDecoration.underline,
-      decorationStyle: TextDecorationStyle.wavy,
-      decorationColor: colors.textFaint,
-    ),
-  };
-}
-
-/// A rough locale from a BCP 47 tag: language, then a script or region.
-Locale? localeOf(String? tag) {
-  if (tag == null || tag.isEmpty) return null;
-  final parts = tag.split('-');
-  return Locale.fromSubtags(
-    languageCode: parts.first,
-    scriptCode: parts.skip(1).where((p) => p.length == 4).firstOrNull,
-    countryCode: parts.skip(1).where((p) => p.length != 4).firstOrNull,
-  );
-}
 
 /// A comment or a mark without content, shown whole.
 class _Atom extends StatelessWidget {

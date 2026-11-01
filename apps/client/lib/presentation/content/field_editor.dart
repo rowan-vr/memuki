@@ -14,14 +14,17 @@ import '../theme/app_theme.dart';
 import '../theme/motion.dart';
 import '../theme/radii.dart';
 import '../theme/spacing.dart';
+import 'mark_editing.dart';
 import 'marked_text_controller.dart';
 
 /// Edits a field's content in its rendered form.
 ///
 /// Marks are applied to the selection from the toolbar, the selection menu,
-/// or a shortcut, and toggled off the same way. Ruby readings are drawn
-/// above their base text. While the cursor is in a mark with arguments,
-/// such as a ruby's reading, they are edited below the field.
+/// or a shortcut, and toggled off the same way; a kind without content is
+/// put in at the cursor. Annotations, such as ruby readings, are drawn above
+/// their text. While the cursor is in or beside a mark with arguments, they
+/// are edited in a popover under it. How each kind is shown and applied
+/// comes from the controller's [MarkedTextController.editing].
 class FieldEditor extends StatefulWidget {
   const FieldEditor({
     super.key,
@@ -33,7 +36,7 @@ class FieldEditor extends StatefulWidget {
   final MarkedTextController controller;
 
   /// The kinds that can be applied: those of [MarkKinds.builtIn] that belong
-  /// in fields and take content, by default.
+  /// in fields, by default.
   final MarkKinds? kinds;
 
   final FocusNode? focusNode;
@@ -90,10 +93,12 @@ class _FieldEditorState extends State<FieldEditor> {
     });
   }
 
+  bool _hasArguments(MarkRange range) =>
+      _allKinds[range.key ?? '']?.args.isNotEmpty ?? false;
+
   void _place() {
-    final mark = _c.markAtSelection(
-      (r) => _allKinds[r.key!]?.args.isNotEmpty ?? false,
-    );
+    final mark =
+        _c.atomAtSelection(_hasArguments) ?? _c.markAtSelection(_hasArguments);
     var anchor = _anchor;
     final root = _stack.currentContext?.findRenderObject() as RenderBox?;
     final editable = root == null ? null : _editableIn(root);
@@ -135,9 +140,7 @@ class _FieldEditorState extends State<FieldEditor> {
   /// The kinds offered, in registry order.
   List<MarkKind> get _kinds => [
     for (final kind in (widget.kinds ?? MarkKinds.builtIn).all)
-      if (kind.scopes.contains(MarkScope.field) &&
-          kind.content == MarkContent.required)
-        kind,
+      if (kind.scopes.contains(MarkScope.field)) kind,
   ];
 
   @override
@@ -148,20 +151,26 @@ class _FieldEditorState extends State<FieldEditor> {
     super.dispose();
   }
 
-  /// Toggles [kind] over the selection. A new mark with arguments starts
-  /// with them empty, and the first of them is focused to fill in.
+  /// Toggles [kind] over the selection, or puts it in at the cursor when it
+  /// takes no content. A new mark with arguments starts with them empty, and
+  /// the first of them is focused to fill in.
   void _apply(MarkKind kind) {
-    final adding = !_c.isMarked(kind.key);
     final mark = ContentNode.mark(
       kind.key,
       args: [for (final _ in kind.args) ''],
     ) as MarkNode;
-    if (adding && kind.args.isNotEmpty && !_c.selection.isCollapsed) {
+    final atom = kind.content == MarkContent.forbidden;
+    final adding = atom || !_c.isMarked(kind.key);
+    if (adding && kind.args.isNotEmpty && (atom || !_c.selection.isCollapsed)) {
       _focusArguments = true;
     } else {
       _focus.requestFocus();
     }
-    _c.toggle(mark);
+    if (atom) {
+      _c.insert(mark);
+    } else {
+      _c.toggle(mark);
+    }
   }
 
   Map<ShortcutActivator, VoidCallback> get _shortcuts {
@@ -181,14 +190,10 @@ class _FieldEditorState extends State<FieldEditor> {
       alt: alt,
     );
     return {
-      for (final (activator, key) in [
-        (primary(LogicalKeyboardKey.keyB), 'em'),
-        (primary(LogicalKeyboardKey.equal), 'sub'),
-        (primary(LogicalKeyboardKey.equal, shift: true), 'sup'),
-        (primary(LogicalKeyboardKey.keyR, alt: true), 'ruby'),
-        (primary(LogicalKeyboardKey.keyL, alt: true), 'lang'),
-      ])
-        if (byKey[key] case final kind?) activator: () => _apply(kind),
+      for (final MapEntry(:key, value: editing) in _c.editing.entries)
+        if ((byKey[key], editing.shortcut) case (final kind?, final shortcut?))
+          primary(shortcut.key, shift: shortcut.shift, alt: shortcut.alt): () =>
+              _apply(kind),
       primary(LogicalKeyboardKey.keyZ): _c.undo,
       primary(LogicalKeyboardKey.keyZ, shift: true): _c.redo,
       if (!apple) primary(LogicalKeyboardKey.keyY): _c.redo,
@@ -246,10 +251,15 @@ class _FieldEditorState extends State<FieldEditor> {
                               anchors: state.contextMenuAnchors,
                               buttonItems: [
                                 ...state.contextMenuButtonItems,
-                                if (!_c.selection.isCollapsed)
-                                  for (final kind in kinds)
+                                for (final kind in kinds)
+                                  if (kind.content == MarkContent.forbidden ||
+                                      !_c.selection.isCollapsed)
                                     ContextMenuButtonItem(
-                                      label: _label(context, kind.key),
+                                      label: _label(
+                                        context,
+                                        _c.editing[kind.key],
+                                        kind.key,
+                                      ),
                                       onPressed: () {
                                         state.hideToolbar();
                                         _apply(kind);
@@ -261,10 +271,10 @@ class _FieldEditorState extends State<FieldEditor> {
                       Positioned.fill(
                         child: IgnorePointer(
                           child: CustomPaint(
-                            painter: _ReadingsPainter(
+                            painter: _AnnotationsPainter(
                               controller: _c,
                               stack: _stack,
-                              reading: rubyReadingStyle(context),
+                              annotation: annotationStyle(context),
                               base: style,
                               direction: Directionality.of(context),
                             ),
@@ -314,6 +324,7 @@ class _FieldEditorState extends State<FieldEditor> {
                   controller: _c,
                   range: mark,
                   kind: kind,
+                  editing: _c.editing[kind.key],
                   focusNode: _argumentFocus,
                   onDone: _focus.requestFocus,
                 ),
@@ -326,18 +337,9 @@ class _FieldEditorState extends State<FieldEditor> {
   }
 }
 
-/// The label of the built-in kind [key], or the key itself.
-String _label(BuildContext context, String key) {
-  final l10n = AppLocalizations.of(context);
-  return switch (key) {
-    'ruby' => l10n.editorRuby,
-    'em' => l10n.editorEmphasis,
-    'sub' => l10n.editorSubscript,
-    'sup' => l10n.editorSuperscript,
-    'lang' => l10n.editorLanguage,
-    _ => key,
-  };
-}
+/// The label of [kind] in [editing], or its key.
+String _label(BuildContext context, MarkEditing? editing, String key) =>
+    editing?.label?.call(AppLocalizations.of(context)) ?? key;
 
 /// Buttons for the marks, lit while the selection has them, then undo and
 /// redo.
@@ -360,22 +362,14 @@ class _Toolbar extends StatelessWidget {
       runSpacing: Spacing.xs,
       children: [
         for (final kind in kinds)
-          _ToolButton(
-            label: _label(context, kind.key),
-            icon: switch (kind.key) {
-              'em' => MemukiIcons.emphasis,
-              'sub' => MemukiIcons.subscript,
-              'sup' => MemukiIcons.superscript,
-              'lang' => MemukiIcons.language,
-              _ => null,
-            },
-            glyph: switch (kind.key) {
-              'ruby' => 'あ',
-              _ => kind.key,
-            },
-            active: controller.isMarked(kind.key),
-            onPressed: () => onApply(kind),
-          ),
+          if (controller.editing[kind.key] case final editing)
+            _ToolButton(
+              label: _label(context, editing, kind.key),
+              icon: editing?.icon,
+              glyph: editing?.glyph ?? kind.key,
+              active: controller.isMarked(kind.key),
+              onPressed: () => onApply(kind),
+            ),
         const SizedBox(width: Spacing.sm),
         _ToolButton(
           label: l10n.editorUndo,
@@ -457,6 +451,7 @@ class _ArgumentRow extends StatefulWidget {
     required this.controller,
     required this.range,
     required this.kind,
+    required this.editing,
     required this.focusNode,
     required this.onDone,
   });
@@ -464,6 +459,7 @@ class _ArgumentRow extends StatefulWidget {
   final MarkedTextController controller;
   final MarkRange range;
   final MarkKind kind;
+  final MarkEditing? editing;
   final FocusNode focusNode;
 
   /// Called when the arguments are submitted, to return to the text.
@@ -474,16 +470,21 @@ class _ArgumentRow extends StatefulWidget {
 }
 
 class _ArgumentRowState extends State<_ArgumentRow> {
-  late final _fields = [
+  late final _values = [
     for (final (i, _) in widget.kind.args.indexed)
-      TextEditingController(
-        text: (widget.range.node as MarkNode).args.elementAtOrNull(i) ?? '',
-      ),
+      (widget.range.node as MarkNode).args.elementAtOrNull(i) ?? '',
   ];
+
+  /// Text fields for the arguments without an editor of their own.
+  late final _fields = {
+    for (final (i, arg) in widget.kind.args.indexed)
+      if (widget.editing?.argumentEditors[arg.name] == null)
+        i: TextEditingController(text: _values[i]),
+  };
 
   @override
   void dispose() {
-    for (final f in _fields) {
+    for (final f in _fields.values) {
       f.dispose();
     }
     super.dispose();
@@ -494,24 +495,14 @@ class _ArgumentRowState extends State<_ArgumentRow> {
       .where((r) => r.start == widget.range.start && r.key == widget.range.key)
       .lastOrNull;
 
-  void _changed() {
+  void _changed(int i, String value) {
+    setState(() => _values[i] = value);
     final range = _current;
     if (range == null) return;
     widget.controller.replace(
       range,
-      (range.node as MarkNode).copyWith(
-        args: [for (final f in _fields) f.text],
-      ),
+      (range.node as MarkNode).copyWith(args: [..._values]),
     );
-  }
-
-  String _argumentLabel(BuildContext context, MarkArgument arg) {
-    final l10n = AppLocalizations.of(context);
-    return switch ((widget.kind.key, arg.name)) {
-      ('ruby', 'reading') => l10n.editorReading,
-      ('lang', 'tag') => l10n.editorLanguageTag,
-      _ => arg.name,
-    };
   }
 
   @override
@@ -519,32 +510,44 @@ class _ArgumentRowState extends State<_ArgumentRow> {
     final colors = context.colors;
     final type = context.type;
     final l10n = AppLocalizations.of(context);
+    final editing = widget.editing;
     return Row(
       children: [
         for (final (i, arg) in widget.kind.args.indexed) ...[
           Text(
-            _argumentLabel(context, arg),
+            editing?.argumentLabels[arg.name]?.call(l10n) ?? arg.name,
             style: type.label.copyWith(color: colors.textMuted),
           ),
           const SizedBox(width: Spacing.sm),
           Expanded(
-            child: TextField(
-              controller: _fields[i],
-              focusNode: i == 0 ? widget.focusNode : null,
-              style: type.body,
-              onChanged: (_) => _changed(),
-              onSubmitted: (_) => widget.onDone(),
-              decoration: InputDecoration(
-                isDense: true,
-                hintText: arg.description,
-                filled: true,
-                fillColor: colors.surfaceSunken,
-                border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(Radii.sm),
-                  borderSide: BorderSide.none,
+            child: switch (editing?.argumentEditors[arg.name]) {
+              final build? => build(
+                context,
+                ArgumentEditing(
+                  value: _values[i],
+                  onChanged: (value) => _changed(i, value),
+                  onDone: widget.onDone,
+                  focusNode: i == 0 ? widget.focusNode : null,
                 ),
               ),
-            ),
+              null => TextField(
+                controller: _fields[i],
+                focusNode: i == 0 ? widget.focusNode : null,
+                style: type.body,
+                onChanged: (value) => _changed(i, value),
+                onSubmitted: (_) => widget.onDone(),
+                decoration: InputDecoration(
+                  isDense: true,
+                  hintText: arg.description,
+                  filled: true,
+                  fillColor: colors.surfaceSunken,
+                  border: OutlineInputBorder(
+                    borderRadius: BorderRadius.circular(Radii.sm),
+                    borderSide: BorderSide.none,
+                  ),
+                ),
+              ),
+            },
           ),
           const SizedBox(width: Spacing.sm),
         ],
@@ -559,20 +562,20 @@ class _ArgumentRowState extends State<_ArgumentRow> {
   }
 }
 
-/// Paints each ruby's reading centred above its base text, finding the
-/// text's place through the field's [RenderEditable].
-class _ReadingsPainter extends CustomPainter {
-  _ReadingsPainter({
+/// Paints each mark's annotation, such as a ruby's reading, centred above
+/// its text, finding the text's place through the field's [RenderEditable].
+class _AnnotationsPainter extends CustomPainter {
+  _AnnotationsPainter({
     required this.controller,
     required this.stack,
-    required this.reading,
+    required this.annotation,
     required this.base,
     required this.direction,
   }) : super(repaint: controller);
 
   final MarkedTextController controller;
   final GlobalKey stack;
-  final TextStyle reading;
+  final TextStyle annotation;
   final TextStyle base;
   final TextDirection direction;
 
@@ -590,14 +593,13 @@ class _ReadingsPainter extends CustomPainter {
     final glyphTop = line.baseline - line.unscaledAscent;
     metrics.dispose();
     for (final r in controller.ranges) {
-      if (r.key != 'ruby' || r.end > controller.text.length) continue;
-      final text = (r.node as MarkNode).args.firstOrNull ?? '';
-      if (text.isEmpty) continue;
+      final text = controller.annotationOf(r);
+      if (text == null) continue;
       final boxes = editable.getBoxesForSelection(
         TextSelection(baseOffset: r.start, extentOffset: r.end),
       );
       if (boxes.isEmpty) continue;
-      // Over the part of the base text on its first line.
+      // Over the part of the text on its first line.
       final first = boxes.first;
       final onLine = boxes.where((b) => (b.top - first.top).abs() < 1);
       final left = onLine.map((b) => b.left).reduce((a, b) => a < b ? a : b);
@@ -607,7 +609,7 @@ class _ReadingsPainter extends CustomPainter {
         ancestor: root,
       );
       final painter = TextPainter(
-        text: TextSpan(text: text, style: reading),
+        text: TextSpan(text: text, style: annotation),
         textDirection: direction,
       )..layout();
       painter
@@ -623,8 +625,10 @@ class _ReadingsPainter extends CustomPainter {
   }
 
   @override
-  bool shouldRepaint(_ReadingsPainter old) =>
-      old.reading != reading || old.base != base || old.direction != direction;
+  bool shouldRepaint(_AnnotationsPainter old) =>
+      old.annotation != annotation ||
+      old.base != base ||
+      old.direction != direction;
 }
 
 /// The text field's [RenderEditable] under [root].

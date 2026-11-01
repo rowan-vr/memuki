@@ -151,16 +151,13 @@ List<MarkRange> nested(List<MarkRange> ranges) {
   return out;
 }
 
-/// Whether text typed right after a mark of [key] joins it. A ruby's reading
-/// belongs to exactly its base text, so typing after a ruby does not.
-bool extendsAtEnd(String? key) => key != 'ruby';
-
 /// [ranges] after the text changed from [before] to [after].
 ///
 /// The change is found by comparing the two. Where repeated characters make
 /// that ambiguous, [cursor], the collapsed selection after the change, says
 /// where the text was typed. Text typed inside a mark joins it, and so does
-/// text typed at its end when [extendsAtEnd] allows; text typed at its start
+/// text typed at its end when [extendsAtEnd] allows for its key, as it does
+/// by default; text typed at its start
 /// does not. Text replacing the start of a mark, as an input method does
 /// when it converts, joins it. A mark whose text is all deleted is removed,
 /// and so is an atom whose character is.
@@ -169,6 +166,7 @@ List<MarkRange> shiftRanges(
   String before,
   String after, {
   int? cursor,
+  bool Function(String? key) extendsAtEnd = _always,
 }) {
   if (before == after) return ranges;
   final shortest = before.length < after.length ? before.length : after.length;
@@ -225,6 +223,8 @@ List<MarkRange> shiftRanges(
   }
   return out;
 }
+
+bool _always(String? key) => true;
 
 /// Whether text from [start] to [end] is all inside marks of [key]: at the
 /// cursor when [start] equals [end].

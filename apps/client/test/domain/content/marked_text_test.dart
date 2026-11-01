@@ -15,7 +15,16 @@ String _write(MarkedText t) => writeContent(t.toNodes());
 String _edit(String source, String after, {int? cursor}) {
   final t = _read(source);
   return _write(
-    MarkedText(after, shiftRanges(t.ranges, t.text, after, cursor: cursor)),
+    MarkedText(
+      after,
+      shiftRanges(
+        t.ranges,
+        t.text,
+        after,
+        cursor: cursor,
+        extendsAtEnd: (key) => key != 'ruby',
+      ),
+    ),
   );
 }
 
@@ -99,7 +108,7 @@ void main() {
       expect(_edit('{em | ab}c', 'aXbc'), '{em | aXb}c');
     });
 
-    test('typing at the end of a mark joins it, except a ruby', () {
+    test('typing at the end of a mark joins it, unless its kind says not', () {
       expect(_edit('{em | ab}c', 'abXc', cursor: 3), '{em | abX}c');
       expect(_edit('{ruby てんき | 天気}', '天気が', cursor: 3), '{ruby てんき | 天気}が');
     });

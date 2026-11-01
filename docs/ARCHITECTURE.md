@@ -139,6 +139,7 @@ H{sub | 2}O
   - Marks are toggled on the selection from a toolbar, the selection menu, or shortcuts. Toggling a mark over part of a marked span takes it off that part only.
   - Ruby readings are painted above their base text, in extra line height. A reading wider than its base text spreads the base text with letter spacing, so the reading never covers its neighbours. While the cursor is in a mark with arguments, such as a ruby's reading or a language tag, they are edited in a popover under the mark.
   - Undo covers marks as well as text; typing up to a space is one step.
+  - How the editor shows and applies each kind comes from one entry per key: its label, icon, shortcut, style, whether typing at its end joins it, an annotation painted above its text (a ruby's reading), and editors for its arguments in place of text fields. A kind without an entry is offered under its key and shown with a wavy underline. A kind that takes no content is put in at the cursor as a chip, and its arguments open beside it.
   - Editable text cannot raise or lower glyphs, so subscript and superscript are only smaller while editing, using the font's own forms where it has them.
 
 ### Templates
