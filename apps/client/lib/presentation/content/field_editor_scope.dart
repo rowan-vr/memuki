@@ -73,12 +73,19 @@ class FieldSession {
     required this.kinds,
     required this.editing,
     required this.blocks,
+    this.allowed,
   });
 
   final FieldController field;
   final MarkKinds kinds;
   final Map<String, MarkEditing> editing;
   final Map<String, BlockEditing> blocks;
+
+  /// The kinds of mark the field allows, or null for all. Kinds it does not
+  /// allow are not offered.
+  final Set<String>? allowed;
+
+  bool allows(String key) => allowed?.contains(key) ?? true;
 
   /// The text editor last focused, which the toolbar works on.
   final active = ValueNotifier<InlineTarget?>(null);
@@ -100,7 +107,7 @@ class FieldSession {
   /// Where a new block of [key] would go: into the innermost place around
   /// the focused text editor that accepts it.
   BlockContainer? targetFor(String key) =>
-      (active.value?.container ?? root)?.accepting(key);
+      allows(key) ? (active.value?.container ?? root)?.accepting(key) : null;
 
   /// Puts in a new block of [key] where [targetFor] says, at the cursor when
   /// the focused text editor is that place's own. Returns whether it went

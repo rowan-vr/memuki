@@ -5,16 +5,15 @@ import '../../domain/content/content_writer.dart';
 import '../../domain/content/template_layout.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../components/buttons.dart';
+import '../components/check_chip.dart';
 import '../components/icons.dart';
 import '../components/menu.dart';
 import '../components/panel.dart';
-import '../components/pressable.dart';
 import '../components/screen.dart';
 import '../components/segmented_choice.dart';
 import '../theme/app_theme.dart';
 import '../theme/memuki_colors.dart';
 import '../theme/memuki_type.dart';
-import '../theme/motion.dart';
 import '../theme/radii.dart';
 import '../theme/spacing.dart';
 import 'field_controller.dart';
@@ -126,7 +125,7 @@ class _TemplateEditorState extends State<TemplateEditor> {
           runSpacing: Spacing.sm,
           children: [
             for (final name in requirable)
-              _CheckChip(
+              CheckChip(
                 label: widget.fields.contains(name)
                     ? name
                     : l10n.templateMissingField(name),
@@ -629,64 +628,6 @@ class _FieldPicker extends StatelessWidget {
       ],
       selected: selected,
       onSelected: onSelected,
-    );
-  }
-}
-
-/// A field that can be required: its name, with a check when it is.
-class _CheckChip extends StatelessWidget {
-  const _CheckChip({
-    required this.label,
-    required this.checked,
-    required this.onPressed,
-  });
-
-  final String label;
-  final bool checked;
-  final VoidCallback onPressed;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    final radius = BorderRadius.circular(Radii.sm);
-    return Semantics(
-      checked: checked,
-      child: Pressable(
-        onPressed: onPressed,
-        borderRadius: radius,
-        builder: (context, state) => AnimatedContainer(
-          duration: Motion.quick,
-          padding: EdgeInsets.symmetric(
-            horizontal: Spacing.sm + 2,
-            vertical: context.layout.dense(Spacing.xs + 2),
-          ),
-          decoration: BoxDecoration(
-            color: checked
-                ? colors.accent.soft
-                : state.hovered || state.pressed
-                ? colors.border
-                : colors.surfaceSunken,
-            borderRadius: radius,
-          ),
-          child: Row(
-            mainAxisSize: MainAxisSize.min,
-            children: [
-              Icon(
-                checked ? MemukiIcons.check : MemukiIcons.add,
-                size: 16,
-                color: checked ? colors.accent.onSoft : colors.textMuted,
-              ),
-              const SizedBox(width: Spacing.xs),
-              Text(
-                label,
-                style: context.type.label.copyWith(
-                  color: checked ? colors.accent.onSoft : colors.text,
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
     );
   }
 }

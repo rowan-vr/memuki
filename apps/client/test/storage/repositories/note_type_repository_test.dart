@@ -1,7 +1,9 @@
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/note_type.dart';
+import 'package:memuki/storage/converters.dart';
 import 'package:memuki/storage/repositories/repository_exceptions.dart';
+import 'package:memuki/storage/sync/hlc.dart';
 
 import '../../helpers/test_database.dart';
 
@@ -18,6 +20,55 @@ void main() {
     expect(
       await repos.noteTypes.noteType(japanese.noteType.id),
       japanese.noteType,
+    );
+  });
+
+  test('round-trips field settings, template sources, and the duplicate '
+      'check', () async {
+    final [front, back] = japanese.noteType.fields;
+    final updated = japanese.noteType.copyWith(
+      fields: [
+        front.copyWith(
+          language: 'ja',
+          isRequired: true,
+          allowedMarks: {'ruby', 'em'},
+        ),
+        back.copyWith(allowedMarks: {}),
+      ],
+      templates: [
+        japanese.noteType.templates.single.copyWith(
+          source: '{front | {field Front}}\n{back | {field Back}}',
+        ),
+      ],
+      duplicateCheck: front.id,
+    );
+    await repos.noteTypes.updateNoteType(updated);
+    expect(await repos.noteTypes.noteType(updated.id), updated);
+  });
+
+  test('a duplicate check on a removed field reads as none', () async {
+    final [front, back] = japanese.noteType.fields;
+    await repos.noteTypes.updateNoteType(
+      japanese.noteType.copyWith(duplicateCheck: front.id),
+    );
+    // As a merge from another device could leave it.
+    await repos.noteTypes.updateNoteType(
+      japanese.noteType.copyWith(fields: [back], duplicateCheck: null),
+    );
+    final row = await repos.db
+        .customSelect('SELECT hlc FROM note_types')
+        .getSingle();
+    final hlc = Hlc.parse(row.read<String>('hlc'));
+    await repos.db.customStatement(
+      'UPDATE note_types SET duplicate_check = ?, hlc = ?',
+      [
+        fieldDefinitionIdConverter.toSql(front.id),
+        Hlc(hlc.millis, hlc.counter + 1, hlc.node).toString(),
+      ],
+    );
+    expect(
+      (await repos.noteTypes.noteType(japanese.noteType.id))!.duplicateCheck,
+      isNull,
     );
   });
 

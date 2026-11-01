@@ -373,10 +373,12 @@ class _InlineEditorState extends State<InlineEditor> implements InlineTarget {
 }
 
 /// The kinds [session] offers in text, in registry order: those that belong
-/// in fields, are not blocks, and whose entry offers them.
+/// in fields and the field allows, are not blocks, and whose entry offers
+/// them.
 List<MarkKind> offeredKinds(FieldSession session) => [
   for (final kind in session.kinds.all)
     if (kind.scopes.contains(MarkScope.field) &&
+        session.allows(kind.key) &&
         !session.blocks.containsKey(kind.key) &&
         (session.editing[kind.key]?.offered ?? true))
       kind,

@@ -201,6 +201,19 @@ A template is content in the same format, whose marks place fields:
   - The editor writes one canonical form: one line per block, indented by depth, a condition with one line on one line, and comments outside the sides first.
 - The format is stored on `StudyCardTemplate`; template IDs, and so card identity, do not depend on it.
 
+### Note types
+
+- A field has a name, an optional language (a BCP 47 tag), and checks:
+  - **Required:** a value must show something; comments and whitespace do not count.
+  - **Allowed marks:** the kinds its values may have, all by default. The field editor offers only those, and marks of other kinds already in a value are kept.
+- One field per note type may be the duplicate check, the first by default. A duplicate warns and does not block.
+- Templates name fields, while notes key values by field ID. Renaming a field rewrites the `field`, `if`, and `requires` marks that name it, in the same change. Removing one takes out its placements and the `if` marks on it, and drops it from `requires`; notes keep its values.
+- Every field a template names exists on the note type. The editor enforces this when saving, and the constructor does not, since a merge from another device may briefly break it. A duplicate check that names a removed field reads as none.
+- Note types are edited under Settings, in the active collection, which is made on first use. Changes are a draft until saved, and saving waits until every template has one front and one back and names only fields the note type has.
+  - Fields are reordered by dragging. A name is applied when it is done, on Enter or when focus leaves, and reverts when it is empty or taken.
+  - One card is edited at a time, picked from a row of buttons; a new card is picked when added. It is edited visually or as source, and previewed with each field showing its name.
+- Schema version 9 added the field settings and template source. Templates from before it get a basic source: the first field as the prompt on the front, the rest on the back.
+
 ## Storage
 
 - **Library:** Drift on all platforms, for typed queries and migrations. The schema and queries are shared between native and web.

@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:args/command_runner.dart';
 import 'package:memuki/domain/collection.dart';
+import 'package:memuki/domain/content/field_references.dart';
 import 'package:memuki/domain/ids.dart';
 import 'package:memuki/domain/note.dart';
 import 'package:memuki/domain/note_type.dart';
@@ -146,19 +147,24 @@ List<Command<void>> editCommands() => [
       'add',
       'Create a note type.',
       (c, s) async {
-        final fields = c.argResults!['field'] as List<String>;
+        final given = c.argResults!['field'] as List<String>;
+        final fieldNames = given.isEmpty ? ['Front', 'Back'] : given;
         final templates = c.argResults!['template'] as List<String>;
         final type = NoteType(
           id: NoteTypeId.generate(),
           collectionId: await _collection(s, c.arg(0, 'collection')),
           name: c.arg(1, 'name'),
           fields: [
-            for (final f in fields.isEmpty ? ['Front', 'Back'] : fields)
+            for (final f in fieldNames)
               FieldDefinition(id: FieldDefinitionId.generate(), name: f),
           ],
           templates: [
             for (final t in templates.isEmpty ? ['Card 1'] : templates)
-              StudyCardTemplate(id: StudyCardTemplateId.generate(), name: t),
+              StudyCardTemplate(
+                id: StudyCardTemplateId.generate(),
+                name: t,
+                source: basicTemplateSource(fieldNames),
+              ),
           ],
         );
         await s.repos.noteTypes.createNoteType(type);
@@ -404,7 +410,11 @@ Future<void> _addCollection(ActionCommand c, Session s) async {
           FieldDefinition(id: FieldDefinitionId.generate(), name: 'Back'),
         ],
         templates: [
-          StudyCardTemplate(id: StudyCardTemplateId.generate(), name: 'Card 1'),
+          StudyCardTemplate(
+            id: StudyCardTemplateId.generate(),
+            name: 'Card 1',
+            source: basicTemplateSource(['Front', 'Back']),
+          ),
         ],
       ),
     );

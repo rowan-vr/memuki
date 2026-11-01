@@ -4,6 +4,7 @@ import 'package:uuid/data.dart';
 import 'package:uuid/uuid.dart';
 
 import '../domain/collection.dart';
+import '../domain/content/field_references.dart';
 import '../domain/ids.dart';
 import '../domain/note.dart';
 import '../domain/note_type.dart';
@@ -79,10 +80,12 @@ class GeneratedCollection {
         StudyCardTemplate(
           id: StudyCardTemplateId.parse(ids.next()),
           name: 'Recognition',
+          source: basicTemplateSource(['Front', 'Back']),
         ),
         StudyCardTemplate(
           id: StudyCardTemplateId.parse(ids.next()),
           name: 'Recall',
+          source: basicTemplateSource(['Back', 'Front']),
         ),
       ],
     );

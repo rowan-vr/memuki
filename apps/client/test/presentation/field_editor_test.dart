@@ -48,6 +48,7 @@ Future<void> _pump(
   String source, {
   MarkKinds? kinds,
   Map<String, MarkEditing>? editing,
+  Set<String>? allowedMarks,
 }) async {
   _tester = tester;
   _field = FieldController(parseContent(source).nodes);
@@ -65,6 +66,7 @@ Future<void> _pump(
               controller: _field,
               kinds: kinds,
               editing: editing,
+              allowedMarks: allowedMarks,
             ),
           ),
         ),
@@ -548,6 +550,16 @@ void main() {
     }
     // Tags belong in a sense, which puts them in.
     expect(find.text('Tag'), findsNothing);
+  });
+
+  testWidgets('offers only the marks the field allows', (tester) async {
+    await _pump(tester, '{ruby x | a}', allowedMarks: {'em', 'list'});
+    expect(_tool('Emphasis'), findsOneWidget);
+    expect(_tool('Ruby'), findsNothing);
+    expect(find.text('List'), findsOneWidget);
+    expect(find.text('Sense'), findsNothing);
+    // Marks it does not allow stay.
+    expect(_source, '{ruby x | a}');
   });
 
   group('blocks', () {

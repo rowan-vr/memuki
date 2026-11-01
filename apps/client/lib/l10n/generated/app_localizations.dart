@@ -711,6 +711,294 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Add tag'**
   String get editorAddTag;
+
+  /// A button that closes a dialog without doing anything.
+  ///
+  /// In en, this message translates to:
+  /// **'Cancel'**
+  String get commonCancel;
+
+  /// A button that saves changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Save'**
+  String get commonSave;
+
+  /// Name of the collection made the first time one is needed.
+  ///
+  /// In en, this message translates to:
+  /// **'My collection'**
+  String get collectionDefaultName;
+
+  /// Settings: opens the note types, which define the fields of notes and the cards made from them.
+  ///
+  /// In en, this message translates to:
+  /// **'Note types'**
+  String get settingsNoteTypes;
+
+  /// Note types: shown when the collection has none.
+  ///
+  /// In en, this message translates to:
+  /// **'No note types yet.'**
+  String get noteTypesEmpty;
+
+  /// Note types: creates a note type.
+  ///
+  /// In en, this message translates to:
+  /// **'New note type'**
+  String get noteTypesAdd;
+
+  /// Name of a note type when it is created.
+  ///
+  /// In en, this message translates to:
+  /// **'New note type'**
+  String get noteTypeDefaultName;
+
+  /// Name of the first field of a new note type.
+  ///
+  /// In en, this message translates to:
+  /// **'Front'**
+  String get noteTypeDefaultFront;
+
+  /// Name of the second field of a new note type.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get noteTypeDefaultBack;
+
+  /// Name of a field added to a note type.
+  ///
+  /// In en, this message translates to:
+  /// **'Field {number}'**
+  String noteTypeDefaultField(int number);
+
+  /// Name of a card added to a note type.
+  ///
+  /// In en, this message translates to:
+  /// **'Card {number}'**
+  String noteTypeDefaultCard(int number);
+
+  /// Note types: how many fields and cards a note type has.
+  ///
+  /// In en, this message translates to:
+  /// **'{fieldCount, plural, =1{1 field} other{{fieldCount} fields}} · {cardCount, plural, =1{1 card} other{{cardCount} cards}}'**
+  String noteTypeSummary(int fieldCount, int cardCount);
+
+  /// Note type editor: label of the note type's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Name'**
+  String get noteTypeName;
+
+  /// Note type editor: heading of the fields.
+  ///
+  /// In en, this message translates to:
+  /// **'Fields'**
+  String get noteTypeFields;
+
+  /// Note type editor: heading of the cards, one for each card template.
+  ///
+  /// In en, this message translates to:
+  /// **'Cards'**
+  String get noteTypeCards;
+
+  /// Note type editor: adds a field.
+  ///
+  /// In en, this message translates to:
+  /// **'Add field'**
+  String get noteTypeAddField;
+
+  /// Note type editor: adds a card template.
+  ///
+  /// In en, this message translates to:
+  /// **'Add card'**
+  String get noteTypeAddCard;
+
+  /// Note type editor: label of a field's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Field name'**
+  String get noteTypeFieldName;
+
+  /// Note type editor: label of a card's name.
+  ///
+  /// In en, this message translates to:
+  /// **'Card name'**
+  String get noteTypeCardName;
+
+  /// Note type editor: shows or hides a field's settings.
+  ///
+  /// In en, this message translates to:
+  /// **'Settings'**
+  String get noteTypeFieldSettings;
+
+  /// Note type editor: label of a field's language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get noteTypeFieldLanguage;
+
+  /// Note type editor: placeholder of a field's language.
+  ///
+  /// In en, this message translates to:
+  /// **'A language tag, such as ja'**
+  String get noteTypeFieldLanguageHint;
+
+  /// Note type editor: whether a note must fill the field.
+  ///
+  /// In en, this message translates to:
+  /// **'Required'**
+  String get noteTypeFieldRequired;
+
+  /// Note type editor: whether notes are compared by this field to warn of duplicates. Only one field can be.
+  ///
+  /// In en, this message translates to:
+  /// **'Check for duplicates'**
+  String get noteTypeFieldDuplicates;
+
+  /// Note type editor: heading of the kinds of mark a field allows.
+  ///
+  /// In en, this message translates to:
+  /// **'Marks'**
+  String get noteTypeFieldMarks;
+
+  /// Note type editor: allows every kind of mark in a field.
+  ///
+  /// In en, this message translates to:
+  /// **'All'**
+  String get noteTypeFieldAllMarks;
+
+  /// Note type editor: removes a field.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove field'**
+  String get noteTypeRemoveField;
+
+  /// Note type editor: title of the dialog that confirms removing a field.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove {name}?'**
+  String noteTypeRemoveFieldTitle(String name);
+
+  /// Note type editor: a field being removed is placed on cards, listed by name.
+  ///
+  /// In en, this message translates to:
+  /// **'It is taken out of {cards}. Notes keep its values, hidden.'**
+  String noteTypeRemoveFieldUsed(String cards);
+
+  /// Note type editor: a field being removed is on no card.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes keep its values, hidden.'**
+  String get noteTypeRemoveFieldUnused;
+
+  /// Note type editor: confirms removing a field.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get noteTypeRemove;
+
+  /// Note type editor: removes a card template.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove card'**
+  String get noteTypeRemoveCard;
+
+  /// Note type editor: deletes the note type.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete note type'**
+  String get noteTypeDelete;
+
+  /// Note type editor: title of the dialog that confirms deleting a note type.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete {name}?'**
+  String noteTypeDeleteTitle(String name);
+
+  /// Note type editor: body of the dialog that confirms deleting a note type.
+  ///
+  /// In en, this message translates to:
+  /// **'Its fields and cards go with it.'**
+  String get noteTypeDeleteBody;
+
+  /// Note type editor: confirms deleting a note type.
+  ///
+  /// In en, this message translates to:
+  /// **'Delete'**
+  String get noteTypeDeleteConfirm;
+
+  /// Note type editor: shown when deleting a note type that notes use.
+  ///
+  /// In en, this message translates to:
+  /// **'Notes use this note type, so it cannot be deleted.'**
+  String get noteTypeInUse;
+
+  /// Note type editor: shown when saving removes a card template that cards were made from.
+  ///
+  /// In en, this message translates to:
+  /// **'A removed card has been studied, so it cannot be removed.'**
+  String get noteTypeCardStudied;
+
+  /// Note type editor: title of the dialog shown when leaving with unsaved changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard changes?'**
+  String get noteTypeDiscardTitle;
+
+  /// Note type editor: body of the dialog shown when leaving with unsaved changes.
+  ///
+  /// In en, this message translates to:
+  /// **'Your changes to this note type are not saved.'**
+  String get noteTypeDiscardBody;
+
+  /// Note type editor: leaves without saving.
+  ///
+  /// In en, this message translates to:
+  /// **'Discard'**
+  String get noteTypeDiscard;
+
+  /// Note type editor: a field or card name is empty.
+  ///
+  /// In en, this message translates to:
+  /// **'A name is needed.'**
+  String get noteTypeNameEmpty;
+
+  /// Note type editor: a field or card name is used twice.
+  ///
+  /// In en, this message translates to:
+  /// **'Another one has this name.'**
+  String get noteTypeNameTaken;
+
+  /// Note type editor: a card template places fields that do not exist.
+  ///
+  /// In en, this message translates to:
+  /// **'{card} shows fields this note type does not have: {fields}'**
+  String noteTypeMissingFields(String card, String fields);
+
+  /// Note type editor: a card template's source does not have the structure of a card.
+  ///
+  /// In en, this message translates to:
+  /// **'{card} needs a front and a back, with nothing outside them.'**
+  String noteTypeCardProblem(String card);
+
+  /// Heading over a card's preview, filled with sample values, in the note type editor.
+  ///
+  /// In en, this message translates to:
+  /// **'Preview'**
+  String get noteTypePreview;
+
+  /// Note type editor: edits a card template by arranging its fields.
+  ///
+  /// In en, this message translates to:
+  /// **'Visual'**
+  String get noteTypeVisual;
+
+  /// Note type editor: shown when a card's source cannot be arranged visually.
+  ///
+  /// In en, this message translates to:
+  /// **'This card can only be arranged visually once it has one front and one back, with nothing else outside them but requires and comments.'**
+  String get noteTypeNotArrangeable;
 }
 
 class _AppLocalizationsDelegate

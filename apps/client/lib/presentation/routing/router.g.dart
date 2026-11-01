@@ -41,6 +41,18 @@ RouteBase get $shellRouteData => StatefulShellRouteData.$route(
               hasOverriddenOnExit: false,
               factory: $AppearanceRoute._fromState,
             ),
+            GoRouteData.$route(
+              path: 'note-types',
+              hasOverriddenOnExit: false,
+              factory: $NoteTypesRoute._fromState,
+              routes: [
+                GoRouteData.$route(
+                  path: ':id',
+                  hasOverriddenOnExit: false,
+                  factory: $NoteTypeRoute._fromState,
+                ),
+              ],
+            ),
           ],
         ),
       ],
@@ -145,6 +157,52 @@ mixin $AppearanceRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/settings/appearance');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $NoteTypesRoute on GoRouteData {
+  static NoteTypesRoute _fromState(GoRouterState state) =>
+      const NoteTypesRoute();
+
+  @override
+  String get location => GoRouteData.$location('/settings/note-types');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $NoteTypeRoute on GoRouteData {
+  static NoteTypeRoute _fromState(GoRouterState state) =>
+      NoteTypeRoute(id: state.pathParameters['id']!);
+
+  NoteTypeRoute get _self => this as NoteTypeRoute;
+
+  @override
+  String get location => GoRouteData.$location(
+    '/settings/note-types/${Uri.encodeComponent(_self.id)}',
+  );
 
   @override
   void go(BuildContext context) => context.go(location);

@@ -439,5 +439,243 @@
   "editorAddTag": "Add tag",
   "@editorAddTag": {
     "description": "Field editor: adds a dictionary label, such as a part of speech, to a sense; shown in place of the tags while there are none."
+  },
+  "commonCancel": "Cancel",
+  "@commonCancel": {
+    "description": "A button that closes a dialog without doing anything."
+  },
+  "commonSave": "Save",
+  "@commonSave": {
+    "description": "A button that saves changes."
+  },
+  "collectionDefaultName": "My collection",
+  "@collectionDefaultName": {
+    "description": "Name of the collection made the first time one is needed."
+  },
+  "settingsNoteTypes": "Note types",
+  "@settingsNoteTypes": {
+    "description": "Settings: opens the note types, which define the fields of notes and the cards made from them."
+  },
+  "noteTypesEmpty": "No note types yet.",
+  "@noteTypesEmpty": {
+    "description": "Note types: shown when the collection has none."
+  },
+  "noteTypesAdd": "New note type",
+  "@noteTypesAdd": {
+    "description": "Note types: creates a note type."
+  },
+  "noteTypeDefaultName": "New note type",
+  "@noteTypeDefaultName": {
+    "description": "Name of a note type when it is created."
+  },
+  "noteTypeDefaultFront": "Front",
+  "@noteTypeDefaultFront": {
+    "description": "Name of the first field of a new note type."
+  },
+  "noteTypeDefaultBack": "Back",
+  "@noteTypeDefaultBack": {
+    "description": "Name of the second field of a new note type."
+  },
+  "noteTypeDefaultField": "Field {number}",
+  "@noteTypeDefaultField": {
+    "description": "Name of a field added to a note type.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "noteTypeDefaultCard": "Card {number}",
+  "@noteTypeDefaultCard": {
+    "description": "Name of a card added to a note type.",
+    "placeholders": {
+      "number": {
+        "type": "int"
+      }
+    }
+  },
+  "noteTypeSummary": "{fieldCount, plural, =1{1 field} other{{fieldCount} fields}} · {cardCount, plural, =1{1 card} other{{cardCount} cards}}",
+  "@noteTypeSummary": {
+    "description": "Note types: how many fields and cards a note type has.",
+    "placeholders": {
+      "fieldCount": {
+        "type": "int"
+      },
+      "cardCount": {
+        "type": "int"
+      }
+    }
+  },
+  "noteTypeName": "Name",
+  "@noteTypeName": {
+    "description": "Note type editor: label of the note type's name."
+  },
+  "noteTypeFields": "Fields",
+  "@noteTypeFields": {
+    "description": "Note type editor: heading of the fields."
+  },
+  "noteTypeCards": "Cards",
+  "@noteTypeCards": {
+    "description": "Note type editor: heading of the cards, one for each card template."
+  },
+  "noteTypeAddField": "Add field",
+  "@noteTypeAddField": {
+    "description": "Note type editor: adds a field."
+  },
+  "noteTypeAddCard": "Add card",
+  "@noteTypeAddCard": {
+    "description": "Note type editor: adds a card template."
+  },
+  "noteTypeFieldName": "Field name",
+  "@noteTypeFieldName": {
+    "description": "Note type editor: label of a field's name."
+  },
+  "noteTypeCardName": "Card name",
+  "@noteTypeCardName": {
+    "description": "Note type editor: label of a card's name."
+  },
+  "noteTypeFieldSettings": "Settings",
+  "@noteTypeFieldSettings": {
+    "description": "Note type editor: shows or hides a field's settings."
+  },
+  "noteTypeFieldLanguage": "Language",
+  "@noteTypeFieldLanguage": {
+    "description": "Note type editor: label of a field's language."
+  },
+  "noteTypeFieldLanguageHint": "A language tag, such as ja",
+  "@noteTypeFieldLanguageHint": {
+    "description": "Note type editor: placeholder of a field's language."
+  },
+  "noteTypeFieldRequired": "Required",
+  "@noteTypeFieldRequired": {
+    "description": "Note type editor: whether a note must fill the field."
+  },
+  "noteTypeFieldDuplicates": "Check for duplicates",
+  "@noteTypeFieldDuplicates": {
+    "description": "Note type editor: whether notes are compared by this field to warn of duplicates. Only one field can be."
+  },
+  "noteTypeFieldMarks": "Marks",
+  "@noteTypeFieldMarks": {
+    "description": "Note type editor: heading of the kinds of mark a field allows."
+  },
+  "noteTypeFieldAllMarks": "All",
+  "@noteTypeFieldAllMarks": {
+    "description": "Note type editor: allows every kind of mark in a field."
+  },
+  "noteTypeRemoveField": "Remove field",
+  "@noteTypeRemoveField": {
+    "description": "Note type editor: removes a field."
+  },
+  "noteTypeRemoveFieldTitle": "Remove {name}?",
+  "@noteTypeRemoveFieldTitle": {
+    "description": "Note type editor: title of the dialog that confirms removing a field.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noteTypeRemoveFieldUsed": "It is taken out of {cards}. Notes keep its values, hidden.",
+  "@noteTypeRemoveFieldUsed": {
+    "description": "Note type editor: a field being removed is placed on cards, listed by name.",
+    "placeholders": {
+      "cards": {
+        "type": "String"
+      }
+    }
+  },
+  "noteTypeRemoveFieldUnused": "Notes keep its values, hidden.",
+  "@noteTypeRemoveFieldUnused": {
+    "description": "Note type editor: a field being removed is on no card."
+  },
+  "noteTypeRemove": "Remove",
+  "@noteTypeRemove": {
+    "description": "Note type editor: confirms removing a field."
+  },
+  "noteTypeRemoveCard": "Remove card",
+  "@noteTypeRemoveCard": {
+    "description": "Note type editor: removes a card template."
+  },
+  "noteTypeDelete": "Delete note type",
+  "@noteTypeDelete": {
+    "description": "Note type editor: deletes the note type."
+  },
+  "noteTypeDeleteTitle": "Delete {name}?",
+  "@noteTypeDeleteTitle": {
+    "description": "Note type editor: title of the dialog that confirms deleting a note type.",
+    "placeholders": {
+      "name": {
+        "type": "String"
+      }
+    }
+  },
+  "noteTypeDeleteBody": "Its fields and cards go with it.",
+  "@noteTypeDeleteBody": {
+    "description": "Note type editor: body of the dialog that confirms deleting a note type."
+  },
+  "noteTypeDeleteConfirm": "Delete",
+  "@noteTypeDeleteConfirm": {
+    "description": "Note type editor: confirms deleting a note type."
+  },
+  "noteTypeInUse": "Notes use this note type, so it cannot be deleted.",
+  "@noteTypeInUse": {
+    "description": "Note type editor: shown when deleting a note type that notes use."
+  },
+  "noteTypeCardStudied": "A removed card has been studied, so it cannot be removed.",
+  "@noteTypeCardStudied": {
+    "description": "Note type editor: shown when saving removes a card template that cards were made from."
+  },
+  "noteTypeDiscardTitle": "Discard changes?",
+  "@noteTypeDiscardTitle": {
+    "description": "Note type editor: title of the dialog shown when leaving with unsaved changes."
+  },
+  "noteTypeDiscardBody": "Your changes to this note type are not saved.",
+  "@noteTypeDiscardBody": {
+    "description": "Note type editor: body of the dialog shown when leaving with unsaved changes."
+  },
+  "noteTypeDiscard": "Discard",
+  "@noteTypeDiscard": {
+    "description": "Note type editor: leaves without saving."
+  },
+  "noteTypeNameEmpty": "A name is needed.",
+  "@noteTypeNameEmpty": {
+    "description": "Note type editor: a field or card name is empty."
+  },
+  "noteTypeNameTaken": "Another one has this name.",
+  "@noteTypeNameTaken": {
+    "description": "Note type editor: a field or card name is used twice."
+  },
+  "noteTypeMissingFields": "{card} shows fields this note type does not have: {fields}",
+  "@noteTypeMissingFields": {
+    "description": "Note type editor: a card template places fields that do not exist.",
+    "placeholders": {
+      "card": {
+        "type": "String"
+      },
+      "fields": {
+        "type": "String"
+      }
+    }
+  },
+  "noteTypeCardProblem": "{card} needs a front and a back, with nothing outside them.",
+  "@noteTypeCardProblem": {
+    "description": "Note type editor: a card template's source does not have the structure of a card.",
+    "placeholders": {
+      "card": {
+        "type": "String"
+      }
+    }
+  },
+  "noteTypePreview": "Preview",
+  "@noteTypePreview": {
+    "description": "Heading over a card's preview, filled with sample values, in the note type editor."
+  },
+  "noteTypeVisual": "Visual",
+  "@noteTypeVisual": {
+    "description": "Note type editor: edits a card template by arranging its fields."
+  },
+  "noteTypeNotArrangeable": "This card can only be arranged visually once it has one front and one back, with nothing else outside them but requires and comments.",
+  "@noteTypeNotArrangeable": {
+    "description": "Note type editor: shown when a card's source cannot be arranged visually."
   }
 }
