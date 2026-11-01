@@ -1,6 +1,7 @@
 import 'package:meta/meta.dart';
 
 import 'content_node.dart';
+import 'mark_kinds.dart';
 
 /// A card's two sides as content, ready to be shown.
 ///
@@ -9,6 +10,9 @@ import 'content_node.dart';
 /// comments are dropped, and a `field` keeps its name and role and takes the
 /// field's value as its content. A field whose value is empty is dropped.
 /// Other marks stay, with their content resolved the same way.
+///
+/// Marks of kinds shown only on request, such as `source`, are left out of a
+/// field's value unless the field is placed with `show` naming their kind.
 ///
 /// Whitespace in the template lays out the source: a run of it that holds a
 /// line break becomes one line break, and each side is trimmed. Field values
@@ -40,12 +44,14 @@ class RenderedCard {
 /// template with issues renders as far as it can.
 RenderedCard renderCard(
   List<ContentNode> template,
-  Map<String, List<ContentNode>> fields,
-) {
+  Map<String, List<ContentNode>> fields, {
+  MarkKinds? kinds,
+}) {
+  final known = kinds ?? MarkKinds.builtIn;
   List<ContentNode> side(String key) {
     for (final node in template) {
       if (node case MarkNode(key: final k, :final content) when k == key) {
-        return _layout(_resolve(content ?? const [], fields));
+        return _layout(_resolve(content ?? const [], fields, known));
       }
     }
     return const [];
@@ -66,6 +72,7 @@ bool isEmptyContent(List<ContentNode> nodes) => nodes.every(
 List<ContentNode> _resolve(
   List<ContentNode> nodes,
   Map<String, List<ContentNode>> fields,
+  MarkKinds kinds,
 ) {
   List<ContentNode> value(String? name) => fields[name] ?? const [];
   return [
@@ -77,18 +84,43 @@ List<ContentNode> _resolve(
         MarkNode(key: 'if', :final args, :final content) =>
           isEmptyContent(value(args.firstOrNull))
               ? const <ContentNode>[]
-              : _resolve(content ?? const [], fields),
-        MarkNode(key: 'field', :final args) =>
+              : _resolve(content ?? const [], fields, kinds),
+        MarkNode(key: 'field', :final args, :final named) =>
           isEmptyContent(value(args.firstOrNull))
               ? const <ContentNode>[]
-              : [node.copyWith(content: value(args.firstOrNull))],
+              : [
+                  node.copyWith(
+                    content: _withoutHidden(value(args.firstOrNull), {
+                      ...?named['show']?.split(RegExp(r'\s+')),
+                    }, kinds),
+                  ),
+                ],
         MarkNode(:final content?) => [
-          node.copyWith(content: _resolve(content, fields)),
+          node.copyWith(content: _resolve(content, fields, kinds)),
         ],
         MarkNode() => [node],
       },
   ];
 }
+
+/// [nodes] without marks of kinds shown only on request, at any depth,
+/// except those whose key is in [shown].
+List<ContentNode> _withoutHidden(
+  List<ContentNode> nodes,
+  Set<String> shown,
+  MarkKinds kinds,
+) => [
+  for (final node in nodes)
+    if (node is! MarkNode)
+      node
+    else if (!(kinds[node.key]?.onRequest ?? false) || shown.contains(node.key))
+      switch (node.content) {
+        null => node,
+        final content => node.copyWith(
+          content: _withoutHidden(content, shown, kinds),
+        ),
+      },
+];
 
 final _layoutBreak = RegExp(r'[ \t]*\n\s*');
 

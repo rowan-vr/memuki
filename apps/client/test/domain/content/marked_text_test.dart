@@ -209,4 +209,16 @@ void main() {
     expect(a.withNode(const ContentNode.comment('y')).node, isA<CommentNode>());
     expect(a.contains(0, 1), isTrue);
   });
+
+  test('marks kept whole are atoms with their content', () {
+    final nodes = parseContent('a{sense | {em | b}}c{em | d}').nodes;
+    final text = MarkedText.fromNodes(
+      nodes,
+      whole: (mark) => mark.key == 'sense',
+    );
+    expect(text.text, 'a${atomChar}cd');
+    expect(text.ranges.first.atom, isTrue);
+    expect(text.ranges.first.node, nodes[1]);
+    expect(text.toNodes(), nodes);
+  });
 }

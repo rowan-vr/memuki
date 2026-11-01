@@ -67,7 +67,7 @@ void main() {
     );
     expect(
       _warnings('{front | {field A x=1}}{back |}', scope: scope).single.detail,
-      '"field" accepts role= only.',
+      '"field" accepts role=, display= or show= only.',
     );
     expect(_titles('{front | {field A | x}}{back |}', scope: scope), [
       'Unexpected content',

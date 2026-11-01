@@ -298,6 +298,8 @@ Initial templates:
 | Field editing | Direct editing on the rendered field: select text, then add a mark. A toggle shows the source | Decided |
 | Field language | Each field definition has a language; a `lang` mark overrides it for a span. Text direction and font fallback follow from the language | Decided |
 | Templates | A template is content in the same format whose marks place fields by role (`{front \| …}`, `{back \| …}`, `{field Word role=prompt}`, `{if Example \| …}`, `{requires Word}`); cloze and typed answer are template kinds. Edited visually by arranging fields, with the same source toggle. Templates carry no styling | Decided |
+| Field displays | A field placement can show its value in a built-in way instead of as text, such as `display=badges` for `label: value` lines; templates have no scripts | Decided |
+| Dictionary content | Dictionary entries are kept as marks (`sense`, `tag`, `list`, `example`, `forms`, `source`, `audio`). Reference details (`forms`, `source`) are kept but shown only when a template asks for them with `show` | Decided |
 
 ### Acceptance Criteria
 

@@ -219,6 +219,8 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(TemplateEditor), findsOneWidget);
 
+    await tester.ensureVisible(_row('field'));
+    await tester.pumpAndSettle();
     await tester.tap(_row('field'));
     await tester.pumpAndSettle();
     await tester.ensureVisible(find.text('Try'));

@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/content/card_renderer.dart';
 import 'package:memuki/domain/content/content_parser.dart';
+import 'package:memuki/l10n/generated/app_localizations.dart';
 import 'package:memuki/presentation/content/card_view.dart';
 import 'package:memuki/presentation/content/content_view.dart';
 import 'package:memuki/presentation/theme/app_theme.dart';
@@ -17,6 +18,8 @@ Future<void> _pump(
   await tester.pumpWidget(
     MaterialApp(
       theme: AppTheme.build(appearance),
+      localizationsDelegates: AppLocalizations.localizationsDelegates,
+      supportedLocales: AppLocalizations.supportedLocales,
       home: MediaQuery(
         data: MediaQueryData(textScaler: TextScaler.linear(scale)),
         child: Scaffold(body: Center(child: child)),
@@ -86,6 +89,14 @@ void main() {
       expect(style.fontSize, context(tester).type.body.fontSize! * 0.5);
     });
 
+    testWidgets('marks inside a reading group are styled too', (tester) async {
+      await _pump(
+        tester,
+        ContentView(parseContent('{ruby き | {em | 気}{# note}}').nodes),
+      );
+      expect(_span(tester, '気').style!.fontWeight, FontWeight.w700);
+    });
+
     testWidgets('a reading wider than its base text widens the group', (
       tester,
     ) async {
@@ -131,6 +142,145 @@ void main() {
       final one = await readingHeight(1);
       final two = await readingHeight(2);
       expect(two / one, closeTo(2, 0.05));
+    });
+  });
+
+  group('dictionary kinds', () {
+    const entry = '''
+{sense |
+  {tag pos adv | adverb}{tag misc on-mim | mimetic}
+  {list | {item | clearly}{item | plainly}}
+  {example | {em | はっきりと}。{translation | Completely clear.}}
+}
+{sense | {tag pos vs | suru} {list | {item | to be clear}}}''';
+
+    testWidgets('number senses when there are several', (tester) async {
+      await _pump(tester, ContentView(parseContent(entry).nodes));
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+      // Level with the tags on the first line, and as tall.
+      expect(
+        tester.getCenter(find.text('1')).dy,
+        closeTo(tester.getCenter(find.text('adverb')).dy, 2),
+      );
+      Size box(String text) => tester.getSize(
+        find
+            .ancestor(of: find.text(text), matching: find.byType(Container))
+            .first,
+      );
+      expect(box('1').height, closeTo(box('adverb').height, 1));
+      await _pump(
+        tester,
+        ContentView(parseContent('{sense | {list | {item | a}}}').nodes),
+      );
+      expect(find.text('1'), findsNothing);
+      await _pump(
+        tester,
+        SingleChildScrollView(
+          child: ContentView(
+            parseContent([for (var i = 0; i < 21; i++) '{sense | s$i}'].join())
+                .nodes,
+          ),
+        ),
+      );
+      expect(find.text('21'), findsOneWidget);
+    });
+
+    testWidgets('lay out lists as bulleted lines, in order', (tester) async {
+      await _pump(tester, ContentView(parseContent(entry).nodes));
+      expect(find.text('•'), findsNWidgets(3));
+      final clearly = tester.getRect(find.text('clearly'));
+      final plainly = tester.getRect(find.text('plainly'));
+      expect(plainly.top, greaterThanOrEqualTo(clearly.bottom));
+      expect(plainly.left, clearly.left);
+    });
+
+    testWidgets('tint tags by what they label', (tester) async {
+      await _pump(tester, ContentView(parseContent(entry).nodes));
+      final c = context(tester);
+      Color? background(String label) => tester
+          .widget<Container>(
+            find
+                .ancestor(
+                  of: find.text(label),
+                  matching: find.byType(Container),
+                )
+                .first,
+          )
+          .decoration
+          .let((d) => (d as BoxDecoration?)?.color);
+      expect(background('adverb'), c.colors.surfaceSunken);
+      expect(
+        _span(tester, 'adverb').style!.fontSize,
+        c.type.body.fontSize! * 0.75,
+      );
+      expect(
+        background('mimetic'),
+        c.colors.swatches[MemukiAccent.coral]!.soft,
+      );
+      await _pump(
+        tester,
+        ContentView(
+          parseContent('{tag field comp | computing}{tag dialect ksb | Kansai}')
+              .nodes,
+        ),
+      );
+      expect(
+        background('computing'),
+        context(tester).colors.swatches[MemukiAccent.purple]!.soft,
+      );
+      expect(
+        background('Kansai'),
+        context(tester).colors.swatches[MemukiAccent.green]!.soft,
+      );
+    });
+
+    testWidgets('box examples, with the translation smaller under them', (
+      tester,
+    ) async {
+      await _pump(tester, ContentView(parseContent(entry).nodes));
+      final sentence = tester.getRect(
+        find.textContaining('はっきりと', findRichText: true).last,
+      );
+      final translation = tester.getRect(find.text('Completely clear.'));
+      expect(translation.top, greaterThanOrEqualTo(sentence.bottom));
+      final body = context(tester).type.body.fontSize!;
+      expect(_span(tester, 'Completely clear.').style!.fontSize, body * 0.8);
+    });
+
+    testWidgets('show forms, sources, and audio', (tester) async {
+      await _pump(
+        tester,
+        ContentView(
+          parseContent(
+            '{forms | {form 景色 reading=けしき status=priority}'
+            '{form 景色 reading=けいしょく status=valid}{form 気色 status=rare}'
+            '{form 景色}}'
+            '{source JMdict date=2026}{audio a.mp3}',
+          ).nodes,
+        ),
+      );
+      final c = context(tester);
+      expect(find.text('Forms'), findsOneWidget);
+      expect(_span(tester, '景色【けしき】').style!.color, c.colors.accent.onSoft);
+      expect(_span(tester, '気色').style!.color, c.colors.textFaint);
+      expect(
+        find.textContaining('JMdict · 2026', findRichText: true),
+        findsOneWidget,
+      );
+      expect(find.bySemanticsLabel('Audio'), findsOneWidget);
+    });
+
+    testWidgets('text around a block goes on lines of its own', (tester) async {
+      await _pump(
+        tester,
+        ContentView(parseContent('before\n{list | {item | x}}\nafter').nodes),
+      );
+      final before = tester.getRect(find.text('before'));
+      final x = tester.getRect(find.text('x'));
+      final after = tester.getRect(find.text('after'));
+      expect(x.top, greaterThanOrEqualTo(before.bottom));
+      expect(after.top, greaterThanOrEqualTo(x.bottom));
     });
   });
 
@@ -192,7 +342,26 @@ void main() {
         }
       }
     });
+
+    testWidgets('shows a field as badges when its placement asks', (
+      tester,
+    ) async {
+      final card = renderCard(
+        parseContent('{front | {field F display=badges}}{back | }').nodes,
+        {'F': parseContent('BCCWJ: 3387, 4440\nJLPT：N4\nloose').nodes},
+      );
+      await _pump(tester, CardView(card: card));
+      expect(find.text('BCCWJ'), findsOneWidget);
+      expect(find.text('3387, 4440'), findsOneWidget);
+      expect(find.text('JLPT'), findsOneWidget);
+      expect(find.text('N4'), findsOneWidget);
+      expect(find.text('loose'), findsOneWidget);
+    });
   });
+}
+
+extension<T> on T {
+  R let<R>(R Function(T) f) => f(this);
 }
 
 BuildContext context(WidgetTester tester) =>

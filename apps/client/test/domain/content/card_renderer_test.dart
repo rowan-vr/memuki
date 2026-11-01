@@ -114,4 +114,25 @@ void main() {
     expect(isEmptyContent(parseContent('{em |}').nodes), isFalse);
     expect(isEmptyContent(parseContent('x').nodes), isFalse);
   });
+
+  test('kinds shown on request stay off cards unless the field shows them', () {
+    const value =
+        '{source Jitendex date=2026-10-03}{sense | {list | {item | scenery}}}'
+        '{forms | {form 景色 reading=けしき status=priority}}';
+    expect(
+      _render('{front | {field M}}{back | }', {'M': value}).$1,
+      '{field M | {sense | {list | {item | scenery}}}}',
+    );
+    expect(
+      _render('{front | {field M show=forms}}{back | }', {'M': value}).$1,
+      '{field M show=forms | {sense | {list | {item | scenery}}}'
+      '{forms | {form 景色 reading=けしき status=priority}}}',
+    );
+    expect(
+      _render('{front | {field M show="source forms"}}{back | }', {
+        'M': value,
+      }).$1,
+      contains('{source Jitendex date=2026-10-03}'),
+    );
+  });
 }

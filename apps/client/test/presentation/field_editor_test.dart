@@ -9,6 +9,7 @@ import 'package:memuki/domain/content/content_writer.dart';
 import 'package:memuki/domain/content/mark_kinds.dart';
 import 'package:memuki/domain/content/marked_text.dart';
 import 'package:memuki/l10n/generated/app_localizations.dart';
+import 'package:memuki/presentation/content/content_view.dart';
 import 'package:memuki/presentation/content/field_editor.dart';
 import 'package:memuki/presentation/content/mark_editing.dart';
 import 'package:memuki/presentation/content/marked_text_controller.dart';
@@ -501,6 +502,88 @@ void main() {
       c.selection = const TextSelection.collapsed(offset: -1);
       c.insert(const ContentNode.mark('x'));
       expect(writeContent(c.nodes), '{em | abc}');
+    });
+  });
+
+  testWidgets('shows dictionary kinds but does not offer them', (tester) async {
+    await _pump(
+      tester,
+      '{sense | {tag pos n | noun} {list | {item | a}}'
+      '{example | b{translation | c}}}{forms | {form d}}',
+    );
+    for (final key in ['sense', 'tag', 'list', 'item', 'example', 'forms']) {
+      expect(find.text(key), findsNothing, reason: key);
+    }
+    expect(find.bySemanticsLabel('Emphasis'), findsWidgets);
+  });
+
+  group('blocks', () {
+    const entry =
+        'note\n{sense | {tag pos n | noun} {list | {item | scenery}}}\nend';
+
+    testWidgets('show as they render, one piece each', (tester) async {
+      await _pump(tester, entry);
+      expect(_c.text, 'note\n$atomChar\nend');
+      final block = find.descendant(
+        of: find.byType(FieldEditor),
+        matching: find.byType(ContentView),
+      );
+      expect(block, findsOneWidget);
+      expect(
+        find.descendant(of: block, matching: find.text('scenery')),
+        findsOneWidget,
+      );
+      expect(_source, entry);
+    });
+
+    testWidgets('take the height they need, without overlapping', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        '{sense | {list | {item | a}{item | b}{item | c}{item | d}}}\n'
+        '{sense | {list | {item | e}}}',
+      );
+      final blocks = find
+          .descendant(
+            of: find.byType(FieldEditor),
+            matching: find.byType(ContentView),
+          )
+          .evaluate()
+          .map(
+            (e) => (e.renderObject! as RenderBox).paintBounds.shift(
+              (e.renderObject! as RenderBox).localToGlobal(Offset.zero),
+            ),
+          )
+          .toList();
+      expect(blocks, hasLength(2));
+      expect(blocks[1].top, greaterThanOrEqualTo(blocks[0].bottom));
+    });
+
+    testWidgets('are edited as source beside the cursor, and removed', (
+      tester,
+    ) async {
+      await _pump(tester, entry);
+      await _select(tester, 5, 5);
+      expect(find.text('Source'), findsOneWidget);
+
+      await tester.enterText(
+        find.byType(TextField).last,
+        '{sense | {list | {item | view}}}',
+      );
+      await tester.pump();
+      expect(_source, 'note\n{sense | {list | {item | view}}}\nend');
+
+      // Source that is not one mark waits.
+      await tester.enterText(find.byType(TextField).last, '{sense | x');
+      await tester.pump();
+      await tester.enterText(find.byType(TextField).last, 'a b');
+      await tester.pump();
+      expect(_source, 'note\n{sense | {list | {item | view}}}\nend');
+
+      await tester.tap(find.text('Remove'));
+      await tester.pumpAndSettle();
+      expect(_source, 'note\n\nend');
     });
   });
 }

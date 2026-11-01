@@ -279,4 +279,13 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get templateLineMenu => 'Line options';
+
+  @override
+  String get contentForms => 'Forms';
+
+  @override
+  String get contentAudio => 'Audio';
+
+  @override
+  String get editorSource => 'Source';
 }

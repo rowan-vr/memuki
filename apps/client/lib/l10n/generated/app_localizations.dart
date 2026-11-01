@@ -579,6 +579,24 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Line options'**
   String get templateLineMenu;
+
+  /// Card: label before a word's spellings and readings, from a dictionary.
+  ///
+  /// In en, this message translates to:
+  /// **'Forms'**
+  String get contentForms;
+
+  /// Card: names the button of a sound file, for screen readers.
+  ///
+  /// In en, this message translates to:
+  /// **'Audio'**
+  String get contentAudio;
+
+  /// Field editor: label of the field that edits a block, such as a dictionary sense, as source.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get editorSource;
 }
 
 class _AppLocalizationsDelegate
