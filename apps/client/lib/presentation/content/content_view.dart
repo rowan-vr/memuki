@@ -85,6 +85,9 @@ class MarkRendering {
   /// goes on lines before and after it.
   final MarkBlockBuilder? block;
 
+  /// The size of tags, and of sense numbers, against the text around them.
+  static const _tagScale = 0.75;
+
   /// The entries for the built-in kinds that belong in fields.
   static final Map<String, MarkRendering> builtIn = {
     'ruby': const MarkRendering(span: _ruby),
@@ -132,7 +135,8 @@ class MarkRendering {
     final colors = context.colors;
     final size = block.style.fontSize ?? context.type.body.fontSize!;
     final line = size * (block.style.height ?? 1.5);
-    final disc = size * 1.25;
+    // As tall as the tags beside it.
+    final disc = size * _tagScale * (block.style.height ?? 1.5);
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
@@ -152,7 +156,7 @@ class MarkRendering {
                 '${block.index + 1}',
                 textScaler: TextScaler.noScaling,
                 style: block.style.copyWith(
-                  fontSize: size * 0.75,
+                  fontSize: size * _tagScale,
                   height: 1,
                   fontWeight: FontWeight.w700,
                   fontVariations: const [FontVariation.weight(700)],
@@ -168,7 +172,7 @@ class MarkRendering {
     );
   }
 
-  /// A label, tinted by what it labels, at the size of the text around it,
+  /// A label, smaller than the text around it and tinted by what it labels,
   /// with a little room after it.
   static InlineSpan _tag(
     BuildContext context,
@@ -177,6 +181,7 @@ class MarkRendering {
     TextSpan content,
   ) {
     final colors = context.colors;
+    final size = (style.fontSize ?? context.type.body.fontSize!) * _tagScale;
     final tone = switch (mark.args.firstOrNull) {
       'misc' => colors.swatches[MemukiAccent.coral],
       'field' => colors.swatches[MemukiAccent.purple],
@@ -196,10 +201,8 @@ class MarkRendering {
           child: _inline(
             _restyled(
               content,
-              // As large as the text around it, a little tighter so the
-              // tag sits inside the line.
               (s) => s.copyWith(
-                height: 1.3,
+                fontSize: size,
                 fontWeight: FontWeight.w700,
                 fontVariations: const [FontVariation.weight(700)],
                 color: tone?.onSoft ?? colors.text,

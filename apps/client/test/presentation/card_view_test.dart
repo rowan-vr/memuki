@@ -158,11 +158,17 @@ void main() {
       await _pump(tester, ContentView(parseContent(entry).nodes));
       expect(find.text('1'), findsOneWidget);
       expect(find.text('2'), findsOneWidget);
-      // Level with the tags on the first line.
+      // Level with the tags on the first line, and as tall.
       expect(
         tester.getCenter(find.text('1')).dy,
         closeTo(tester.getCenter(find.text('adverb')).dy, 2),
       );
+      Size box(String text) => tester.getSize(
+        find
+            .ancestor(of: find.text(text), matching: find.byType(Container))
+            .first,
+      );
+      expect(box('1').height, closeTo(box('adverb').height, 1));
       await _pump(
         tester,
         ContentView(parseContent('{sense | {list | {item | a}}}').nodes),
@@ -204,7 +210,10 @@ void main() {
           .decoration
           .let((d) => (d as BoxDecoration?)?.color);
       expect(background('adverb'), c.colors.surfaceSunken);
-      expect(_span(tester, 'adverb').style!.fontSize, c.type.body.fontSize);
+      expect(
+        _span(tester, 'adverb').style!.fontSize,
+        c.type.body.fontSize! * 0.75,
+      );
       expect(
         background('mimetic'),
         c.colors.swatches[MemukiAccent.coral]!.soft,
