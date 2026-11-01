@@ -247,4 +247,36 @@ class AppLocalizationsEn extends AppLocalizations {
   String templateMissingField(String name) {
     return '$name (not in this note type)';
   }
+
+  @override
+  String templateFieldAs(String field, String role) {
+    return '$field as $role';
+  }
+
+  @override
+  String templateIfFilled(String field) {
+    return 'If $field is filled';
+  }
+
+  @override
+  String get templateAddLine => 'Add line';
+
+  @override
+  String get templateAddInCondition => 'Add';
+
+  @override
+  String get templateAddFieldHint => 'Shows a field, styled by its role.';
+
+  @override
+  String get templateAddTextHint => 'The same text on every card.';
+
+  @override
+  String get templateAddConditionHint =>
+      'Lines shown only when a field is filled.';
+
+  @override
+  String get templateDrag => 'Drag to reorder';
+
+  @override
+  String get templateLineMenu => 'Line options';
 }

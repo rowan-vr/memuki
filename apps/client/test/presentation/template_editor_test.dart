@@ -1,9 +1,11 @@
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:memuki/domain/content/content_parser.dart';
 import 'package:memuki/domain/content/template_layout.dart';
 import 'package:memuki/l10n/generated/app_localizations.dart';
-import 'package:memuki/presentation/components/menu_chip.dart';
+import 'package:memuki/presentation/components/icons.dart';
+import 'package:memuki/presentation/components/menu.dart';
 import 'package:memuki/presentation/content/field_editor.dart';
 import 'package:memuki/presentation/content/template_editor.dart';
 import 'package:memuki/presentation/theme/app_theme.dart';
@@ -70,6 +72,20 @@ Future<void> _pick(WidgetTester tester, Finder picker, String choice) async {
   await tester.pumpAndSettle();
 }
 
+/// Adds a line of [kind] from the add menu, [index] in order.
+Future<void> _add(WidgetTester tester, String kind, [int index = 0]) async {
+  await _pick(
+    tester,
+    find.bySemanticsLabel(RegExp(r'^Add( line)?$')).at(index),
+    kind,
+  );
+}
+
+/// Opens the menu of the line [index] in order and picks [action].
+Future<void> _act(WidgetTester tester, int index, String action) async {
+  await _pick(tester, find.byIcon(MemukiIcons.more).at(index), action);
+}
+
 void main() {
   testWidgets('shows each line as what it is', (tester) async {
     await _pump(tester, _vocabulary);
@@ -79,7 +95,9 @@ void main() {
     expect(find.text('Word'), findsWidgets);
     expect(find.text('Prompt'), findsOneWidget);
     expect(find.text('Answer'), findsOneWidget);
-    expect(find.text('Only when filled'), findsOneWidget);
+    expect(find.text('as'), findsNWidgets(4));
+    expect(find.text('If'), findsOneWidget);
+    expect(find.text('is filled'), findsOneWidget);
     expect(_reported, isNull);
   });
 
@@ -116,39 +134,88 @@ void main() {
   testWidgets('adds, moves, and removes lines', (tester) async {
     await _pump(tester, '{front | }{back | }');
     expect(find.text('Nothing here yet.'), findsNWidgets(2));
-    await tester.tap(find.text('Field').first);
-    await tester.pumpAndSettle();
+    await _add(tester, 'Field');
     expect(_reported, startsWith('{front |\n  {field Word}\n}'));
 
-    await tester.tap(find.text('Condition').first);
-    await tester.pumpAndSettle();
+    await _add(tester, 'Condition');
     expect(_reported, contains('  {if Word |\n  }\n'));
-    // A condition offers fields and text, but no further conditions.
-    expect(find.text('Condition'), findsNWidgets(2));
 
-    await tester.tap(find.bySemanticsLabel('Move up').at(1));
-    await tester.pumpAndSettle();
+    await _act(tester, 1, 'Move up');
     expect(
       _reported,
       startsWith('{front |\n  {if Word |\n  }\n  {field Word}'),
     );
 
-    await tester.tap(find.bySemanticsLabel('Move down').first);
-    await tester.pumpAndSettle();
+    await _act(tester, 0, 'Move down');
     expect(_reported, startsWith('{front |\n  {field Word}\n  {if Word'));
 
-    await tester.tap(find.bySemanticsLabel('Remove').first);
-    await tester.pumpAndSettle();
+    await _act(tester, 0, 'Remove');
     expect(_reported, startsWith('{front |\n  {if Word |\n  }\n}'));
+  });
+
+  testWidgets('the line menu cannot move a line past the ends', (tester) async {
+    await _pump(tester, _vocabulary);
+    await tester.tap(find.byIcon(MemukiIcons.more).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Move up'));
+    await tester.tap(find.text('Move down'));
+    await tester.pumpAndSettle();
+    expect(_reported, isNull);
+  });
+
+  testWidgets('menus stay on screen at the right edge', (tester) async {
+    await _pump(tester, _vocabulary);
+    await tester.tap(find.byIcon(MemukiIcons.more).first);
+    await tester.pumpAndSettle();
+    final menu = tester.getRect(find.text('Move down'));
+    expect(menu.right, lessThanOrEqualTo(900));
+  });
+
+  testWidgets('the add menu says what each kind of line is', (tester) async {
+    await _pump(tester, _vocabulary);
+    await tester.tap(find.bySemanticsLabel('Add line').first);
+    await tester.pumpAndSettle();
+    expect(find.text('Shows a field, styled by its role.'), findsOneWidget);
+    expect(find.text('The same text on every card.'), findsOneWidget);
+    expect(
+      find.text('Lines shown only when a field is filled.'),
+      findsOneWidget,
+    );
+  });
+
+  testWidgets('a condition offers no further conditions', (tester) async {
+    await _pump(tester, _vocabulary);
+    await tester.tap(find.bySemanticsLabel('Add'));
+    await tester.pumpAndSettle();
+    expect(find.text('Text'), findsOneWidget);
+    expect(find.text('Condition'), findsNothing);
+  });
+
+  testWidgets('lines are reordered by dragging', (tester) async {
+    await _pump(tester, _vocabulary);
+    final handle = find.byIcon(MemukiIcons.drag);
+    // The reading, dragged below the meaning.
+    final gesture = await tester.startGesture(tester.getCenter(handle.at(1)));
+    await tester.pump(kLongPressTimeout);
+    for (var i = 0; i < 10; i++) {
+      await gesture.moveBy(const Offset(0, 8));
+      await tester.pump();
+    }
+    await gesture.up();
+    await tester.pumpAndSettle();
+    expect(
+      _reported,
+      contains(
+        '  {field Meaning role=answer}\n  {field Reading role=reading}\n',
+      ),
+    );
   });
 
   testWidgets('a condition holds lines and picks its field', (tester) async {
     await _pump(tester, _vocabulary);
     await _pick(tester, _picker('Only when filled'), 'Meaning');
     expect(_reported, contains('{if Meaning | {field Example role=example}}'));
-    // Its own add buttons come after the line it holds.
-    await tester.tap(find.text('Text').at(1));
-    await tester.pumpAndSettle();
+    await _add(tester, 'Text', 1);
     expect(find.byType(FieldEditor), findsOneWidget);
     await tester.enterText(find.byType(TextField), 'note');
     await tester.pumpAndSettle();
@@ -220,10 +287,15 @@ void main() {
 
   testWidgets('without fields, only text can be added', (tester) async {
     await _pump(tester, '{front | }{back | }', fields: const []);
-    await tester.tap(find.text('Field').first);
-    await tester.tap(find.text('Condition').first);
+    await tester.tap(find.bySemanticsLabel('Add line').first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Field'));
+    await tester.tap(find.text('Condition'));
     await tester.pumpAndSettle();
     expect(_reported, isNull);
+    await tester.tap(find.text('Text'));
+    await tester.pumpAndSettle();
+    expect(_reported, startsWith('{front |\n  \n}'));
   });
 
   testWidgets('starts over from a layout it did not report', (tester) async {

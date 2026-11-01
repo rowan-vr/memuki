@@ -6,12 +6,13 @@ import '../../domain/content/template_layout.dart';
 import '../../l10n/generated/app_localizations.dart';
 import '../components/buttons.dart';
 import '../components/icons.dart';
-import '../components/menu_chip.dart';
+import '../components/menu.dart';
 import '../components/panel.dart';
 import '../components/pressable.dart';
 import '../components/screen.dart';
 import '../components/segmented_choice.dart';
 import '../theme/app_theme.dart';
+import '../theme/memuki_colors.dart';
 import '../theme/memuki_type.dart';
 import '../theme/motion.dart';
 import '../theme/radii.dart';
@@ -178,6 +179,13 @@ class _Lines {
   /// Reports a change made to one of the lines.
   void changed() => onChanged();
 
+  /// Moves the line at [from] to [to], as a [ReorderableList] reports a
+  /// drag.
+  void reorder(int from, int to) {
+    items.insert(to, items.removeAt(from));
+    onChanged();
+  }
+
   void move(_Line line, int by) {
     final from = items.indexOf(line);
     final to = from + by;
@@ -255,7 +263,7 @@ class _SourceLine extends _Line {
   void dispose() => controller.dispose();
 }
 
-/// A side of the card: its lines, and buttons to add more.
+/// A side of the card: its lines, and a button to add more.
 class _Side extends StatelessWidget {
   const _Side({required this.title, required this.lines, required this.fields});
 
@@ -279,8 +287,9 @@ class _Side extends StatelessWidget {
   }
 }
 
-/// [lines], one under another, then buttons to add a line. Conditions are
-/// offered only when [conditions] is set, so they do not nest.
+/// [lines], one under another and reordered by dragging, then a button to
+/// add a line. Conditions are offered only when [conditions] is set, so they
+/// do not nest.
 class _LineList extends StatelessWidget {
   const _LineList({
     required this.lines,
@@ -308,64 +317,89 @@ class _LineList extends StatelessWidget {
               style: context.type.body.copyWith(color: colors.textFaint),
             ),
           ),
-        for (final (i, line) in lines.items.indexed)
-          Padding(
-            key: line.key,
-            padding: const EdgeInsets.only(bottom: Spacing.sm),
-            child: _LineRow(
-              line: line,
-              lines: lines,
-              fields: fields,
-              first: i == 0,
-              last: i == lines.items.length - 1,
+        ReorderableList(
+          shrinkWrap: true,
+          physics: const NeverScrollableScrollPhysics(),
+          itemCount: lines.items.length,
+          onReorderItem: lines.reorder,
+          proxyDecorator: (child, _, _) => DecoratedBox(
+            decoration: BoxDecoration(
+              color: colors.surfaceRaised,
+              borderRadius: BorderRadius.circular(Radii.sm),
+              boxShadow: paperShadow(colors),
             ),
+            child: child,
           ),
-        Wrap(
-          spacing: Spacing.xs,
-          runSpacing: Spacing.xs,
-          children: [
-            QuietButton(
-              icon: MemukiIcons.field,
-              label: l10n.templateAddField,
-              onPressed: first == null
-                  ? null
-                  : () => lines.add(FieldBlock(first)),
-            ),
-            QuietButton(
-              icon: MemukiIcons.text,
-              label: l10n.templateAddText,
-              onPressed: () => lines.add(const TextBlock([])),
-            ),
-            if (conditions)
-              QuietButton(
-                icon: MemukiIcons.condition,
-                label: l10n.templateAddCondition,
+          itemBuilder: (context, i) {
+            final line = lines.items[i];
+            return Padding(
+              key: line.key,
+              padding: const EdgeInsets.only(bottom: Spacing.sm),
+              child: _LineRow(
+                index: i,
+                line: line,
+                lines: lines,
+                fields: fields,
+              ),
+            );
+          },
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerStart,
+          child: Menu(
+            items: [
+              MenuItem(
+                icon: MemukiIcons.field,
+                label: l10n.templateAddField,
+                description: l10n.templateAddFieldHint,
                 onPressed: first == null
                     ? null
-                    : () => lines.add(IfBlock(first, const [])),
+                    : () => lines.add(FieldBlock(first)),
               ),
-          ],
+              MenuItem(
+                icon: MemukiIcons.text,
+                label: l10n.templateAddText,
+                description: l10n.templateAddTextHint,
+                onPressed: () => lines.add(const TextBlock([])),
+              ),
+              if (conditions)
+                MenuItem(
+                  icon: MemukiIcons.condition,
+                  label: l10n.templateAddCondition,
+                  description: l10n.templateAddConditionHint,
+                  onPressed: first == null
+                      ? null
+                      : () => lines.add(IfBlock(first, const [])),
+                ),
+            ],
+            builder: (context, toggle) => QuietButton(
+              icon: MemukiIcons.add,
+              label: conditions
+                  ? l10n.templateAddLine
+                  : l10n.templateAddInCondition,
+              onPressed: toggle,
+            ),
+          ),
         ),
       ],
     );
   }
 }
 
-/// One line: what it edits, then buttons to move and remove it.
+/// One line: a handle to drag it, what it edits, and a menu to move or
+/// remove it.
 class _LineRow extends StatelessWidget {
   const _LineRow({
+    required this.index,
     required this.line,
     required this.lines,
     required this.fields,
-    required this.first,
-    required this.last,
   });
 
+  final int index;
   final _Line line;
   final _Lines lines;
   final List<String> fields;
-  final bool first;
-  final bool last;
 
   @override
   Widget build(BuildContext context) {
@@ -374,12 +408,10 @@ class _LineRow extends StatelessWidget {
     final type = context.type;
     final line = this.line;
     final Widget body = switch (line) {
-      _FieldLine(:final field) => Wrap(
-        spacing: Spacing.sm,
-        runSpacing: Spacing.xs,
-        crossAxisAlignment: WrapCrossAlignment.center,
-        children: [
-          _FieldPicker(
+      _FieldLine(:final field) => _Sentence(
+        l10n.templateFieldAs('{field}', '{role}'),
+        {
+          'field': _FieldPicker(
             label: l10n.templateField,
             fields: fields,
             selected: field.name,
@@ -388,8 +420,9 @@ class _LineRow extends StatelessWidget {
               lines.changed();
             },
           ),
-          MenuChip<String?>(
+          'role': MenuChip<String?>(
             semanticLabel: l10n.templateRole,
+            tone: _roleTone(context, field.role),
             choices: [
               Choice(null, l10n.templateNoRole),
               for (final role in fieldRoles)
@@ -403,36 +436,29 @@ class _LineRow extends StatelessWidget {
               lines.changed();
             },
           ),
-        ],
+        },
       ),
       _IfLine(:final name) => Column(
         crossAxisAlignment: CrossAxisAlignment.stretch,
         children: [
-          Wrap(
-            spacing: Spacing.sm,
-            runSpacing: Spacing.xs,
-            crossAxisAlignment: WrapCrossAlignment.center,
-            children: [
-              Text(
-                l10n.templateConditionField,
-                style: type.label.copyWith(color: colors.textMuted),
-              ),
-              _FieldPicker(
-                label: l10n.templateConditionField,
-                fields: fields,
-                selected: name,
-                onSelected: (name) {
-                  line.name = name;
-                  lines.changed();
-                },
-              ),
-            ],
-          ),
+          _Sentence(l10n.templateIfFilled('{field}'), {
+            'field': _FieldPicker(
+              label: l10n.templateConditionField,
+              fields: fields,
+              selected: name,
+              onSelected: (name) {
+                line.name = name;
+                lines.changed();
+              },
+            ),
+          }),
           const SizedBox(height: Spacing.sm),
           Container(
-            padding: const EdgeInsets.only(left: Spacing.md),
+            padding: const EdgeInsetsDirectional.only(start: Spacing.sm),
             decoration: BoxDecoration(
-              border: Border(left: BorderSide(color: colors.border, width: 2)),
+              border: BorderDirectional(
+                start: BorderSide(color: colors.border, width: 2),
+              ),
             ),
             child: _LineList(
               lines: line.lines,
@@ -463,45 +489,106 @@ class _LineRow extends StatelessWidget {
         ),
       ),
     };
+    final count = lines.items.length;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Padding(
-          padding: const EdgeInsets.only(
-            top: Spacing.xs + 2,
-            right: Spacing.sm,
-          ),
-          child: Icon(
-            switch (line) {
-              _FieldLine() => MemukiIcons.field,
-              _IfLine() => MemukiIcons.condition,
-              _TextLine() => MemukiIcons.text,
-              _SourceLine() => MemukiIcons.source,
-            },
-            size: 18,
-            color: colors.textMuted,
+        ReorderableDragStartListener(
+          index: index,
+          child: Semantics(
+            label: l10n.templateDrag,
+            child: MouseRegion(
+              cursor: SystemMouseCursors.grab,
+              child: Padding(
+                padding: const EdgeInsets.symmetric(
+                  horizontal: Spacing.xs,
+                  vertical: Spacing.xs + 2,
+                ),
+                child: Icon(
+                  MemukiIcons.drag,
+                  size: 18,
+                  color: colors.textFaint,
+                ),
+              ),
+            ),
           ),
         ),
+        const SizedBox(width: Spacing.xs),
         Expanded(child: body),
         const SizedBox(width: Spacing.xs),
-        IconAction(
-          icon: MemukiIcons.moveUp,
-          semanticLabel: l10n.templateMoveUp,
-          onPressed: first ? null : () => lines.move(line, -1),
-        ),
-        IconAction(
-          icon: MemukiIcons.moveDown,
-          semanticLabel: l10n.templateMoveDown,
-          onPressed: last ? null : () => lines.move(line, 1),
-        ),
-        IconAction(
-          icon: MemukiIcons.delete,
-          semanticLabel: l10n.templateRemove,
-          onPressed: () => lines.remove(line),
+        Menu(
+          items: [
+            MenuItem(
+              icon: MemukiIcons.moveUp,
+              label: l10n.templateMoveUp,
+              onPressed: index == 0 ? null : () => lines.move(line, -1),
+            ),
+            MenuItem(
+              icon: MemukiIcons.moveDown,
+              label: l10n.templateMoveDown,
+              onPressed: index == count - 1 ? null : () => lines.move(line, 1),
+            ),
+            MenuItem(
+              icon: MemukiIcons.delete,
+              label: l10n.templateRemove,
+              onPressed: () => lines.remove(line),
+            ),
+          ],
+          builder: (context, toggle) => IconAction(
+            icon: MemukiIcons.more,
+            semanticLabel: l10n.templateLineMenu,
+            onPressed: toggle,
+          ),
         ),
       ],
     );
   }
+}
+
+/// [sentence] laid out with the controls in [parts] in place of the
+/// `{name}` placeholders it holds, and its words as muted labels, wrapping
+/// as a sentence does.
+class _Sentence extends StatelessWidget {
+  const _Sentence(this.sentence, this.parts);
+
+  final String sentence;
+  final Map<String, Widget> parts;
+
+  static final _placeholder = RegExp(r'\{(\w+)\}');
+
+  @override
+  Widget build(BuildContext context) {
+    final style = context.type.label.copyWith(color: context.colors.textMuted);
+    final children = <Widget>[];
+    var at = 0;
+    for (final match in _placeholder.allMatches(sentence)) {
+      final words = sentence.substring(at, match.start).trim();
+      if (words.isNotEmpty) children.add(Text(words, style: style));
+      children.add(parts[match.group(1)] ?? const SizedBox.shrink());
+      at = match.end;
+    }
+    final rest = sentence.substring(at).trim();
+    if (rest.isNotEmpty) children.add(Text(rest, style: style));
+    return Wrap(
+      spacing: Spacing.sm,
+      runSpacing: Spacing.xs,
+      crossAxisAlignment: WrapCrossAlignment.center,
+      children: children,
+    );
+  }
+}
+
+/// The tint of a role's picker, so roles are told apart at a glance. None
+/// for no role, or one cards do not style.
+ToneColors? _roleTone(BuildContext context, String? role) {
+  final accent = switch (role) {
+    'prompt' => MemukiAccent.coral,
+    'reading' => MemukiAccent.blue,
+    'answer' => MemukiAccent.green,
+    'example' => MemukiAccent.mustard,
+    _ => null,
+  };
+  return accent == null ? null : context.colors.swatches[accent];
 }
 
 String _roleLabel(AppLocalizations l10n, String role) => switch (role) {

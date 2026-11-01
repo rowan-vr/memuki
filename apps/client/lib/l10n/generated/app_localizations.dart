@@ -525,6 +525,60 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{name} (not in this note type)'**
   String templateMissingField(String name);
+
+  /// Template editor: a line that shows a field. {field} and {role} are pickers for the field and its role, so keep both, in the order the language needs.
+  ///
+  /// In en, this message translates to:
+  /// **'{field} as {role}'**
+  String templateFieldAs(String field, String role);
+
+  /// Template editor: a condition; the lines under it show only when the field is filled. {field} is a picker for the field.
+  ///
+  /// In en, this message translates to:
+  /// **'If {field} is filled'**
+  String templateIfFilled(String field);
+
+  /// Template editor: opens a menu of the kinds of line to add to a side of the card.
+  ///
+  /// In en, this message translates to:
+  /// **'Add line'**
+  String get templateAddLine;
+
+  /// Template editor: opens a menu of the kinds of line to add inside a condition.
+  ///
+  /// In en, this message translates to:
+  /// **'Add'**
+  String get templateAddInCondition;
+
+  /// Template editor: explains the Field entry of the Add line menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Shows a field, styled by its role.'**
+  String get templateAddFieldHint;
+
+  /// Template editor: explains the Text entry of the Add line menu.
+  ///
+  /// In en, this message translates to:
+  /// **'The same text on every card.'**
+  String get templateAddTextHint;
+
+  /// Template editor: explains the Condition entry of the Add line menu.
+  ///
+  /// In en, this message translates to:
+  /// **'Lines shown only when a field is filled.'**
+  String get templateAddConditionHint;
+
+  /// Template editor: the handle that reorders a line by dragging.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag to reorder'**
+  String get templateDrag;
+
+  /// Template editor: opens the menu to move or remove a line.
+  ///
+  /// In en, this message translates to:
+  /// **'Line options'**
+  String get templateLineMenu;
 }
 
 class _AppLocalizationsDelegate

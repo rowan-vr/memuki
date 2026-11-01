@@ -37,6 +37,7 @@ abstract final class MemukiIcons {
   static const expand = LucideIcons.chevronDown;
   static const moveUp = LucideIcons.arrowUp;
   static const moveDown = LucideIcons.arrowDown;
+  static const drag = LucideIcons.gripVertical;
   static const field = LucideIcons.textCursorInput;
   static const text = LucideIcons.type;
   static const condition = LucideIcons.gitBranch;

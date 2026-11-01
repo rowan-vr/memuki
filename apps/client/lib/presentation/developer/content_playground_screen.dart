@@ -159,20 +159,19 @@ class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
 
   @override
   Widget build(BuildContext context) {
-    final playground = [
-      _Playground(
-        source: _sources[_scope]!,
-        scope: _scope,
-        kinds: _kinds,
-        onScope: (scope) => setState(() => _scope = scope),
-        rich: _scope == MarkScope.field ? _rich : null,
-        onRich: _setRich,
-        arranged: _scope == MarkScope.template ? _arranged : null,
-        unarrangeable: _scope == MarkScope.template && _unarrangeable,
-        onVisual: _setVisual,
-        onTemplate: _templateChanged,
-      ),
-    ];
+    Widget playground({required bool previewApart}) => _Playground(
+      source: _sources[_scope]!,
+      scope: _scope,
+      kinds: _kinds,
+      onScope: (scope) => setState(() => _scope = scope),
+      rich: _scope == MarkScope.field ? _rich : null,
+      onRich: _setRich,
+      arranged: _scope == MarkScope.template ? _arranged : null,
+      unarrangeable: _scope == MarkScope.template && _unarrangeable,
+      onVisual: _setVisual,
+      onTemplate: _templateChanged,
+      previewApart: previewApart,
+    );
     final matching = _matching();
     final kinds = [
       SectionHeader(title: 'Mark kinds (${_kinds.all.length})'),
@@ -223,22 +222,46 @@ class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
             return ListView(
               padding: padding,
               children: [
-                ...playground,
+                playground(previewApart: false),
                 const SizedBox(height: Spacing.xl),
                 ...kinds,
               ],
             );
           }
+          final apart = _scope == MarkScope.template;
           return Row(
             crossAxisAlignment: CrossAxisAlignment.start,
             children: [
               Expanded(
                 flex: 3,
-                child: ListView(padding: padding, children: playground),
+                child: ListView(
+                  padding: padding,
+                  children: [playground(previewApart: apart)],
+                ),
               ),
               Expanded(
                 flex: 2,
-                child: ListView(padding: padding, children: kinds),
+                child: ListView(
+                  padding: padding,
+                  children: [
+                    // The card stays in view beside the template as it is
+                    // edited.
+                    if (apart) ...[
+                      ListenableBuilder(
+                        listenable: _sources[MarkScope.template]!,
+                        builder: (context, _) => _Preview(
+                          nodes: parseContent(
+                            _sources[MarkScope.template]!.text,
+                          ).nodes,
+                          scope: MarkScope.template,
+                          together: true,
+                        ),
+                      ),
+                      const SizedBox(height: Spacing.xl),
+                    ],
+                    ...kinds,
+                  ],
+                ),
               ),
             ],
           );
@@ -260,6 +283,7 @@ class _Playground extends StatelessWidget {
     required this.unarrangeable,
     required this.onVisual,
     required this.onTemplate,
+    required this.previewApart,
   });
 
   final TextEditingController source;
@@ -276,6 +300,9 @@ class _Playground extends StatelessWidget {
   final bool unarrangeable;
   final ValueChanged<bool> onVisual;
   final ValueChanged<TemplateLayout> onTemplate;
+
+  /// Whether the preview is shown elsewhere, beside the playground.
+  final bool previewApart;
 
   @override
   Widget build(BuildContext context) {
@@ -385,10 +412,10 @@ class _Playground extends StatelessWidget {
                   ),
                 ),
               ),
-            const SizedBox(height: Spacing.lg),
-            Text('Preview', style: type.heading),
-            const SizedBox(height: Spacing.sm),
-            _Preview(nodes: parsed.nodes, scope: scope),
+            if (!previewApart) ...[
+              const SizedBox(height: Spacing.lg),
+              _Preview(nodes: parsed.nodes, scope: scope),
+            ],
             const SizedBox(height: Spacing.lg),
             _Output(label: 'Plain text', value: kinds.plainText(parsed.nodes)),
             _Output(
@@ -436,12 +463,17 @@ class _Output extends StatelessWidget {
 }
 
 /// The field as the card renderer shows it, or the card the template makes
-/// from [_sampleFields], front or back.
+/// from [_sampleFields]: front or back, or both when [together].
 class _Preview extends StatefulWidget {
-  const _Preview({required this.nodes, required this.scope});
+  const _Preview({
+    required this.nodes,
+    required this.scope,
+    this.together = false,
+  });
 
   final List<ContentNode> nodes;
   final MarkScope scope;
+  final bool together;
 
   @override
   State<_Preview> createState() => _PreviewState();
@@ -454,14 +486,24 @@ class _PreviewState extends State<_Preview> {
   Widget build(BuildContext context) {
     final colors = context.colors;
     final type = context.type;
+    final heading = Padding(
+      padding: const EdgeInsets.only(bottom: Spacing.sm),
+      child: Text('Preview', style: type.heading),
+    );
     if (widget.scope == MarkScope.field) {
-      return Panel(
-        child: widget.nodes.isEmpty
-            ? Text(
-                '(empty)',
-                style: type.body.copyWith(color: colors.textFaint),
-              )
-            : ContentView(widget.nodes),
+      return Column(
+        crossAxisAlignment: CrossAxisAlignment.stretch,
+        children: [
+          heading,
+          Panel(
+            child: widget.nodes.isEmpty
+                ? Text(
+                    '(empty)',
+                    style: type.body.copyWith(color: colors.textFaint),
+                  )
+                : ContentView(widget.nodes),
+          ),
+        ],
       );
     }
     final fields = {
@@ -471,16 +513,22 @@ class _PreviewState extends State<_Preview> {
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        Align(
-          alignment: Alignment.centerLeft,
-          child: SegmentedChoice(
-            choices: const [Choice(false, 'Front'), Choice(true, 'Back')],
-            selected: _revealed,
-            onSelected: (revealed) => setState(() => _revealed = revealed),
+        heading,
+        if (!widget.together) ...[
+          Align(
+            alignment: Alignment.centerLeft,
+            child: SegmentedChoice(
+              choices: const [Choice(false, 'Front'), Choice(true, 'Back')],
+              selected: _revealed,
+              onSelected: (revealed) => setState(() => _revealed = revealed),
+            ),
           ),
+          const SizedBox(height: Spacing.sm),
+        ],
+        CardView(
+          card: renderCard(widget.nodes, fields),
+          revealed: widget.together || _revealed,
         ),
-        const SizedBox(height: Spacing.sm),
-        CardView(card: renderCard(widget.nodes, fields), revealed: _revealed),
         const SizedBox(height: Spacing.sm),
         Text(
           'Sample fields: ${_sampleFields.keys.join(', ')}',

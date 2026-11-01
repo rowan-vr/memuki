@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:memuki/domain/content/mark_kinds.dart';
+import 'package:memuki/presentation/components/icons.dart';
 import 'package:memuki/presentation/content/card_view.dart';
 import 'package:memuki/presentation/content/content_view.dart';
 import 'package:memuki/presentation/content/field_editor.dart';
@@ -126,7 +127,7 @@ void main() {
     expect(_warning(tester), 'None');
     expect(
       find.descendant(of: find.byType(CardView), matching: find.text('猫')),
-      findsOneWidget,
+      findsWidgets,
     );
 
     await _scope(tester, 'Field');
@@ -141,8 +142,10 @@ void main() {
     expect(_warning(tester), 'None');
   });
 
-  testWidgets('previews a template as the card it makes', (tester) async {
-    await _open(tester);
+  testWidgets('previews a template as the card it makes, front or back', (
+    tester,
+  ) async {
+    await _open(tester, size: const Size(800, 1400));
     await _scope(tester, 'Template');
     await _type(
       tester,
@@ -171,6 +174,25 @@ void main() {
     );
   });
 
+  testWidgets('on wide screens, shows the card beside the template, front '
+      'and back together', (tester) async {
+    await _open(tester);
+    await _scope(tester, 'Template');
+    await tester.tap(find.text('Visual'));
+    await tester.pumpAndSettle();
+    final editor = tester.getRect(find.byType(TemplateEditor));
+    final card = tester.getRect(find.byType(CardView));
+    expect(card.left, greaterThan(editor.right));
+    expect(find.text('Back'), findsOneWidget);
+    expect(
+      find.descendant(
+        of: find.byType(CardView),
+        matching: find.textContaining('cat', findRichText: true),
+      ),
+      findsOneWidget,
+    );
+  });
+
   testWidgets('previews a field as the renderer shows it', (tester) async {
     await _open(tester);
     await _type(tester, '{ruby てんき | 天気}');
@@ -189,12 +211,15 @@ void main() {
     await tester.pumpAndSettle();
     expect(find.byType(TemplateEditor), findsOneWidget);
 
-    await tester.tap(find.bySemanticsLabel('Remove').first);
+    await tester.tap(find.byIcon(MemukiIcons.more).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
     await tester.pumpAndSettle();
     expect(_output(tester, 'Canonical source'), contains('{front |}'));
+    // Only the example on the back is left.
     expect(
       find.descendant(of: find.byType(CardView), matching: find.text('猫')),
-      findsNothing,
+      findsOneWidget,
     );
 
     await tester.tap(find.text('Source').last);

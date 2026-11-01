@@ -302,5 +302,54 @@
         "type": "String"
       }
     }
+  },
+  "templateFieldAs": "{field} as {role}",
+  "@templateFieldAs": {
+    "description": "Template editor: a line that shows a field. {field} and {role} are pickers for the field and its role, so keep both, in the order the language needs.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      },
+      "role": {
+        "type": "String"
+      }
+    }
+  },
+  "templateIfFilled": "If {field} is filled",
+  "@templateIfFilled": {
+    "description": "Template editor: a condition; the lines under it show only when the field is filled. {field} is a picker for the field.",
+    "placeholders": {
+      "field": {
+        "type": "String"
+      }
+    }
+  },
+  "templateAddLine": "Add line",
+  "@templateAddLine": {
+    "description": "Template editor: opens a menu of the kinds of line to add to a side of the card."
+  },
+  "templateAddInCondition": "Add",
+  "@templateAddInCondition": {
+    "description": "Template editor: opens a menu of the kinds of line to add inside a condition."
+  },
+  "templateAddFieldHint": "Shows a field, styled by its role.",
+  "@templateAddFieldHint": {
+    "description": "Template editor: explains the Field entry of the Add line menu."
+  },
+  "templateAddTextHint": "The same text on every card.",
+  "@templateAddTextHint": {
+    "description": "Template editor: explains the Text entry of the Add line menu."
+  },
+  "templateAddConditionHint": "Lines shown only when a field is filled.",
+  "@templateAddConditionHint": {
+    "description": "Template editor: explains the Condition entry of the Add line menu."
+  },
+  "templateDrag": "Drag to reorder",
+  "@templateDrag": {
+    "description": "Template editor: the handle that reorders a line by dragging."
+  },
+  "templateLineMenu": "Line options",
+  "@templateLineMenu": {
+    "description": "Template editor: opens the menu to move or remove a line."
   }
 }
