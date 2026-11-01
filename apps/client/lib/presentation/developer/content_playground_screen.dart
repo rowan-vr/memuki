@@ -1,17 +1,19 @@
 import 'package:flutter/material.dart';
 
+import '../../domain/content/card_renderer.dart';
 import '../../domain/content/content_node.dart';
 import '../../domain/content/content_parser.dart';
 import '../../domain/content/content_writer.dart';
 import '../../domain/content/mark_kinds.dart';
 import '../components/buttons.dart';
 import '../components/icons.dart';
-import '../components/indicators.dart';
 import '../components/panel.dart';
 import '../components/pressable.dart';
 import '../components/rows.dart';
 import '../components/screen.dart';
 import '../components/segmented_choice.dart';
+import '../content/card_view.dart';
+import '../content/content_view.dart';
 import '../content/field_editor.dart';
 import '../content/marked_text_controller.dart';
 import '../theme/app_theme.dart';
@@ -24,12 +26,13 @@ import 'content_warnings.dart';
 /// Japanese and other text in monospaced source falls back to the body face.
 const _monoFallback = [MemukiType.bodyFamily];
 
-/// A debug-only page for trying the content format: source in, a rough
-/// preview, the plain text, the canonical source, and any problems out, next
-/// to the list of registered mark kinds.
+/// A debug-only page for trying the content format: source in, a preview,
+/// the plain text, the canonical source, and any problems out, next to the
+/// list of registered mark kinds.
 ///
-/// The preview is a sketch for checking structure, not the card renderer.
-/// It is a development tool, so its text is not localized.
+/// A field is previewed as the card renderer shows it, and a template as the
+/// card it makes from sample fields. It is a development tool, so its text
+/// is not localized.
 class ContentPlaygroundScreen extends StatefulWidget {
   const ContentPlaygroundScreen({super.key, this.kinds});
 
@@ -56,6 +59,14 @@ const _samples = {
   {if Example | {field Example role=example}}
 }
 {requires Word}''',
+};
+
+/// The note a template is previewed with.
+const _sampleFields = {
+  'Word': '{ruby ねこ | 猫}',
+  'Reading': 'ねこ',
+  'Meaning': 'cat',
+  'Example': '{ruby ねこ | 猫}が{em | 好き}です。',
 };
 
 class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
@@ -310,9 +321,7 @@ class _Playground extends StatelessWidget {
             const SizedBox(height: Spacing.lg),
             Text('Preview', style: type.heading),
             const SizedBox(height: Spacing.sm),
-            Panel(
-              child: _Preview(nodes: parsed.nodes, kinds: kinds),
-            ),
+            _Preview(nodes: parsed.nodes, scope: scope),
             const SizedBox(height: Spacing.lg),
             _Output(label: 'Plain text', value: kinds.plainText(parsed.nodes)),
             _Output(
@@ -359,194 +368,58 @@ class _Output extends StatelessWidget {
   }
 }
 
-/// A rough rendering of content: inline marks styled by kind, and the
-/// template's sides and conditions as boxes.
-class _Preview extends StatelessWidget {
-  const _Preview({required this.nodes, required this.kinds});
+/// The field as the card renderer shows it, or the card the template makes
+/// from [_sampleFields], front or back.
+class _Preview extends StatefulWidget {
+  const _Preview({required this.nodes, required this.scope});
 
   final List<ContentNode> nodes;
-  final MarkKinds kinds;
+  final MarkScope scope;
 
-  static const _blocks = {'front', 'back', 'if'};
+  @override
+  State<_Preview> createState() => _PreviewState();
+}
+
+class _PreviewState extends State<_Preview> {
+  var _revealed = false;
 
   @override
   Widget build(BuildContext context) {
-    if (nodes.isEmpty) {
-      return Text(
-        '(empty)',
-        style: context.type.body.copyWith(color: context.colors.textFaint),
+    final colors = context.colors;
+    final type = context.type;
+    if (widget.scope == MarkScope.field) {
+      return Panel(
+        child: widget.nodes.isEmpty
+            ? Text(
+                '(empty)',
+                style: type.body.copyWith(color: colors.textFaint),
+              )
+            : ContentView(widget.nodes),
       );
     }
-    final children = <Widget>[];
-    var inline = <ContentNode>[];
-    void flush() {
-      if (inline.every((n) => n is TextNode && n.text.trim().isEmpty)) {
-        inline = [];
-        return;
-      }
-      // Line breaks next to a block lay out the source, not the content.
-      if (inline.first case TextNode(:final text)) {
-        inline.first = ContentNode.text(text.trimLeft());
-      }
-      if (inline.last case TextNode(:final text)) {
-        inline.last = ContentNode.text(text.trimRight());
-      }
-      children.add(
-        Text.rich(
-          TextSpan(children: _spans(context, inline)),
-          // Room above each line for readings.
-          style: context.type.body.copyWith(height: 2.2),
-        ),
-      );
-      inline = [];
-    }
-
-    for (final node in nodes) {
-      if (node is CommentNode) continue;
-      if (node is MarkNode &&
-          (_blocks.contains(node.key) || node.key == 'requires')) {
-        flush();
-        children.add(_block(context, node));
-      } else {
-        inline.add(node);
-      }
-    }
-    flush();
+    final fields = {
+      for (final MapEntry(:key, :value) in _sampleFields.entries)
+        key: parseContent(value).nodes,
+    };
     return Column(
       crossAxisAlignment: CrossAxisAlignment.stretch,
       children: [
-        for (final (i, child) in children.indexed) ...[
-          if (i > 0) const SizedBox(height: Spacing.sm),
-          child,
-        ],
-      ],
-    );
-  }
-
-  Widget _block(BuildContext context, MarkNode mark) {
-    final colors = context.colors;
-    final type = context.type;
-    if (mark.key == 'requires') {
-      return Text(
-        'Requires ${mark.args.join(', ')}',
-        style: type.caption.copyWith(color: colors.textMuted),
-      );
-    }
-    final label = mark.key == 'if'
-        ? 'if ${mark.args.firstOrNull ?? ''}'
-        : mark.key;
-    return Container(
-      padding: const EdgeInsets.all(Spacing.sm + 2),
-      decoration: BoxDecoration(
-        borderRadius: BorderRadius.circular(Radii.sm),
-        border: Border.all(color: colors.border),
-      ),
-      child: Column(
-        crossAxisAlignment: CrossAxisAlignment.stretch,
-        children: [
-          Text(label, style: type.caption.copyWith(color: colors.textMuted)),
-          const SizedBox(height: Spacing.xs),
-          _Preview(nodes: mark.content ?? const [], kinds: kinds),
-        ],
-      ),
-    );
-  }
-
-  List<InlineSpan> _spans(BuildContext context, List<ContentNode> nodes) => [
-    for (final node in nodes)
-      switch (node) {
-        // Line breaks and indentation between marks lay out the source,
-        // not the content.
-        TextNode(:final text) => TextSpan(
-          text: text.trim().isEmpty && text.contains('\n') ? ' ' : text,
+        Align(
+          alignment: Alignment.centerLeft,
+          child: SegmentedChoice(
+            choices: const [Choice(false, 'Front'), Choice(true, 'Back')],
+            selected: _revealed,
+            onSelected: (revealed) => setState(() => _revealed = revealed),
+          ),
         ),
-        MarkNode() => _mark(context, node),
-        CommentNode() => const TextSpan(),
-      },
-  ];
-
-  InlineSpan _mark(BuildContext context, MarkNode mark) {
-    final c = context.colors;
-    final t = context.type;
-    final inner = _spans(context, mark.content ?? const []);
-    switch (mark.key) {
-      case 'ruby':
-        // The base sets the baseline; the reading is painted above it.
-        return WidgetSpan(
-          alignment: PlaceholderAlignment.baseline,
-          baseline: TextBaseline.alphabetic,
-          child: CustomPaint(
-            foregroundPainter: _ReadingPainter(
-              mark.args.firstOrNull ?? '',
-              t.caption.copyWith(color: c.textMuted, height: 1),
-              Directionality.of(context),
-            ),
-            child: Text.rich(TextSpan(children: inner), style: t.body),
-          ),
-        );
-      case 'em':
-        return TextSpan(
-          children: inner,
-          style: TextStyle(fontWeight: FontWeight.w700, color: c.accent.onSoft),
-        );
-      case 'sub' || 'sup':
-        return WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: Transform.translate(
-            offset: Offset(0, mark.key == 'sub' ? 5 : -6),
-            child: Text.rich(
-              TextSpan(children: inner),
-              style: t.body,
-              textScaler: const TextScaler.linear(0.7),
-            ),
-          ),
-        );
-      case 'lang':
-        return TextSpan(
-          children: inner,
-          style: TextStyle(locale: _locale(mark.args.firstOrNull)),
-        );
-      case 'field':
-        final role = mark.named['role'];
-        return WidgetSpan(
-          alignment: PlaceholderAlignment.middle,
-          child: Tag(
-            label: [mark.args.firstOrNull ?? '?', ?role].join(' · '),
-            tone: c.accent,
-          ),
-        );
-      default:
-        final known = kinds[mark.key] != null;
-        return TextSpan(
-          children: inner,
-          style: known
-              ? null
-              : TextStyle(
-                  decoration: TextDecoration.underline,
-                  decorationStyle: TextDecorationStyle.dotted,
-                  decorationColor: c.textFaint,
-                ),
-        );
-    }
-  }
-
-  /// A rough locale from a BCP 47 tag: language, then a script or region.
-  static Locale? _locale(String? tag) {
-    if (tag == null || tag.isEmpty) return null;
-    final parts = tag.split('-');
-    String? script;
-    String? region;
-    for (final part in parts.skip(1)) {
-      if (part.length == 4) {
-        script = part;
-      } else {
-        region = part;
-      }
-    }
-    return Locale.fromSubtags(
-      languageCode: parts.first,
-      scriptCode: script,
-      countryCode: region,
+        const SizedBox(height: Spacing.sm),
+        CardView(card: renderCard(widget.nodes, fields), revealed: _revealed),
+        const SizedBox(height: Spacing.sm),
+        Text(
+          'Sample fields: ${_sampleFields.keys.join(', ')}',
+          style: type.caption.copyWith(color: colors.textMuted),
+        ),
+      ],
     );
   }
 }
@@ -706,31 +579,4 @@ class _KindRow extends StatelessWidget {
       ],
     );
   }
-}
-
-/// Paints a reading centred above the base text it belongs to.
-class _ReadingPainter extends CustomPainter {
-  _ReadingPainter(this.reading, this.style, this.direction);
-
-  final String reading;
-  final TextStyle style;
-  final TextDirection direction;
-
-  @override
-  void paint(Canvas canvas, Size size) {
-    final painter = TextPainter(
-      text: TextSpan(text: reading, style: style),
-      textDirection: direction,
-    )..layout();
-    painter
-      ..paint(
-        canvas,
-        Offset((size.width - painter.width) / 2, -painter.height + 2),
-      )
-      ..dispose();
-  }
-
-  @override
-  bool shouldRepaint(_ReadingPainter old) =>
-      old.reading != reading || old.style != style;
 }
