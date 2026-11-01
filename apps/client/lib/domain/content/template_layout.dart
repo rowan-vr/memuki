@@ -16,25 +16,37 @@ sealed class TemplateBlock {
 /// A field on a line of its own: `{field Word role=prompt}`.
 @immutable
 class FieldBlock extends TemplateBlock {
-  const FieldBlock(this.name, {this.role});
+  const FieldBlock(this.name, {this.role, this.display, this.show});
 
   final String name;
 
   /// Null when the field has no role.
   final String? role;
 
-  FieldBlock withName(String name) => FieldBlock(name, role: role);
-  FieldBlock withRole(String? role) => FieldBlock(name, role: role);
+  /// How the value is shown instead of as text, such as `badges`.
+  final String? display;
+
+  /// The kinds shown only on request to show anyway, such as `source forms`.
+  final String? show;
+
+  FieldBlock withName(String name) =>
+      FieldBlock(name, role: role, display: display, show: show);
+  FieldBlock withRole(String? role) =>
+      FieldBlock(name, role: role, display: display, show: show);
 
   @override
   bool operator ==(Object other) =>
-      other is FieldBlock && other.name == name && other.role == role;
+      other is FieldBlock &&
+      other.name == name &&
+      other.role == role &&
+      other.display == display &&
+      other.show == show;
 
   @override
-  int get hashCode => Object.hash(name, role);
+  int get hashCode => Object.hash(name, role, display, show);
 
   @override
-  String toString() => 'FieldBlock($name, $role)';
+  String toString() => 'FieldBlock($name, $role, $display, $show)';
 }
 
 /// Lines shown only when [name] is not empty: `{if Example | …}`. Its
@@ -233,8 +245,13 @@ List<TemplateBlock> _blocks(
 TemplateBlock _block(List<ContentNode> line, {required bool conditions}) {
   if (line
       case [MarkNode(key: 'field', :final args, :final named, content: null)]
-      when args.length == 1 && named.keys.every((k) => k == 'role')) {
-    return FieldBlock(args.single, role: named['role']);
+      when args.length == 1 && named.keys.every(_fieldOptions.contains)) {
+    return FieldBlock(
+      args.single,
+      role: named['role'],
+      display: named['display'],
+      show: named['show'],
+    );
   }
   if (line case [MarkNode(key: 'if', :final args, :final content?)]
       when conditions && args.length == 1) {
@@ -243,6 +260,8 @@ TemplateBlock _block(List<ContentNode> line, {required bool conditions}) {
   if (_inField(line)) return TextBlock(line);
   return SourceBlock(line);
 }
+
+const _fieldOptions = {'role', 'display', 'show'};
 
 /// Whether [nodes] have only marks that belong in fields, at any depth.
 bool _inField(List<ContentNode> nodes) => nodes.every(
@@ -279,9 +298,14 @@ void _writeSide(StringBuffer out, String key, List<TemplateBlock> blocks) {
 
 /// [block] as source, starting at [indent] and without a final line break.
 String _line(TemplateBlock block, String indent) => switch (block) {
-  FieldBlock(:final name, :final role) => writeContent([
-    ContentNode.mark('field', args: [name], named: {'role': ?role}),
-  ]),
+  FieldBlock(:final name, :final role, :final display, :final show) =>
+    writeContent([
+      ContentNode.mark(
+        'field',
+        args: [name],
+        named: {'role': ?role, 'display': ?display, 'show': ?show},
+      ),
+    ]),
   IfBlock() => _condition(block, indent),
   TextBlock(:final content) ||
   SourceBlock(:final content) => writeContent(content),

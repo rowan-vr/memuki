@@ -131,7 +131,7 @@ H{sub | 2}O
 - **Comments:** `{# …}` is a comment. It runs to the matching `}`, so braces inside it must pair up or be escaped, and whitespace at its ends is dropped. Comments are kept in the source and read as nothing.
 - **Whitespace:** whitespace right after `|` and right before `}` is not part of the content, so templates can be indented; `\ ` keeps a space there.
 - **Writing:** the writer produces one canonical form: arguments quoted only when needed, and only `\`, `{`, and `}` escaped in text and comments. Reading what it writes gives back the same content. Keys and argument names are a letter followed by letters, digits, `_`, `-`, `.`, or `:`, so plugins can namespace their kinds (`jp:pitch`).
-- **Kinds** declare their positional and named arguments, whether they take content, and whether they belong in fields, templates, or both; a check reports marks used against their kind, and marks of a kind it does not know, which still show their content. The built-in kinds are `ruby`, `em`, `sub`, `sup`, and `lang` for fields, and `front`, `back`, `field`, `if`, and `requires` for templates (`lang` in both). The format lives in `domain/content`, free of Flutter, so import, search, and the editors share it.
+- **Kinds** declare their positional and named arguments, whether they take content, and whether they belong in fields, templates, or both; a check reports marks used against their kind, and marks of a kind it does not know, which still show their content. The built-in kinds are `ruby`, `em`, `sub`, `sup`, and `lang` for fields, and `front`, `back`, `field`, `if`, and `requires` for templates (`lang` in both). Fields also have kinds for dictionary content: `sense`, `tag`, `list` and `item`, `example` and `translation`, `forms` and `form`, `source`, and `audio`. The format lives in `domain/content`, free of Flutter, so import, search, and the editors share it.
 - **Plain text** is the content with the marks dropped (`今日は天気がいいです`). Search, duplicate detection, sorting, and typed-answer comparison use it.
 - **Language:** each field definition has a language, and a `lang` mark overrides it for a span. The language selects glyph forms for shared Han characters, text direction, and font fallback.
 - **Editing:** fields are edited directly in their rendered form; selecting text offers the marks that apply. A toggle shows the source.
@@ -141,6 +141,29 @@ H{sub | 2}O
   - Undo covers marks as well as text; typing up to a space is one step.
   - How the editor shows and applies each kind comes from one entry per key: its label, icon, shortcut, style, whether typing at its end joins it, an annotation painted above its text (a ruby's reading), and editors for its arguments in place of text fields. A kind without an entry is offered under its key and shown with a wavy underline. A kind that takes no content is put in at the cursor as a chip, and its arguments open beside it.
   - Editable text cannot raise or lower glyphs, so subscript and superscript are only smaller while editing, using the font's own forms where it has them.
+
+### Dictionary content
+
+Dictionary entries, from mining or from imported Anki notes, are kept as marks, so cards style them like any other content.
+
+```
+{source Jitendex.org date=2026-10-03}
+{sense |
+  {tag pos adv | adverb}{tag misc on-mim | mimetic}
+  {list | {item | clearly}{item | plainly}}
+  {example | {ruby かんぜん | 完全}に{em | はっきりと}。{translation | Completely clear.}}
+}
+{sense | {tag pos vs | suru} {list | {item | to be clear}}}
+{forms | {form はっきり status=priority}}
+{audio hakkiri.mp3}
+```
+
+- `sense` is one meaning; several senses in a field are numbered when shown, so the numbers are not stored.
+- `tag` keeps a label's category (`pos`, `misc`, `field`, `dialect`) and the dictionary's code; the category decides its tint.
+- `list`, `item`, `sense`, `example`, `translation`, and `forms` are shown as blocks, on lines of their own; text around them goes on lines before and after.
+- `forms` and `source` keep reference details a dictionary gives. They are shown on request only.
+- `audio` names a file in the media store.
+- The field editor shows these kinds but does not offer them in its toolbar; they come from dictionaries and imports.
 
 ### Templates
 
@@ -160,6 +183,7 @@ A template is content in the same format, whose marks place fields:
 
 - A template has exactly one `front` and one `back`. They and `requires` stand at the top level, outside any other mark, and nothing but whitespace and comments is left outside them; the check reports a side that is missing, repeated, or nested, and anything outside the sides.
 - Fields are placed by role; the role decides their styling. Templates carry no styling of their own.
+- A field placement can also say how the value is shown and what it shows. `display=badges` shows each `label: value` line of the value as a badge, such as word frequencies. Kinds marked as shown on request, `source` and `forms`, stay in field values but are left off cards unless the placement names them with `show`, such as `show="source forms"`. Displays are built in; templates have no scripts.
 - `if` shows its content only when the field is not empty; `requires` lists the fields a note must fill for the template to generate a card.
 - Cloze and typed answer are template kinds that refer to a field.
 - **Rendering:** a template and a note's fields render to a card's front and back as content, free of Flutter. `if` is resolved, comments and `requires` are dropped, and each `field` takes the field's value as its content and keeps its role; an empty field is dropped. Whitespace in the template that holds a line break becomes one line break, and field values are kept as they are.

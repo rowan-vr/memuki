@@ -60,6 +60,7 @@ class MarkEditing {
     this.annotation,
     this.argumentLabels = const {},
     this.argumentEditors = const {},
+    this.offered = true,
   });
 
   /// The name in the toolbar and the selection menu; the key when null.
@@ -87,6 +88,10 @@ class MarkEditing {
 
   /// Editors of arguments, by name; a text field when missing.
   final Map<String, ArgumentEditorBuilder> argumentEditors;
+
+  /// Whether the toolbar, the selection menu, and shortcuts offer it. Kinds
+  /// that come from dictionaries are shown but not offered.
+  final bool offered;
 
   /// The entries for the built-in kinds.
   static final Map<String, MarkEditing> builtIn = {
@@ -140,6 +145,28 @@ class MarkEditing {
       style: (_, mark, _) => TextStyle(locale: localeOf(mark.args.firstOrNull)),
       argumentLabels: {'tag': (l10n) => l10n.editorLanguageTag},
     ),
+    'sense': const MarkEditing(offered: false),
+    'tag': MarkEditing(
+      offered: false,
+      style: (context, _, _) => TextStyle(
+        fontWeight: FontWeight.w700,
+        color: context.colors.textMuted,
+      ),
+    ),
+    'list': const MarkEditing(offered: false),
+    'item': const MarkEditing(offered: false),
+    'example': const MarkEditing(offered: false),
+    'translation': MarkEditing(
+      offered: false,
+      style: (context, _, _) => TextStyle(color: context.colors.textMuted),
+    ),
+    'forms': MarkEditing(
+      offered: false,
+      style: (context, _, _) => TextStyle(color: context.colors.textFaint),
+    ),
+    'form': const MarkEditing(offered: false),
+    'source': const MarkEditing(offered: false),
+    'audio': const MarkEditing(offered: false, icon: MemukiIcons.audio),
   };
 }
 

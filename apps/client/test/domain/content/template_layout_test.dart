@@ -186,4 +186,22 @@ void main() {
       expect(block.toString(), isNotEmpty);
     }
   });
+
+  test('field lines keep how they display and what they show', () {
+    final layout = _read(
+      '{front | {field Frequencies display=badges}\n'
+      '{field Meaning role=answer show="source forms"}\n'
+      '{field Meaning other=1}}{back | }',
+    )!;
+    expect(layout.front, [
+      const FieldBlock('Frequencies', display: 'badges'),
+      const FieldBlock('Meaning', role: 'answer', show: 'source forms'),
+      SourceBlock(parseContent('{field Meaning other=1}').nodes),
+    ]);
+    expect(_read(layout.write()), layout);
+    expect(
+      (layout.front[1] as FieldBlock).withName('X').withRole('prompt'),
+      const FieldBlock('X', role: 'prompt', show: 'source forms'),
+    );
+  });
 }

@@ -140,7 +140,9 @@ class _FieldEditorState extends State<FieldEditor> {
   /// The kinds offered, in registry order.
   List<MarkKind> get _kinds => [
     for (final kind in (widget.kinds ?? MarkKinds.builtIn).all)
-      if (kind.scopes.contains(MarkScope.field)) kind,
+      if (kind.scopes.contains(MarkScope.field) &&
+          (_c.editing[kind.key]?.offered ?? true))
+        kind,
   ];
 
   @override

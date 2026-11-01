@@ -351,5 +351,13 @@
   "templateLineMenu": "Line options",
   "@templateLineMenu": {
     "description": "Template editor: opens the menu to move or remove a line."
+  },
+  "contentForms": "Forms",
+  "@contentForms": {
+    "description": "Card: label before a word's spellings and readings, from a dictionary."
+  },
+  "contentAudio": "Audio",
+  "@contentAudio": {
+    "description": "Card: names the button of a sound file, for screen readers."
   }
 }

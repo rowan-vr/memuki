@@ -208,6 +208,44 @@ void main() {
     expect(isContentKey('2x'), isFalse);
     expect(isContentKey(''), isFalse);
   });
+
+  group('dictionary kinds', () {
+    const entry = '''
+{source Jitendex.org date=2026-10-03}
+{sense |
+  {tag pos adv | adverb}{tag misc on-mim | mimetic}
+  {list | {item | clearly}{item | plainly}}
+  {example | {ruby かんぜん | 完全}に{em | はっきりと}。{translation | Completely clear.}}
+}
+{sense | {tag pos vs | suru} {list | {item | to be clear}}}
+{forms | {form はっきり status=priority}}
+{audio hakkiri.mp3}''';
+
+    test('are used as their kinds allow', () {
+      expect(
+        MarkKinds.builtIn.check(parseContent(entry).nodes, MarkScope.field),
+        isEmpty,
+      );
+    });
+
+    test('read as lines of text, without references', () {
+      final plain = MarkKinds.builtIn.plainText(parseContent(entry).nodes);
+      expect(plain, contains('adverb mimetic'));
+      expect(plain, contains('clearly\nplainly\n'));
+      expect(plain, contains('完全にはっきりと。\nCompletely clear.'));
+      expect(plain, isNot(contains('Jitendex')));
+      expect(plain, isNot(contains('hakkiri')));
+      expect(plain, isNot(contains('はっきり status')));
+    });
+
+    test('references are shown on request only', () {
+      final onRequest = [
+        for (final kind in MarkKinds.builtIn.all)
+          if (kind.onRequest) kind.key,
+      ];
+      expect(onRequest, ['forms', 'source']);
+    });
+  });
 }
 
 /// The keys of all marks in [nodes], at any depth.

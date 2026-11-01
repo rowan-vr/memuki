@@ -503,4 +503,16 @@ void main() {
       expect(writeContent(c.nodes), '{em | abc}');
     });
   });
+
+  testWidgets('shows dictionary kinds but does not offer them', (tester) async {
+    await _pump(
+      tester,
+      '{sense | {tag pos n | noun} {list | {item | a}}'
+      '{example | b{translation | c}}}{forms | {form d}}',
+    );
+    for (final key in ['sense', 'tag', 'list', 'item', 'example', 'forms']) {
+      expect(find.text(key), findsNothing, reason: key);
+    }
+    expect(find.bySemanticsLabel('Emphasis'), findsWidgets);
+  });
 }
