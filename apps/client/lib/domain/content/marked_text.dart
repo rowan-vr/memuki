@@ -53,13 +53,17 @@ class MarkRange {
 ///
 /// Ranges nest: two are either apart or one contains the other, and outer
 /// ranges come first. Marks without content and comments are atoms, so
-/// nothing is lost on the way to text and back. A literal [atomChar] in the
-/// content becomes U+FFFD.
+/// nothing is lost on the way to text and back, and so are marks that
+/// `whole` accepts, such as blocks, which are edited as one piece. A literal
+/// [atomChar] in the content becomes U+FFFD.
 @immutable
 class MarkedText {
   const MarkedText(this.text, this.ranges);
 
-  factory MarkedText.fromNodes(List<ContentNode> nodes) {
+  factory MarkedText.fromNodes(
+    List<ContentNode> nodes, {
+    bool Function(MarkNode mark) whole = _never,
+  }) {
     final out = StringBuffer();
     final ranges = <MarkRange>[];
     void add(List<ContentNode> nodes) {
@@ -67,7 +71,8 @@ class MarkedText {
         switch (node) {
           case TextNode(:final text):
             out.write(text.replaceAll(atomChar, '�'));
-          case MarkNode(:final content?) when content.isNotEmpty:
+          case MarkNode(:final content?)
+              when content.isNotEmpty && !whole(node):
             final start = out.length;
             final index = ranges.length;
             ranges.add(MarkRange(start, start, node.copyWith(content: null)));
@@ -225,6 +230,8 @@ List<MarkRange> shiftRanges(
 }
 
 bool _always(String? key) => true;
+
+bool _never(MarkNode mark) => false;
 
 /// Whether text from [start] to [end] is all inside marks of [key]: at the
 /// cursor when [start] equals [end].

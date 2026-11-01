@@ -591,6 +591,12 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Audio'**
   String get contentAudio;
+
+  /// Field editor: label of the field that edits a block, such as a dictionary sense, as source.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get editorSource;
 }
 
 class _AppLocalizationsDelegate

@@ -285,4 +285,7 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get contentAudio => 'Audio';
+
+  @override
+  String get editorSource => 'Source';
 }

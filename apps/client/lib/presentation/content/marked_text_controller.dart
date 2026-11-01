@@ -3,6 +3,10 @@ import 'package:flutter/widgets.dart';
 import '../../domain/content/content_node.dart';
 import '../../domain/content/marked_text.dart';
 import '../components/indicators.dart';
+import '../theme/app_theme.dart';
+import '../theme/radii.dart';
+import '../theme/spacing.dart';
+import 'content_view.dart';
 import 'mark_editing.dart';
 
 /// A text controller for content: its text is the content's text, and its
@@ -11,10 +15,13 @@ import 'mark_editing.dart';
 /// Undo and redo cover the marks as well as the text, which Flutter's own
 /// undo, holding only text, cannot.
 class MarkedTextController extends TextEditingController {
-  MarkedTextController(
+  factory MarkedTextController(
     List<ContentNode> nodes, {
     Map<String, MarkEditing>? editing,
-  }) : this._(MarkedText.fromNodes(nodes), editing ?? MarkEditing.builtIn);
+  }) {
+    final entries = editing ?? MarkEditing.builtIn;
+    return MarkedTextController._(_read(nodes, entries), entries);
+  }
 
   MarkedTextController._(MarkedText content, this.editing)
     : _ranges = content.ranges,
@@ -27,6 +34,21 @@ class MarkedTextController extends TextEditingController {
 
   bool _extendsAtEnd(String? key) => editing[key]?.extendsAtEnd ?? true;
 
+  /// [nodes] as text, with the marks [editing] keeps whole as atoms.
+  static MarkedText _read(
+    List<ContentNode> nodes,
+    Map<String, MarkEditing> editing,
+  ) => MarkedText.fromNodes(
+    nodes,
+    whole: (mark) => editing[mark.key]?.whole ?? false,
+  );
+
+  /// Whether [range] is a mark kept whole, shown as it renders.
+  bool isWhole(MarkRange range) =>
+      range.atom &&
+      range.node is MarkNode &&
+      (editing[range.key]?.whole ?? false);
+
   List<MarkRange> _ranges;
 
   /// The marks, outer first.
@@ -36,7 +58,7 @@ class MarkedTextController extends TextEditingController {
   List<ContentNode> get nodes => MarkedText(text, _ranges).toNodes();
 
   set nodes(List<ContentNode> nodes) {
-    final content = MarkedText.fromNodes(nodes);
+    final content = _read(nodes, editing);
     _ranges = content.ranges;
     super.value = TextEditingValue(
       text: content.text,
@@ -246,7 +268,7 @@ class MarkedTextController extends TextEditingController {
         children.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
-            child: _Atom(atom.node),
+            child: isWhole(atom) ? _Block(atom.node) : _Atom(atom.node),
           ),
         );
         continue;
@@ -309,6 +331,30 @@ class MarkedTextController extends TextEditingController {
 }
 
 enum _Edit { insert, delete, argument }
+
+/// A mark kept whole, such as a dictionary sense, shown as it renders, on a
+/// line of its own.
+class _Block extends StatelessWidget {
+  const _Block(this.node);
+
+  final ContentNode node;
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    return Container(
+      width: double.infinity,
+      margin: const EdgeInsets.symmetric(vertical: Spacing.xs),
+      padding: const EdgeInsets.all(Spacing.sm),
+      decoration: BoxDecoration(
+        color: colors.surface,
+        borderRadius: BorderRadius.circular(Radii.sm),
+        border: Border.all(color: colors.border),
+      ),
+      child: ContentView([node], style: context.type.body),
+    );
+  }
+}
 
 /// A comment or a mark without content, shown whole.
 class _Atom extends StatelessWidget {

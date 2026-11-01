@@ -163,7 +163,7 @@ Dictionary entries, from mining or from imported Anki notes, are kept as marks, 
 - `list`, `item`, `sense`, `example`, `translation`, and `forms` are shown as blocks, on lines of their own; text around them goes on lines before and after.
 - `forms` and `source` keep reference details a dictionary gives. They are shown on request only.
 - `audio` names a file in the media store.
-- The field editor shows these kinds but does not offer them in its toolbar; they come from dictionaries and imports.
+- The field editor shows these kinds but does not offer them in its toolbar; they come from dictionaries and imports. Blocks (`sense`, `list`, `item`, `example`, `translation`, `forms`) are kept whole: each is one piece in the text, drawn as it renders, and edited as source in a popover beside the cursor, where it can also be removed. Text around them is edited as usual.
 
 ### Templates
 

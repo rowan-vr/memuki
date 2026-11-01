@@ -4,6 +4,8 @@ import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
 
 import '../../domain/content/content_node.dart';
+import '../../domain/content/content_parser.dart';
+import '../../domain/content/content_writer.dart';
 import '../../domain/content/mark_kinds.dart';
 import '../../domain/content/marked_text.dart';
 import '../../l10n/generated/app_localizations.dart';
@@ -11,6 +13,7 @@ import '../components/icons.dart';
 import '../components/panel.dart';
 import '../components/pressable.dart';
 import '../theme/app_theme.dart';
+import '../theme/memuki_type.dart';
 import '../theme/motion.dart';
 import '../theme/radii.dart';
 import '../theme/spacing.dart';
@@ -93,12 +96,17 @@ class _FieldEditorState extends State<FieldEditor> {
     });
   }
 
+  /// Whether [range] has a popover: its arguments, or its source when it is
+  /// kept whole.
+  bool _hasPopover(MarkRange range) =>
+      _c.isWhole(range) || _hasArguments(range);
+
   bool _hasArguments(MarkRange range) =>
       _allKinds[range.key ?? '']?.args.isNotEmpty ?? false;
 
   void _place() {
     final mark =
-        _c.atomAtSelection(_hasArguments) ?? _c.markAtSelection(_hasArguments);
+        _c.atomAtSelection(_hasPopover) ?? _c.markAtSelection(_hasArguments);
     var anchor = _anchor;
     final root = _stack.currentContext?.findRenderObject() as RenderBox?;
     final editable = root == null ? null : _editableIn(root);
@@ -319,17 +327,24 @@ class _FieldEditorState extends State<FieldEditor> {
               width: _popoverWidth(root.size.width),
               child: Panel(
                 padding: const EdgeInsets.all(Spacing.sm),
-                child: _ArgumentRow(
-                  // A new row for each mark, so its fields start from its
-                  // values.
-                  key: ValueKey((mark.start, mark.key)),
-                  controller: _c,
-                  range: mark,
-                  kind: kind,
-                  editing: _c.editing[kind.key],
-                  focusNode: _argumentFocus,
-                  onDone: _focus.requestFocus,
-                ),
+                // A new row for each mark, so its fields start from its
+                // values.
+                child: _c.isWhole(mark)
+                    ? _SourceRow(
+                        key: ValueKey((mark.start, mark.key, 'source')),
+                        controller: _c,
+                        range: mark,
+                        focusNode: _argumentFocus,
+                      )
+                    : _ArgumentRow(
+                        key: ValueKey((mark.start, mark.key)),
+                        controller: _c,
+                        range: mark,
+                        kind: kind,
+                        editing: _c.editing[kind.key],
+                        focusNode: _argumentFocus,
+                        onDone: _focus.requestFocus,
+                      ),
               ),
             ),
           ),
@@ -558,6 +573,93 @@ class _ArgumentRowState extends State<_ArgumentRow> {
             if (_current case final range?) widget.controller.remove(range);
           },
           child: Text(l10n.editorRemoveMark),
+        ),
+      ],
+    );
+  }
+}
+
+/// The source of a mark kept whole, such as a dictionary sense, with a
+/// button to remove it. Source that reads as one mark replaces it; anything
+/// else waits until it does.
+class _SourceRow extends StatefulWidget {
+  const _SourceRow({
+    super.key,
+    required this.controller,
+    required this.range,
+    required this.focusNode,
+  });
+
+  final MarkedTextController controller;
+  final MarkRange range;
+  final FocusNode focusNode;
+
+  @override
+  State<_SourceRow> createState() => _SourceRowState();
+}
+
+class _SourceRowState extends State<_SourceRow> {
+  late final _source = TextEditingController(
+    text: writeContent([widget.range.node]),
+  );
+
+  @override
+  void dispose() {
+    _source.dispose();
+    super.dispose();
+  }
+
+  /// The range as it is now; edits replace it.
+  MarkRange? get _current => widget.controller.ranges
+      .where((r) => r.atom && r.start == widget.range.start)
+      .lastOrNull;
+
+  void _changed(String source) {
+    final range = _current;
+    final parsed = parseContent(source);
+    if (range == null || parsed.problems.isNotEmpty) return;
+    if (parsed.nodes case [final MarkNode mark]) {
+      widget.controller.replace(range, mark);
+    }
+  }
+
+  @override
+  Widget build(BuildContext context) {
+    final colors = context.colors;
+    final type = context.type;
+    final l10n = AppLocalizations.of(context);
+    return Column(
+      crossAxisAlignment: CrossAxisAlignment.stretch,
+      children: [
+        TextField(
+          controller: _source,
+          focusNode: widget.focusNode,
+          minLines: 2,
+          maxLines: 8,
+          onChanged: _changed,
+          style: type.body.copyWith(
+            fontFamily: 'monospace',
+            fontFamilyFallback: const [MemukiType.bodyFamily],
+          ),
+          decoration: InputDecoration(
+            labelText: l10n.editorSource,
+            isDense: true,
+            filled: true,
+            fillColor: colors.surfaceSunken,
+            border: OutlineInputBorder(
+              borderRadius: BorderRadius.circular(Radii.sm),
+              borderSide: BorderSide.none,
+            ),
+          ),
+        ),
+        Align(
+          alignment: AlignmentDirectional.centerEnd,
+          child: TextButton(
+            onPressed: () {
+              if (_current case final range?) widget.controller.remove(range);
+            },
+            child: Text(l10n.editorRemoveMark),
+          ),
         ),
       ],
     );

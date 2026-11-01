@@ -359,5 +359,9 @@
   "contentAudio": "Audio",
   "@contentAudio": {
     "description": "Card: names the button of a sound file, for screen readers."
+  },
+  "editorSource": "Source",
+  "@editorSource": {
+    "description": "Field editor: label of the field that edits a block, such as a dictionary sense, as source."
   }
 }
