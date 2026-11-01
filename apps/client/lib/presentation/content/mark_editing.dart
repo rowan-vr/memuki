@@ -43,8 +43,10 @@ class MarkShortcut {
   final bool alt;
 }
 
-/// How the field editor shows and applies one kind of mark. The kind's
-/// meaning, its arguments and where it belongs, is in its `MarkKind`.
+/// How the field editor shows and applies one kind of mark in text. The
+/// kind's meaning, its arguments and where it belongs, is in its `MarkKind`;
+/// marks that stand on lines of their own, such as a dictionary sense, are
+/// edited by their `BlockEditing` instead.
 ///
 /// A kind without an entry is shown with a wavy underline and offered under
 /// its key.
@@ -61,7 +63,6 @@ class MarkEditing {
     this.argumentLabels = const {},
     this.argumentEditors = const {},
     this.offered = true,
-    this.whole = false,
   });
 
   /// The name in the toolbar and the selection menu; the key when null.
@@ -93,11 +94,6 @@ class MarkEditing {
   /// Whether the toolbar, the selection menu, and shortcuts offer it. Kinds
   /// that come from dictionaries are shown but not offered.
   final bool offered;
-
-  /// Whether the mark is shown as it renders and edited as one piece, as
-  /// source, rather than as text with a style. Used for blocks such as a
-  /// dictionary sense.
-  final bool whole;
 
   /// The entries for the built-in kinds.
   static final Map<String, MarkEditing> builtIn = {
@@ -151,7 +147,6 @@ class MarkEditing {
       style: (_, mark, _) => TextStyle(locale: localeOf(mark.args.firstOrNull)),
       argumentLabels: {'tag': (l10n) => l10n.editorLanguageTag},
     ),
-    'sense': const MarkEditing(offered: false, whole: true),
     'tag': MarkEditing(
       offered: false,
       style: (context, _, _) => TextStyle(
@@ -159,11 +154,6 @@ class MarkEditing {
         color: context.colors.textMuted,
       ),
     ),
-    'list': const MarkEditing(offered: false, whole: true),
-    'item': const MarkEditing(offered: false, whole: true),
-    'example': const MarkEditing(offered: false, whole: true),
-    'translation': const MarkEditing(offered: false, whole: true),
-    'forms': const MarkEditing(offered: false, whole: true),
     'form': const MarkEditing(offered: false),
     'source': const MarkEditing(offered: false),
     'audio': const MarkEditing(offered: false, icon: MemukiIcons.audio),

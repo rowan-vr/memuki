@@ -15,8 +15,8 @@ import '../components/screen.dart';
 import '../components/segmented_choice.dart';
 import '../content/card_view.dart';
 import '../content/content_view.dart';
+import '../content/field_controller.dart';
 import '../content/field_editor.dart';
-import '../content/marked_text_controller.dart';
 import '../content/template_editor.dart';
 import '../theme/app_theme.dart';
 import '../theme/memuki_type.dart';
@@ -83,7 +83,7 @@ class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
 
   /// The field in the rich editor, while it is shown; it writes the field's
   /// source as it changes.
-  MarkedTextController? _rich;
+  FieldController? _rich;
 
   /// The template in the visual editor, while it is shown; it writes the
   /// template's source as it changes.
@@ -134,9 +134,8 @@ class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
   void _setRich(bool rich) => setState(() {
     _rich?.dispose();
     _rich = rich
-        ? (MarkedTextController(
-            parseContent(_sources[MarkScope.field]!.text).nodes,
-          )..addListener(_richChanged))
+        ? (FieldController(parseContent(_sources[MarkScope.field]!.text).nodes)
+            ..addListener(_richChanged))
         : null;
   });
 
@@ -268,7 +267,7 @@ class _Playground extends StatelessWidget {
   final ValueChanged<MarkScope> onScope;
 
   /// The rich editor's controller while a field is edited in it.
-  final MarkedTextController? rich;
+  final FieldController? rich;
   final ValueChanged<bool> onRich;
 
   /// The template's layout while it is edited visually.

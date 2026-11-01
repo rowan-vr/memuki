@@ -17,8 +17,8 @@ import '../theme/memuki_type.dart';
 import '../theme/motion.dart';
 import '../theme/radii.dart';
 import '../theme/spacing.dart';
+import 'field_controller.dart';
 import 'field_editor.dart';
-import 'marked_text_controller.dart';
 
 /// Edits a template by arranging its lines: the front and the back, each a
 /// list of fields, conditions, and text, and the fields it requires.
@@ -163,7 +163,7 @@ class _Lines {
       _Lines.of(blocks, onChanged),
     ),
     TextBlock(:final content) => _TextLine(
-      MarkedTextController(content)..addListener(onChanged),
+      FieldController(content)..addListener(onChanged),
     ),
     SourceBlock(:final content) => _SourceLine(
       TextEditingController(text: writeContent(content))
@@ -242,7 +242,7 @@ class _IfLine extends _Line {
 class _TextLine extends _Line {
   _TextLine(this.controller);
 
-  final MarkedTextController controller;
+  final FieldController controller;
 
   @override
   TemplateBlock get block => TextBlock(controller.nodes);
@@ -468,7 +468,10 @@ class _LineRow extends StatelessWidget {
           ),
         ],
       ),
-      _TextLine(:final controller) => FieldEditor(controller: controller),
+      _TextLine(:final controller) => FieldEditor(
+        controller: controller,
+        blocks: const {},
+      ),
       _SourceLine(:final controller) => TextField(
         controller: controller,
         minLines: 1,

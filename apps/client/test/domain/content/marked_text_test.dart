@@ -210,15 +210,20 @@ void main() {
     expect(a.contains(0, 1), isTrue);
   });
 
-  test('marks kept whole are atoms with their content', () {
-    final nodes = parseContent('a{sense | {em | b}}c{em | d}').nodes;
-    final text = MarkedText.fromNodes(
-      nodes,
-      whole: (mark) => mark.key == 'sense',
-    );
-    expect(text.text, 'a${atomChar}cd');
-    expect(text.ranges.first.atom, isTrue);
-    expect(text.ranges.first.node, nodes[1]);
-    expect(text.toNodes(), nodes);
+  test('splits in two, with the marks over the split on both sides', () {
+    final text = MarkedText.fromNodes(parseContent('a{em | bc}{x}d').nodes);
+    String write(MarkedText t) => writeContent(t.toNodes());
+
+    final (before, after) = text.splitAt(2);
+    expect(write(before), 'a{em | b}');
+    expect(write(after), '{em | c}{x}d');
+
+    final (beforeAtom, afterAtom) = text.splitAt(4);
+    expect(write(beforeAtom), 'a{em | bc}{x}');
+    expect(write(afterAtom), 'd');
+
+    final (none, all) = text.splitAt(0);
+    expect(write(none), '');
+    expect(write(all), writeContent(text.toNodes()));
   });
 }

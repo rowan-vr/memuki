@@ -288,4 +288,62 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editorSource => 'Source';
+
+  @override
+  String get editorSense => 'Sense';
+
+  @override
+  String get editorList => 'List';
+
+  @override
+  String get editorExample => 'Example';
+
+  @override
+  String get editorTag => 'Tag';
+
+  @override
+  String get editorItem => 'Item';
+
+  @override
+  String get editorTranslation => 'Translation';
+
+  @override
+  String get editorSentence => 'Sentence';
+
+  @override
+  String get editorAddItem => 'Add item';
+
+  @override
+  String get editorRemoveItem => 'Remove item';
+
+  @override
+  String get editorTagCategory => 'Category';
+
+  @override
+  String get editorTagLabel => 'Label';
+
+  @override
+  String get editorTagPos => 'Part of speech';
+
+  @override
+  String get editorTagMisc => 'Usage';
+
+  @override
+  String get editorTagField => 'Subject';
+
+  @override
+  String get editorTagDialect => 'Dialect';
+
+  @override
+  String get editorDone => 'Done';
+
+  @override
+  String get editorToolbox => 'Blocks';
+
+  @override
+  String get editorToolboxHint =>
+      'Drag into the field, or tap to put in at the cursor';
+
+  @override
+  String get editorAddTag => 'Add tag';
 }
