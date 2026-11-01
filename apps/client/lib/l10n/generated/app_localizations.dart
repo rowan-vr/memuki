@@ -339,6 +339,66 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'{count, plural, =1{1 day} other{{count} days}}'**
   String durationDays(int count);
+
+  /// Field editor: marks the selection as base text with a reading above it.
+  ///
+  /// In en, this message translates to:
+  /// **'Ruby'**
+  String get editorRuby;
+
+  /// Field editor: marks the selection as emphasised.
+  ///
+  /// In en, this message translates to:
+  /// **'Emphasis'**
+  String get editorEmphasis;
+
+  /// Field editor: marks the selection as subscript.
+  ///
+  /// In en, this message translates to:
+  /// **'Subscript'**
+  String get editorSubscript;
+
+  /// Field editor: marks the selection as superscript.
+  ///
+  /// In en, this message translates to:
+  /// **'Superscript'**
+  String get editorSuperscript;
+
+  /// Field editor: marks the selection as text in another language.
+  ///
+  /// In en, this message translates to:
+  /// **'Language'**
+  String get editorLanguage;
+
+  /// Field editor: label of the field for a ruby's reading.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading'**
+  String get editorReading;
+
+  /// Field editor: label of the field for a language tag such as zh-Hans.
+  ///
+  /// In en, this message translates to:
+  /// **'Language tag'**
+  String get editorLanguageTag;
+
+  /// Field editor: removes the mark the cursor is in, keeping its text.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get editorRemoveMark;
+
+  /// Field editor: undoes the last change.
+  ///
+  /// In en, this message translates to:
+  /// **'Undo'**
+  String get editorUndo;
+
+  /// Field editor: redoes the last undone change.
+  ///
+  /// In en, this message translates to:
+  /// **'Redo'**
+  String get editorRedo;
 }
 
 class _AppLocalizationsDelegate

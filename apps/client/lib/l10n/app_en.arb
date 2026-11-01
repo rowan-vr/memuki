@@ -173,5 +173,45 @@
         "type": "int"
       }
     }
+  },
+  "editorRuby": "Ruby",
+  "@editorRuby": {
+    "description": "Field editor: marks the selection as base text with a reading above it."
+  },
+  "editorEmphasis": "Emphasis",
+  "@editorEmphasis": {
+    "description": "Field editor: marks the selection as emphasised."
+  },
+  "editorSubscript": "Subscript",
+  "@editorSubscript": {
+    "description": "Field editor: marks the selection as subscript."
+  },
+  "editorSuperscript": "Superscript",
+  "@editorSuperscript": {
+    "description": "Field editor: marks the selection as superscript."
+  },
+  "editorLanguage": "Language",
+  "@editorLanguage": {
+    "description": "Field editor: marks the selection as text in another language."
+  },
+  "editorReading": "Reading",
+  "@editorReading": {
+    "description": "Field editor: label of the field for a ruby's reading."
+  },
+  "editorLanguageTag": "Language tag",
+  "@editorLanguageTag": {
+    "description": "Field editor: label of the field for a language tag such as zh-Hans."
+  },
+  "editorRemoveMark": "Remove",
+  "@editorRemoveMark": {
+    "description": "Field editor: removes the mark the cursor is in, keeping its text."
+  },
+  "editorUndo": "Undo",
+  "@editorUndo": {
+    "description": "Field editor: undoes the last change."
+  },
+  "editorRedo": "Redo",
+  "@editorRedo": {
+    "description": "Field editor: redoes the last undone change."
   }
 }
