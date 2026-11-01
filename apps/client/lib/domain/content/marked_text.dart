@@ -53,17 +53,13 @@ class MarkRange {
 ///
 /// Ranges nest: two are either apart or one contains the other, and outer
 /// ranges come first. Marks without content and comments are atoms, so
-/// nothing is lost on the way to text and back, and so are marks that
-/// `whole` accepts, such as blocks, which are edited as one piece. A literal
-/// [atomChar] in the content becomes U+FFFD.
+/// nothing is lost on the way to text and back. A literal [atomChar] in the
+/// content becomes U+FFFD.
 @immutable
 class MarkedText {
   const MarkedText(this.text, this.ranges);
 
-  factory MarkedText.fromNodes(
-    List<ContentNode> nodes, {
-    bool Function(MarkNode mark) whole = _never,
-  }) {
+  factory MarkedText.fromNodes(List<ContentNode> nodes) {
     final out = StringBuffer();
     final ranges = <MarkRange>[];
     void add(List<ContentNode> nodes) {
@@ -71,8 +67,7 @@ class MarkedText {
         switch (node) {
           case TextNode(:final text):
             out.write(text.replaceAll(atomChar, '�'));
-          case MarkNode(:final content?)
-              when content.isNotEmpty && !whole(node):
+          case MarkNode(:final content?) when content.isNotEmpty:
             final start = out.length;
             final index = ranges.length;
             ranges.add(MarkRange(start, start, node.copyWith(content: null)));
@@ -116,6 +111,26 @@ class MarkedText {
     }
 
     return build(0, text.length);
+  }
+
+  /// The text before [offset] and the text from it, each with the part of
+  /// every mark over it. An atom goes with the side it is on.
+  (MarkedText, MarkedText) splitAt(int offset) {
+    final before = <MarkRange>[];
+    final after = <MarkRange>[];
+    for (final r in ranges) {
+      if (r.start < offset) {
+        before.add(r.moved(r.start, r.end < offset ? r.end : offset));
+      }
+      if (r.end > offset) {
+        final start = r.start > offset ? r.start : offset;
+        after.add(r.moved(start - offset, r.end - offset));
+      }
+    }
+    return (
+      MarkedText(text.substring(0, offset), List.unmodifiable(before)),
+      MarkedText(text.substring(offset), List.unmodifiable(after)),
+    );
   }
 }
 
@@ -230,8 +245,6 @@ List<MarkRange> shiftRanges(
 }
 
 bool _always(String? key) => true;
-
-bool _never(MarkNode mark) => false;
 
 /// Whether text from [start] to [end] is all inside marks of [key]: at the
 /// cursor when [start] equals [end].

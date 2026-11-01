@@ -597,6 +597,120 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Source'**
   String get editorSource;
+
+  /// Field editor: toolbox item that adds one meaning of a word, with its tags, glosses, and examples.
+  ///
+  /// In en, this message translates to:
+  /// **'Sense'**
+  String get editorSense;
+
+  /// Field editor: toolbox item that adds a list, such as the glosses of a sense.
+  ///
+  /// In en, this message translates to:
+  /// **'List'**
+  String get editorList;
+
+  /// Field editor: toolbox item that adds an example sentence with its translation.
+  ///
+  /// In en, this message translates to:
+  /// **'Example'**
+  String get editorExample;
+
+  /// Field editor: toolbox item that adds a dictionary label, such as a part of speech, to a sense.
+  ///
+  /// In en, this message translates to:
+  /// **'Tag'**
+  String get editorTag;
+
+  /// Field editor: name of an item of a list.
+  ///
+  /// In en, this message translates to:
+  /// **'Item'**
+  String get editorItem;
+
+  /// Field editor: name of, and placeholder in, the translation of an example sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Translation'**
+  String get editorTranslation;
+
+  /// Field editor: placeholder in the sentence of an example.
+  ///
+  /// In en, this message translates to:
+  /// **'Sentence'**
+  String get editorSentence;
+
+  /// Field editor: adds an item to the end of a list.
+  ///
+  /// In en, this message translates to:
+  /// **'Add item'**
+  String get editorAddItem;
+
+  /// Field editor: removes an item from a list.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove item'**
+  String get editorRemoveItem;
+
+  /// Field editor: label of what a tag labels, such as a part of speech.
+  ///
+  /// In en, this message translates to:
+  /// **'Category'**
+  String get editorTagCategory;
+
+  /// Field editor: label of the text a tag shows, such as adverb.
+  ///
+  /// In en, this message translates to:
+  /// **'Label'**
+  String get editorTagLabel;
+
+  /// Field editor: tag category for parts of speech.
+  ///
+  /// In en, this message translates to:
+  /// **'Part of speech'**
+  String get editorTagPos;
+
+  /// Field editor: tag category for other labels, such as how formal a word is.
+  ///
+  /// In en, this message translates to:
+  /// **'Usage'**
+  String get editorTagMisc;
+
+  /// Field editor: tag category for subjects, such as computing.
+  ///
+  /// In en, this message translates to:
+  /// **'Subject'**
+  String get editorTagField;
+
+  /// Field editor: tag category for dialects.
+  ///
+  /// In en, this message translates to:
+  /// **'Dialect'**
+  String get editorTagDialect;
+
+  /// Field editor: finishes editing a tag.
+  ///
+  /// In en, this message translates to:
+  /// **'Done'**
+  String get editorDone;
+
+  /// Field editor: heading of the blocks that can be dragged into the field.
+  ///
+  /// In en, this message translates to:
+  /// **'Blocks'**
+  String get editorToolbox;
+
+  /// Field editor: tooltip of a block in the toolbox.
+  ///
+  /// In en, this message translates to:
+  /// **'Drag into the field, or tap to put in at the cursor'**
+  String get editorToolboxHint;
+
+  /// Field editor: adds a dictionary label, such as a part of speech, to a sense; shown in place of the tags while there are none.
+  ///
+  /// In en, this message translates to:
+  /// **'Add tag'**
+  String get editorAddTag;
 }
 
 class _AppLocalizationsDelegate

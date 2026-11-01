@@ -3,10 +3,6 @@ import 'package:flutter/widgets.dart';
 import '../../domain/content/content_node.dart';
 import '../../domain/content/marked_text.dart';
 import '../components/indicators.dart';
-import '../theme/app_theme.dart';
-import '../theme/radii.dart';
-import '../theme/spacing.dart';
-import 'content_view.dart';
 import 'mark_editing.dart';
 
 /// A text controller for content: its text is the content's text, and its
@@ -19,8 +15,10 @@ class MarkedTextController extends TextEditingController {
     List<ContentNode> nodes, {
     Map<String, MarkEditing>? editing,
   }) {
-    final entries = editing ?? MarkEditing.builtIn;
-    return MarkedTextController._(_read(nodes, entries), entries);
+    return MarkedTextController._(
+      MarkedText.fromNodes(nodes),
+      editing ?? MarkEditing.builtIn,
+    );
   }
 
   MarkedTextController._(MarkedText content, this.editing)
@@ -34,21 +32,6 @@ class MarkedTextController extends TextEditingController {
 
   bool _extendsAtEnd(String? key) => editing[key]?.extendsAtEnd ?? true;
 
-  /// [nodes] as text, with the marks [editing] keeps whole as atoms.
-  static MarkedText _read(
-    List<ContentNode> nodes,
-    Map<String, MarkEditing> editing,
-  ) => MarkedText.fromNodes(
-    nodes,
-    whole: (mark) => editing[mark.key]?.whole ?? false,
-  );
-
-  /// Whether [range] is a mark kept whole, shown as it renders.
-  bool isWhole(MarkRange range) =>
-      range.atom &&
-      range.node is MarkNode &&
-      (editing[range.key]?.whole ?? false);
-
   List<MarkRange> _ranges;
 
   /// The marks, outer first.
@@ -58,14 +41,40 @@ class MarkedTextController extends TextEditingController {
   List<ContentNode> get nodes => MarkedText(text, _ranges).toNodes();
 
   set nodes(List<ContentNode> nodes) {
-    final content = _read(nodes, editing);
+    final content = MarkedText.fromNodes(nodes);
     _ranges = content.ranges;
-    super.value = TextEditingValue(
-      text: content.text,
-      selection: TextSelection.collapsed(offset: content.text.length),
+    _set(
+      TextEditingValue(
+        text: content.text,
+        selection: TextSelection.collapsed(offset: content.text.length),
+      ),
     );
-    _commit();
   }
+
+  /// Puts [nodes] in place of the content, as undoing does, keeping the
+  /// selection where it still fits.
+  void reset(List<ContentNode> nodes) {
+    final content = MarkedText.fromNodes(nodes);
+    final length = content.text.length;
+    int fit(int offset) =>
+        offset < 0 ? offset : (offset > length ? length : offset);
+    _ranges = content.ranges;
+    _lastEdit = null;
+    _set(
+      TextEditingValue(
+        text: content.text,
+        selection: selection.copyWith(
+          baseOffset: fit(selection.baseOffset),
+          extentOffset: fit(selection.extentOffset),
+        ),
+      ),
+    );
+  }
+
+  /// Counts the steps of undo taken, so that an editor keeping its own
+  /// history can merge the changes this one merges.
+  int get steps => _steps;
+  var _steps = 0;
 
   /// States to undo to; [_at] is the current one.
   final _history = <(TextEditingValue, List<MarkRange>)>[];
@@ -95,7 +104,6 @@ class MarkedTextController extends TextEditingController {
       cursor: cursor,
       extendsAtEnd: _extendsAtEnd,
     );
-    super.value = next;
     final edit = next.text.length > previous.text.length
         ? _Edit.insert
         : _Edit.delete;
@@ -107,7 +115,7 @@ class MarkedTextController extends TextEditingController {
             !_endsWord(previous.text, next.text));
     _lastEdit = edit;
     _lastCursor = next.selection.baseOffset;
-    _commit(merge: continues);
+    _set(next, merge: continues);
   }
 
   /// Whether the change typed whitespace, which ends a step of undo.
@@ -116,7 +124,14 @@ class MarkedTextController extends TextEditingController {
       after.runes.where((c) => c == 0x20 || c == 0x0A).length >
           before.runes.where((c) => c == 0x20 || c == 0x0A).length;
 
-  void _commit({bool merge = false}) {
+  /// Shows [next], once it is a step of undo, so that listeners see [steps]
+  /// with it.
+  void _set(TextEditingValue next, {bool merge = false}) {
+    _commit(next, merge: merge);
+    super.value = next;
+  }
+
+  void _commit(TextEditingValue value, {bool merge = false}) {
     _history.removeRange(_at + 1, _history.length);
     if (merge && _at > 0) {
       _history[_at] = (value, _ranges);
@@ -124,6 +139,7 @@ class MarkedTextController extends TextEditingController {
       _history.add((value, _ranges));
       if (_history.length > _historyLimit) _history.removeAt(0);
       _at = _history.length - 1;
+      _steps++;
     }
   }
 
@@ -152,7 +168,7 @@ class MarkedTextController extends TextEditingController {
   void _changeMarks(List<MarkRange> ranges) {
     _ranges = ranges;
     _lastEdit = null;
-    _commit();
+    _commit(value);
     notifyListeners();
   }
 
@@ -212,8 +228,7 @@ class MarkedTextController extends TextEditingController {
       MarkRange(start, start + 1, node, atom: true),
     ]);
     _lastEdit = null;
-    super.value = next.copyWith(composing: TextRange.empty);
-    _commit();
+    _set(next.copyWith(composing: TextRange.empty));
   }
 
   /// Replaces the node of [range], such as to change a ruby's reading. Typing
@@ -225,7 +240,7 @@ class MarkedTextController extends TextEditingController {
     final continues = _lastEdit == _Edit.argument && _lastCursor == range.start;
     _lastEdit = _Edit.argument;
     _lastCursor = range.start;
-    _commit(merge: continues);
+    _commit(value, merge: continues);
     notifyListeners();
   }
 
@@ -268,7 +283,7 @@ class MarkedTextController extends TextEditingController {
         children.add(
           WidgetSpan(
             alignment: PlaceholderAlignment.middle,
-            child: isWhole(atom) ? _Block(atom.node) : _Atom(atom.node),
+            child: _Atom(atom.node),
           ),
         );
         continue;
@@ -331,30 +346,6 @@ class MarkedTextController extends TextEditingController {
 }
 
 enum _Edit { insert, delete, argument }
-
-/// A mark kept whole, such as a dictionary sense, shown as it renders, on a
-/// line of its own.
-class _Block extends StatelessWidget {
-  const _Block(this.node);
-
-  final ContentNode node;
-
-  @override
-  Widget build(BuildContext context) {
-    final colors = context.colors;
-    return Container(
-      width: double.infinity,
-      margin: const EdgeInsets.symmetric(vertical: Spacing.xs),
-      padding: const EdgeInsets.all(Spacing.sm),
-      decoration: BoxDecoration(
-        color: colors.surface,
-        borderRadius: BorderRadius.circular(Radii.sm),
-        border: Border.all(color: colors.border),
-      ),
-      child: ContentView([node], style: context.type.body),
-    );
-  }
-}
 
 /// A comment or a mark without content, shown whole.
 class _Atom extends StatelessWidget {

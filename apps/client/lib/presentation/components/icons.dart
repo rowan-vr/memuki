@@ -42,4 +42,8 @@ abstract final class MemukiIcons {
   static const text = LucideIcons.type;
   static const condition = LucideIcons.gitBranch;
   static const source = LucideIcons.braces;
+  static const sense = LucideIcons.bookOpenText;
+  static const list = LucideIcons.list;
+  static const example = LucideIcons.textQuote;
+  static const tag = LucideIcons.tag;
 }

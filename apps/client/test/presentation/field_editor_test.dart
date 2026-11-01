@@ -1,4 +1,5 @@
 import 'package:flutter/foundation.dart';
+import 'package:flutter/gestures.dart';
 import 'package:flutter/material.dart';
 import 'package:flutter/rendering.dart';
 import 'package:flutter/services.dart';
@@ -9,15 +10,38 @@ import 'package:memuki/domain/content/content_writer.dart';
 import 'package:memuki/domain/content/mark_kinds.dart';
 import 'package:memuki/domain/content/marked_text.dart';
 import 'package:memuki/l10n/generated/app_localizations.dart';
-import 'package:memuki/presentation/content/content_view.dart';
+import 'package:memuki/presentation/content/block_editing.dart';
+import 'package:memuki/presentation/content/field_controller.dart';
 import 'package:memuki/presentation/content/field_editor.dart';
+import 'package:memuki/presentation/content/inline_editor.dart';
 import 'package:memuki/presentation/content/mark_editing.dart';
 import 'package:memuki/presentation/content/marked_text_controller.dart';
 import 'package:memuki/presentation/theme/app_theme.dart';
 
-late MarkedTextController _c;
+late FieldController _field;
+late WidgetTester _tester;
 
-String get _source => writeContent(_c.nodes);
+/// The controller of the focused text editor, or else the first.
+MarkedTextController get _c {
+  final editors = [
+    for (final e in _tester.widgetList<EditableText>(
+      find.descendant(
+        of: find.byType(InlineEditor),
+        matching: find.byType(EditableText),
+      ),
+    ))
+      e,
+  ];
+  final text = editors.where((e) => e.controller is MarkedTextController);
+  final focused = text.where((e) => e.focusNode.hasFocus).firstOrNull;
+  return (focused ?? text.first).controller as MarkedTextController;
+}
+
+String get _source => writeContent(_field.nodes);
+
+/// The text field holding [text].
+Finder _editing(String text) =>
+    find.byWidgetPredicate((w) => w is TextField && w.controller?.text == text);
 
 Future<void> _pump(
   WidgetTester tester,
@@ -25,8 +49,9 @@ Future<void> _pump(
   MarkKinds? kinds,
   Map<String, MarkEditing>? editing,
 }) async {
-  _c = MarkedTextController(parseContent(source).nodes, editing: editing);
-  addTearDown(_c.dispose);
+  _tester = tester;
+  _field = FieldController(parseContent(source).nodes);
+  addTearDown(_field.dispose);
   await tester.pumpWidget(
     MaterialApp(
       theme: AppTheme.light(),
@@ -35,7 +60,13 @@ Future<void> _pump(
       home: Scaffold(
         body: Padding(
           padding: const EdgeInsets.all(16),
-          child: FieldEditor(controller: _c, kinds: kinds),
+          child: SingleChildScrollView(
+            child: FieldEditor(
+              controller: _field,
+              kinds: kinds,
+              editing: editing,
+            ),
+          ),
         ),
       ),
     ),
@@ -360,17 +391,18 @@ void main() {
       await tester.enterText(reading, 'て');
       await tester.enterText(reading, 'てん');
       expect(_source, '{ruby てん | 天}');
-      _c.undo();
+      _field.undo();
       expect(_source, '{ruby x | 天}');
     });
   });
 
   testWidgets('content can be replaced', (tester) async {
     await _pump(tester, 'a');
-    _c.nodes = parseContent('{em | b}').nodes;
+    _field.nodes = parseContent('{em | b}').nodes;
     await tester.pump();
     expect(_source, '{em | b}');
-    expect(_c.canUndo, isTrue);
+    expect(_c.text, 'b');
+    expect(_field.canUndo, isTrue);
   });
 
   group('kinds of mark', () {
@@ -466,7 +498,7 @@ void main() {
       await tester.tap(find.text('Remove'));
       await tester.pumpAndSettle();
       expect(_source, 'はしを');
-      _c.undo();
+      _field.undo();
       expect(_source, 'はし{pitch 2}を');
     });
   });
@@ -505,85 +537,226 @@ void main() {
     });
   });
 
-  testWidgets('shows dictionary kinds but does not offer them', (tester) async {
-    await _pump(
-      tester,
-      '{sense | {tag pos n | noun} {list | {item | a}}'
-      '{example | b{translation | c}}}{forms | {form d}}',
-    );
+  testWidgets('offers only marks within text on the toolbar', (tester) async {
+    await _pump(tester, 'a');
     for (final key in ['sense', 'tag', 'list', 'item', 'example', 'forms']) {
-      expect(find.text(key), findsNothing, reason: key);
+      expect(_tool(key), findsNothing, reason: key);
     }
-    expect(find.bySemanticsLabel('Emphasis'), findsWidgets);
+    expect(_tool('Emphasis'), findsOneWidget);
+    for (final label in ['Sense', 'List', 'Example']) {
+      expect(find.text(label), findsOneWidget, reason: label);
+    }
+    // Tags belong in a sense, which puts them in.
+    expect(find.text('Tag'), findsNothing);
   });
 
   group('blocks', () {
     const entry =
         'note\n{sense | {tag pos n | noun} {list | {item | scenery}}}\nend';
 
-    testWidgets('show as they render, one piece each', (tester) async {
+    testWidgets('stand between text, with their text edited in place', (
+      tester,
+    ) async {
       await _pump(tester, entry);
-      expect(_c.text, 'note\n$atomChar\nend');
-      final block = find.descendant(
-        of: find.byType(FieldEditor),
-        matching: find.byType(ContentView),
-      );
-      expect(block, findsOneWidget);
+      expect(_editing('note'), findsOneWidget);
+      expect(_editing('scenery'), findsOneWidget);
+      expect(_editing('end'), findsOneWidget);
+      expect(find.text('noun'), findsOneWidget);
+
+      await tester.enterText(_editing('scenery'), 'view');
+      await tester.pump();
       expect(
-        find.descendant(of: block, matching: find.text('scenery')),
-        findsOneWidget,
+        _source,
+        'note\n{sense | {tag pos n | noun}{list | {item | view}}}\nend',
       );
-      expect(_source, entry);
+
+      // Marks within text work there too.
+      await _select(tester, 0, 4);
+      await tester.tap(_tool('Emphasis'));
+      await tester.pump();
+      expect(_source, contains('{item | {em | view}}'));
     });
 
-    testWidgets('take the height they need, without overlapping', (
-      tester,
-    ) async {
-      await _pump(
-        tester,
-        '{sense | {list | {item | a}{item | b}{item | c}{item | d}}}\n'
-        '{sense | {list | {item | e}}}',
-      );
-      final blocks = find
-          .descendant(
-            of: find.byType(FieldEditor),
-            matching: find.byType(ContentView),
-          )
-          .evaluate()
-          .map(
-            (e) => (e.renderObject! as RenderBox).paintBounds.shift(
-              (e.renderObject! as RenderBox).localToGlobal(Offset.zero),
-            ),
-          )
-          .toList();
-      expect(blocks, hasLength(2));
-      expect(blocks[1].top, greaterThanOrEqualTo(blocks[0].bottom));
+    testWidgets('a list adds and removes items', (tester) async {
+      await _pump(tester, '{list | {item | a}}');
+      await tester.tap(find.text('Add item'));
+      await tester.pumpAndSettle();
+      expect(_source, '{list | {item | a}{item |}}');
+      // The new item is focused, to type in.
+      expect(_c.text, '');
+      tester.testTextInput.enterText('b');
+      await tester.pump();
+      expect(_source, '{list | {item | a}{item | b}}');
+
+      await tester.tap(find.byTooltip('Remove item').first);
+      await tester.pumpAndSettle();
+      expect(_source, '{list | {item | b}}');
     });
 
-    testWidgets('are edited as source beside the cursor, and removed', (
+    testWidgets('Enter in an item starts the next one after it', (
       tester,
     ) async {
+      await _pump(tester, '{list | {item | a}{item | c}}');
+      await tester.showKeyboard(_editing('a'));
+      await tester.testTextInput.receiveAction(TextInputAction.next);
+      await tester.pumpAndSettle();
+      expect(_source, '{list | {item | a}{item |}{item | c}}');
+      tester.testTextInput.enterText('b');
+      await tester.pump();
+      expect(_source, '{list | {item | a}{item | b}{item | c}}');
+    });
+
+    testWidgets('an example has its sentence and its translation', (
+      tester,
+    ) async {
+      await _pump(tester, '{example | 景色がいい。{translation | Nice view.}}');
+      await tester.enterText(_editing('Nice view.'), 'The view is nice.');
+      await tester.pump();
+      expect(_source, '{example | 景色がいい。{translation | The view is nice.}}');
+    });
+
+    testWidgets('the toolbox puts one in at the cursor, splitting the text', (
+      tester,
+    ) async {
+      await _pump(tester, 'abcd');
+      await _select(tester, 2, 2);
+      await tester.tap(find.text('List'));
+      await tester.pumpAndSettle();
+      expect(_source, 'ab\n{list | {item |}}\ncd');
+      // Its first item is focused, to type in.
+      tester.testTextInput.enterText('x');
+      await tester.pump();
+      expect(_source, 'ab\n{list | {item | x}}\ncd');
+    });
+
+    testWidgets('dragged from the toolbox, drop between the parts', (
+      tester,
+    ) async {
+      await _pump(tester, 'abcd');
+      // On touch screens, after a long press.
+      final gesture = await tester.startGesture(
+        tester.getCenter(find.text('Example')),
+      );
+      await tester.pump(kLongPressTimeout);
+      await gesture.moveBy(const Offset(0, 20));
+      await tester.pump();
+      // Before the text, and after it.
+      final zones = find.byType(DragTarget<ToolboxDrag>);
+      expect(zones, findsNWidgets(2));
+      await gesture.moveTo(tester.getCenter(zones.last));
+      await tester.pump();
+      await gesture.up();
+      await tester.pumpAndSettle();
+      expect(_source, 'abcd\n{example | {translation |}}');
+      expect(find.byType(DragTarget<ToolboxDrag>), findsNothing);
+    });
+
+    testWidgets('a sense adds tags from its own button', (tester) async {
+      await _pump(tester, '{sense | {list | {item | a}}}');
+      // It stands in for the tags while there are none.
+      await tester.tap(find.text('Add tag'));
+      await tester.pumpAndSettle();
+      expect(_source, '{sense | {tag pos "" |}{list | {item | a}}}');
+
+      // A new tag opens to fill in.
+      await tester.enterText(find.widgetWithText(TextField, 'Label'), 'noun');
+      await tester.pump();
+      expect(_source, '{sense | {tag pos "" | noun}{list | {item | a}}}');
+      await tester.tap(find.byTooltip('Done'));
+      await tester.pumpAndSettle();
+      expect(find.text('noun'), findsOneWidget);
+      expect(find.text('Add tag'), findsOneWidget);
+    });
+
+    testWidgets('the first part of a block can be removed', (tester) async {
+      await _pump(tester, '{sense | {example | a}{list | {item | b}}}');
+      await tester.tap(find.byTooltip('Remove').last);
+      await tester.pumpAndSettle();
+      expect(tester.takeException(), isNull);
+      expect(_source, '{sense | {list | {item | b}}}');
+    });
+
+    testWidgets("a sense's list cannot be removed", (tester) async {
+      await _pump(tester, '{sense | {list | {item | a}}}');
+      // Only the sense's own button can be pressed.
+      final remove = find.byTooltip('Remove');
+      expect(remove, findsOneWidget);
+      await tester.tap(remove);
+      await tester.pumpAndSettle();
+      expect(_source, '');
+    });
+
+    testWidgets('are removed, joining the text around them', (tester) async {
       await _pump(tester, entry);
-      await _select(tester, 5, 5);
+      await tester.tap(find.byTooltip('Remove').first);
+      await tester.pumpAndSettle();
+      expect(_source, 'note\nend');
+      expect(_editing('note\nend'), findsOneWidget);
+    });
+
+    testWidgets('undo takes back typing in them and putting them in', (
+      tester,
+    ) async {
+      await _pump(tester, 'ab');
+      await _select(tester, 2, 2);
+      await tester.tap(find.text('List'));
+      await tester.pumpAndSettle();
+      tester.testTextInput.enterText('x');
+      await tester.pump();
+      tester.testTextInput.enterText('xy');
+      await tester.pump();
+      expect(_source, 'ab\n{list | {item | xy}}');
+
+      await tester.tap(_tool('Undo'));
+      await tester.pumpAndSettle();
+      expect(_source, 'ab\n{list | {item |}}');
+      await tester.tap(_tool('Undo'));
+      await tester.pumpAndSettle();
+      expect(_source, 'ab');
+      expect(find.text('Add item'), findsNothing);
+
+      await tester.tap(_tool('Redo'));
+      await tester.pumpAndSettle();
+      expect(_source, 'ab\n{list | {item |}}');
+    });
+
+    testWidgets('kinds without an editor are edited as source', (tester) async {
+      await _pump(tester, '{forms | {form 景色 reading=けしき}}');
+      await tester.tap(find.text('景色【けしき】'));
+      await tester.pumpAndSettle();
       expect(find.text('Source'), findsOneWidget);
 
       await tester.enterText(
-        find.byType(TextField).last,
-        '{sense | {list | {item | view}}}',
+        find.widgetWithText(TextField, 'Source'),
+        '{forms | {form 景色}}',
       );
       await tester.pump();
-      expect(_source, 'note\n{sense | {list | {item | view}}}\nend');
+      expect(_source, '{forms | {form 景色}}');
 
       // Source that is not one mark waits.
-      await tester.enterText(find.byType(TextField).last, '{sense | x');
+      await tester.enterText(find.widgetWithText(TextField, 'Source'), '{x');
       await tester.pump();
-      await tester.enterText(find.byType(TextField).last, 'a b');
-      await tester.pump();
-      expect(_source, 'note\n{sense | {list | {item | view}}}\nend');
+      expect(_source, '{forms | {form 景色}}');
+    });
 
-      await tester.tap(find.text('Remove'));
-      await tester.pumpAndSettle();
-      expect(_source, 'note\n\nend');
+    testWidgets('are text without a registry of blocks', (tester) async {
+      _tester = tester;
+      _field = FieldController(parseContent('{list | {item | a}}').nodes);
+      addTearDown(_field.dispose);
+      await tester.pumpWidget(
+        MaterialApp(
+          theme: AppTheme.light(),
+          localizationsDelegates: AppLocalizations.localizationsDelegates,
+          supportedLocales: AppLocalizations.supportedLocales,
+          home: Scaffold(
+            body: FieldEditor(controller: _field, blocks: const {}),
+          ),
+        ),
+      );
+      await tester.pump();
+      expect(find.text('Add item'), findsNothing);
+      expect(find.text('Sense'), findsNothing);
+      expect(_c.text, 'a');
     });
   });
 }
