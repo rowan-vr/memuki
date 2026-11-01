@@ -2,10 +2,12 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:memuki/domain/content/mark_kinds.dart';
+import 'package:memuki/presentation/components/icons.dart';
 import 'package:memuki/presentation/content/card_view.dart';
 import 'package:memuki/presentation/content/content_view.dart';
 import 'package:memuki/presentation/content/field_editor.dart';
 import 'package:memuki/presentation/content/marked_text_controller.dart';
+import 'package:memuki/presentation/content/template_editor.dart';
 import 'package:memuki/presentation/developer/content_playground_screen.dart';
 import 'package:memuki/presentation/developer/content_warnings.dart';
 import 'package:memuki/presentation/developer/developer_screen.dart';
@@ -125,7 +127,7 @@ void main() {
     expect(_warning(tester), 'None');
     expect(
       find.descendant(of: find.byType(CardView), matching: find.text('猫')),
-      findsOneWidget,
+      findsWidgets,
     );
 
     await _scope(tester, 'Field');
@@ -177,6 +179,53 @@ void main() {
       find.descendant(of: find.byType(ContentView), matching: find.text('てんき')),
       findsOneWidget,
     );
+  });
+
+  testWidgets('arranges a template visually, writing its source', (
+    tester,
+  ) async {
+    await _open(tester);
+    await _scope(tester, 'Template');
+    await tester.tap(find.text('Visual'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TemplateEditor), findsOneWidget);
+
+    await tester.tap(find.byIcon(MemukiIcons.more).first);
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Remove'));
+    await tester.pumpAndSettle();
+    expect(_output(tester, 'Canonical source'), contains('{front |}'));
+    expect(
+      find.descendant(of: find.byType(CardView), matching: find.text('猫')),
+      findsNothing,
+    );
+
+    await tester.tap(find.text('Source').last);
+    await tester.pumpAndSettle();
+    expect(find.byType(TemplateEditor), findsNothing);
+  });
+
+  testWidgets('says when a template cannot be arranged', (tester) async {
+    await _open(tester);
+    await _scope(tester, 'Template');
+    await _type(tester, '{front | x}');
+    await tester.tap(find.text('Visual'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TemplateEditor), findsNothing);
+    expect(find.textContaining('arranged visually once'), findsOneWidget);
+
+    await _type(tester, '{front | x}{back | y}');
+    await tester.tap(find.text('Visual'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TemplateEditor), findsOneWidget);
+
+    await tester.tap(_row('field'));
+    await tester.pumpAndSettle();
+    await tester.ensureVisible(find.text('Try'));
+    await tester.pumpAndSettle();
+    await tester.tap(find.text('Try'));
+    await tester.pumpAndSettle();
+    expect(find.byType(TemplateEditor), findsNothing);
   });
 
   testWidgets('names what a template issue is about', (tester) async {
