@@ -124,18 +124,44 @@ class MarkRendering {
     'audio': const MarkRendering(span: _audio),
   };
 
-  /// A meaning of a word, numbered when there are several: its tags and
-  /// glosses from the start of the line.
+  /// A meaning of a word, numbered in a disc when there are several: its
+  /// tags and glosses from the start of the line.
   static Widget _sense(BuildContext context, MarkBlock block) {
     final content = block.content();
     if (block.count < 2) return content;
-    final n = block.index + 1;
-    // Circled numbers go up to ⑳.
-    final number = n <= 20 ? String.fromCharCode(0x2460 + n - 1) : '($n)';
+    final colors = context.colors;
+    final size = block.style.fontSize ?? context.type.body.fontSize!;
+    final line = size * (block.style.height ?? 1.5);
+    final disc = size * 1.25;
     return Row(
       crossAxisAlignment: CrossAxisAlignment.start,
       children: [
-        Text(number, style: block.style),
+        // Centred on the first line, level with the tags on it.
+        SizedBox(
+          height: line,
+          child: Center(
+            child: Container(
+              width: disc,
+              height: disc,
+              alignment: Alignment.center,
+              decoration: BoxDecoration(
+                color: colors.accent.soft,
+                shape: BoxShape.circle,
+              ),
+              child: Text(
+                '${block.index + 1}',
+                textScaler: TextScaler.noScaling,
+                style: block.style.copyWith(
+                  fontSize: size * 0.75,
+                  height: 1,
+                  fontWeight: FontWeight.w700,
+                  fontVariations: const [FontVariation.weight(700)],
+                  color: colors.accent.onSoft,
+                ),
+              ),
+            ),
+          ),
+        ),
         const SizedBox(width: Spacing.sm),
         Expanded(child: content),
       ],

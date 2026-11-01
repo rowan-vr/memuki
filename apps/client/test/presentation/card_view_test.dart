@@ -156,13 +156,18 @@ void main() {
 
     testWidgets('number senses when there are several', (tester) async {
       await _pump(tester, ContentView(parseContent(entry).nodes));
-      expect(find.text('①'), findsOneWidget);
-      expect(find.text('②'), findsOneWidget);
+      expect(find.text('1'), findsOneWidget);
+      expect(find.text('2'), findsOneWidget);
+      // Level with the tags on the first line.
+      expect(
+        tester.getCenter(find.text('1')).dy,
+        closeTo(tester.getCenter(find.text('adverb')).dy, 2),
+      );
       await _pump(
         tester,
         ContentView(parseContent('{sense | {list | {item | a}}}').nodes),
       );
-      expect(find.text('①'), findsNothing);
+      expect(find.text('1'), findsNothing);
       await _pump(
         tester,
         SingleChildScrollView(
@@ -172,8 +177,7 @@ void main() {
           ),
         ),
       );
-      expect(find.text('⑳'), findsOneWidget);
-      expect(find.text('(21)'), findsOneWidget);
+      expect(find.text('21'), findsOneWidget);
     });
 
     testWidgets('lay out lists as bulleted lines, in order', (tester) async {

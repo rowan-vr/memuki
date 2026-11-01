@@ -158,7 +158,7 @@ Dictionary entries, from mining or from imported Anki notes, are kept as marks, 
 {audio hakkiri.mp3}
 ```
 
-- `sense` is one meaning; several senses in a field are numbered when shown, so the numbers are not stored.
+- `sense` is one meaning; several senses in a field are numbered in small tinted discs when shown, so the numbers are not stored.
 - `tag` keeps a label's category (`pos`, `misc`, `field`, `dialect`) and the dictionary's code; the category decides its tint.
 - `list`, `item`, `sense`, `example`, `translation`, and `forms` are shown as blocks, on lines of their own; text around them goes on lines before and after.
 - `forms` and `source` keep reference details a dictionary gives. They are shown on request only.
