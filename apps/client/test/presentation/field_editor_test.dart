@@ -536,6 +536,30 @@ void main() {
       expect(_source, entry);
     });
 
+    testWidgets('take the height they need, without overlapping', (
+      tester,
+    ) async {
+      await _pump(
+        tester,
+        '{sense | {list | {item | a}{item | b}{item | c}{item | d}}}\n'
+        '{sense | {list | {item | e}}}',
+      );
+      final blocks = find
+          .descendant(
+            of: find.byType(FieldEditor),
+            matching: find.byType(ContentView),
+          )
+          .evaluate()
+          .map(
+            (e) => (e.renderObject! as RenderBox).paintBounds.shift(
+              (e.renderObject! as RenderBox).localToGlobal(Offset.zero),
+            ),
+          )
+          .toList();
+      expect(blocks, hasLength(2));
+      expect(blocks[1].top, greaterThanOrEqualTo(blocks[0].bottom));
+    });
+
     testWidgets('are edited as source beside the cursor, and removed', (
       tester,
     ) async {

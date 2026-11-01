@@ -244,6 +244,9 @@ class _FieldEditorState extends State<FieldEditor> {
                         minLines: 1,
                         maxLines: null,
                         style: style,
+                        // A floor rather than a fixed height, so a line
+                        // holding a block grows to fit it.
+                        strutStyle: StrutStyle.fromTextStyle(style),
                         decoration: InputDecoration(
                           filled: true,
                           fillColor: colors.surfaceSunken,
