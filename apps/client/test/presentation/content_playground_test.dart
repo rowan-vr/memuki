@@ -2,7 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:flutter_test/flutter_test.dart';
 import 'package:go_router/go_router.dart';
 import 'package:memuki/domain/content/mark_kinds.dart';
-import 'package:memuki/presentation/components/panel.dart';
+import 'package:memuki/presentation/content/card_view.dart';
+import 'package:memuki/presentation/content/content_view.dart';
 import 'package:memuki/presentation/content/field_editor.dart';
 import 'package:memuki/presentation/content/marked_text_controller.dart';
 import 'package:memuki/presentation/developer/content_playground_screen.dart';
@@ -122,7 +123,10 @@ void main() {
 
     await _scope(tester, 'Template');
     expect(_warning(tester), 'None');
-    expect(find.text('Word · prompt'), findsOneWidget);
+    expect(
+      find.descendant(of: find.byType(CardView), matching: find.text('猫')),
+      findsOneWidget,
+    );
 
     await _scope(tester, 'Field');
     expect(_output(tester, 'Plain text'), 'a');
@@ -136,25 +140,42 @@ void main() {
     expect(_warning(tester), 'None');
   });
 
-  testWidgets('previews a template', (tester) async {
+  testWidgets('previews a template as the card it makes', (tester) async {
     await _open(tester);
     await _scope(tester, 'Template');
     await _type(
       tester,
-      '{front | {field Word role=prompt}}\n{back | {# hidden}x}\n{requires Word}',
+      '{front | {field Word role=prompt}}\n'
+      '{back | {# hidden}{field Meaning role=answer}}\n'
+      '{requires Word}',
     );
     expect(_warning(tester), 'None');
-    expect(find.text('Word · prompt'), findsOneWidget);
-    expect(find.text('Requires Word'), findsOneWidget);
-    final preview = find
-        .ancestor(of: find.text('front'), matching: find.byType(Panel))
-        .first;
+    final card = find.byType(CardView);
+    expect(find.descendant(of: card, matching: find.text('猫')), findsOneWidget);
+    Finder back() => find.descendant(
+      of: card,
+      matching: find.textContaining('cat', findRichText: true),
+    );
+    expect(back(), findsNothing);
+
+    await tester.tap(find.text('Back'));
+    await tester.pumpAndSettle();
+    expect(back(), findsOneWidget);
     expect(
       find.descendant(
-        of: preview,
+        of: card,
         matching: find.textContaining('hidden', findRichText: true),
       ),
       findsNothing,
+    );
+  });
+
+  testWidgets('previews a field as the renderer shows it', (tester) async {
+    await _open(tester);
+    await _type(tester, '{ruby てんき | 天気}');
+    expect(
+      find.descendant(of: find.byType(ContentView), matching: find.text('てんき')),
+      findsOneWidget,
     );
   });
 

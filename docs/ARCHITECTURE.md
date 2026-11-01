@@ -162,6 +162,10 @@ A template is content in the same format, whose marks place fields:
 - Fields are placed by role; the role decides their styling. Templates carry no styling of their own.
 - `if` shows its content only when the field is not empty; `requires` lists the fields a note must fill for the template to generate a card.
 - Cloze and typed answer are template kinds that refer to a field.
+- **Rendering:** a template and a note's fields render to a card's front and back as content, free of Flutter. `if` is resolved, comments and `requires` are dropped, and each `field` takes the field's value as its content and keeps its role; an empty field is dropped. Whitespace in the template that holds a line break becomes one line break, and field values are kept as they are.
+  - Content is shown read-only from one entry per mark key: a style for its text, or a span for marks that are more than styled text. A kind without an entry shows its content.
+  - A ruby's reading is stacked over its base text as one group that sits on the line's baseline. A reading wider than its base text widens the group. Subscript and superscript are smaller and moved down or up, and the line keeps its height.
+  - A card is drawn in its frame with the front, and after revealing, the back below a rule. The role decides each field's style: `prompt` large, `reading` smaller and muted, `answer` at title size, `example` muted. A field with any other role, or none, uses body text.
 - Templates are edited visually by arranging fields on the front and back, with the same source toggle.
 - The format is stored on `StudyCardTemplate`; template IDs, and so card identity, do not depend on it.
 
