@@ -204,6 +204,7 @@ void main() {
           .decoration
           .let((d) => (d as BoxDecoration?)?.color);
       expect(background('adverb'), c.colors.surfaceSunken);
+      expect(_span(tester, 'adverb').style!.fontSize, c.type.body.fontSize);
       expect(
         background('mimetic'),
         c.colors.swatches[MemukiAccent.coral]!.soft,

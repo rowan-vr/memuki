@@ -168,7 +168,8 @@ class MarkRendering {
     );
   }
 
-  /// A label, tinted by what it labels, with a little room after it.
+  /// A label, tinted by what it labels, at the size of the text around it,
+  /// with a little room after it.
   static InlineSpan _tag(
     BuildContext context,
     MarkNode mark,
@@ -182,7 +183,6 @@ class MarkRendering {
       'dialect' => colors.swatches[MemukiAccent.green],
       _ => null,
     };
-    final size = (style.fontSize ?? context.type.body.fontSize!) * 0.75;
     return WidgetSpan(
       alignment: PlaceholderAlignment.middle,
       child: Padding(
@@ -196,8 +196,10 @@ class MarkRendering {
           child: _inline(
             _restyled(
               content,
+              // As large as the text around it, a little tighter so the
+              // tag sits inside the line.
               (s) => s.copyWith(
-                fontSize: size,
+                height: 1.3,
                 fontWeight: FontWeight.w700,
                 fontVariations: const [FontVariation.weight(700)],
                 color: tone?.onSoft ?? colors.text,
