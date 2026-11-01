@@ -181,4 +181,70 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editorRedo => 'Redo';
+
+  @override
+  String get templateFront => 'Front';
+
+  @override
+  String get templateBack => 'Back';
+
+  @override
+  String get templateEmptySide => 'Nothing here yet.';
+
+  @override
+  String get templateAddField => 'Field';
+
+  @override
+  String get templateAddText => 'Text';
+
+  @override
+  String get templateAddCondition => 'Condition';
+
+  @override
+  String get templateField => 'Field';
+
+  @override
+  String get templateRole => 'Role';
+
+  @override
+  String get templateNoRole => 'No role';
+
+  @override
+  String get templateRolePrompt => 'Prompt';
+
+  @override
+  String get templateRoleReading => 'Reading';
+
+  @override
+  String get templateRoleAnswer => 'Answer';
+
+  @override
+  String get templateRoleExample => 'Example';
+
+  @override
+  String get templateConditionField => 'Only when filled';
+
+  @override
+  String get templateSource => 'Source';
+
+  @override
+  String get templateRequires => 'Required fields';
+
+  @override
+  String get templateRequiresHint =>
+      'A note makes this card only when all of these are filled.';
+
+  @override
+  String get templateMoveUp => 'Move up';
+
+  @override
+  String get templateMoveDown => 'Move down';
+
+  @override
+  String get templateRemove => 'Remove';
+
+  @override
+  String templateMissingField(String name) {
+    return '$name (not in this note type)';
+  }
 }

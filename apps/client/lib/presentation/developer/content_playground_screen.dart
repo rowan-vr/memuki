@@ -5,6 +5,7 @@ import '../../domain/content/content_node.dart';
 import '../../domain/content/content_parser.dart';
 import '../../domain/content/content_writer.dart';
 import '../../domain/content/mark_kinds.dart';
+import '../../domain/content/template_layout.dart';
 import '../components/buttons.dart';
 import '../components/icons.dart';
 import '../components/panel.dart';
@@ -16,6 +17,7 @@ import '../content/card_view.dart';
 import '../content/content_view.dart';
 import '../content/field_editor.dart';
 import '../content/marked_text_controller.dart';
+import '../content/template_editor.dart';
 import '../theme/app_theme.dart';
 import '../theme/memuki_type.dart';
 import '../theme/motion.dart';
@@ -83,6 +85,14 @@ class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
   /// source as it changes.
   MarkedTextController? _rich;
 
+  /// The template in the visual editor, while it is shown; it writes the
+  /// template's source as it changes.
+  TemplateLayout? _arranged;
+
+  /// Whether the visual editor was asked for, but the template's top level
+  /// does not fit it.
+  var _unarrangeable = false;
+
   MarkKinds get _kinds => widget.kinds ?? MarkKinds.builtIn;
 
   @override
@@ -100,7 +110,25 @@ class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
     _sources[_scope]!.text = kind.example;
     if (_scope == MarkScope.field) {
       _rich?.nodes = parseContent(kind.example).nodes;
+    } else if (_arranged != null) {
+      _arrange(visual: true);
     }
+  });
+
+  void _setVisual(bool visual) => setState(() => _arrange(visual: visual));
+
+  void _arrange({required bool visual}) {
+    _arranged = visual
+        ? TemplateLayout.read(
+            parseContent(_sources[MarkScope.template]!.text).nodes,
+          )
+        : null;
+    _unarrangeable = visual && _arranged == null;
+  }
+
+  void _templateChanged(TemplateLayout layout) => setState(() {
+    _arranged = layout;
+    _sources[MarkScope.template]!.text = layout.write();
   });
 
   void _setRich(bool rich) => setState(() {
@@ -139,6 +167,10 @@ class _ContentPlaygroundScreenState extends State<ContentPlaygroundScreen> {
         onScope: (scope) => setState(() => _scope = scope),
         rich: _scope == MarkScope.field ? _rich : null,
         onRich: _setRich,
+        arranged: _scope == MarkScope.template ? _arranged : null,
+        unarrangeable: _scope == MarkScope.template && _unarrangeable,
+        onVisual: _setVisual,
+        onTemplate: _templateChanged,
       ),
     ];
     final matching = _matching();
@@ -224,6 +256,10 @@ class _Playground extends StatelessWidget {
     required this.onScope,
     required this.rich,
     required this.onRich,
+    required this.arranged,
+    required this.unarrangeable,
+    required this.onVisual,
+    required this.onTemplate,
   });
 
   final TextEditingController source;
@@ -234,6 +270,12 @@ class _Playground extends StatelessWidget {
   /// The rich editor's controller while a field is edited in it.
   final MarkedTextController? rich;
   final ValueChanged<bool> onRich;
+
+  /// The template's layout while it is edited visually.
+  final TemplateLayout? arranged;
+  final bool unarrangeable;
+  final ValueChanged<bool> onVisual;
+  final ValueChanged<TemplateLayout> onTemplate;
 
   @override
   Widget build(BuildContext context) {
@@ -271,6 +313,15 @@ class _Playground extends StatelessWidget {
                         ],
                         selected: rich != null,
                         onSelected: onRich,
+                      )
+                    else
+                      SegmentedChoice(
+                        choices: const [
+                          Choice(true, 'Visual'),
+                          Choice(false, 'Source'),
+                        ],
+                        selected: arranged != null,
+                        onSelected: onVisual,
                       ),
                     SegmentedChoice(
                       choices: const [
@@ -298,8 +349,24 @@ class _Playground extends StatelessWidget {
                       child: WarningBanner(warnings),
                     ),
             ),
+            if (unarrangeable)
+              Padding(
+                padding: const EdgeInsets.only(bottom: Spacing.sm),
+                child: Text(
+                  'This template can only be arranged visually once it has '
+                  'one front and one back, with nothing else outside them '
+                  'but requires and comments.',
+                  style: type.caption.copyWith(color: colors.textMuted),
+                ),
+              ),
             if (rich case final rich?)
               FieldEditor(controller: rich, kinds: kinds)
+            else if (arranged case final arranged?)
+              TemplateEditor(
+                layout: arranged,
+                fields: _sampleFields.keys.toList(),
+                onChanged: onTemplate,
+              )
             else
               TextField(
                 controller: source,

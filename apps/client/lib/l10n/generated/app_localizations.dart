@@ -399,6 +399,132 @@ abstract class AppLocalizations {
   /// In en, this message translates to:
   /// **'Redo'**
   String get editorRedo;
+
+  /// Template editor: heading of the front of the card, what is asked.
+  ///
+  /// In en, this message translates to:
+  /// **'Front'**
+  String get templateFront;
+
+  /// Template editor: heading of the back of the card, the answer.
+  ///
+  /// In en, this message translates to:
+  /// **'Back'**
+  String get templateBack;
+
+  /// Template editor: shown in a side of the card that has no lines.
+  ///
+  /// In en, this message translates to:
+  /// **'Nothing here yet.'**
+  String get templateEmptySide;
+
+  /// Template editor: adds a line that shows a field.
+  ///
+  /// In en, this message translates to:
+  /// **'Field'**
+  String get templateAddField;
+
+  /// Template editor: adds a line of text.
+  ///
+  /// In en, this message translates to:
+  /// **'Text'**
+  String get templateAddText;
+
+  /// Template editor: adds lines shown only when a field is filled.
+  ///
+  /// In en, this message translates to:
+  /// **'Condition'**
+  String get templateAddCondition;
+
+  /// Template editor: label of the picker for which field a line shows.
+  ///
+  /// In en, this message translates to:
+  /// **'Field'**
+  String get templateField;
+
+  /// Template editor: label of the picker for what a field is on the card, which decides its styling.
+  ///
+  /// In en, this message translates to:
+  /// **'Role'**
+  String get templateRole;
+
+  /// Template editor: the role choice for a field without a role, shown as body text.
+  ///
+  /// In en, this message translates to:
+  /// **'No role'**
+  String get templateNoRole;
+
+  /// Template editor: the role of a field that asks the question, shown large.
+  ///
+  /// In en, this message translates to:
+  /// **'Prompt'**
+  String get templateRolePrompt;
+
+  /// Template editor: the role of a field that gives a reading, such as kana for a word.
+  ///
+  /// In en, this message translates to:
+  /// **'Reading'**
+  String get templateRoleReading;
+
+  /// Template editor: the role of a field that answers the prompt.
+  ///
+  /// In en, this message translates to:
+  /// **'Answer'**
+  String get templateRoleAnswer;
+
+  /// Template editor: the role of a field with an example, such as a sentence.
+  ///
+  /// In en, this message translates to:
+  /// **'Example'**
+  String get templateRoleExample;
+
+  /// Template editor: label of the picker for the field that must be filled for the lines under it to show.
+  ///
+  /// In en, this message translates to:
+  /// **'Only when filled'**
+  String get templateConditionField;
+
+  /// Template editor: label of a line that is edited as source, because it does not fit the other kinds of line.
+  ///
+  /// In en, this message translates to:
+  /// **'Source'**
+  String get templateSource;
+
+  /// Template editor: heading of the fields a note must fill for this template to make a card.
+  ///
+  /// In en, this message translates to:
+  /// **'Required fields'**
+  String get templateRequires;
+
+  /// Template editor: explains the required fields.
+  ///
+  /// In en, this message translates to:
+  /// **'A note makes this card only when all of these are filled.'**
+  String get templateRequiresHint;
+
+  /// Template editor: moves a line up.
+  ///
+  /// In en, this message translates to:
+  /// **'Move up'**
+  String get templateMoveUp;
+
+  /// Template editor: moves a line down.
+  ///
+  /// In en, this message translates to:
+  /// **'Move down'**
+  String get templateMoveDown;
+
+  /// Template editor: removes a line.
+  ///
+  /// In en, this message translates to:
+  /// **'Remove'**
+  String get templateRemove;
+
+  /// Template editor: a field the template names that the note type does not have.
+  ///
+  /// In en, this message translates to:
+  /// **'{name} (not in this note type)'**
+  String templateMissingField(String name);
 }
 
 class _AppLocalizationsDelegate
