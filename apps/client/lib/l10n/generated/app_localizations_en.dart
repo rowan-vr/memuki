@@ -346,4 +346,180 @@ class AppLocalizationsEn extends AppLocalizations {
 
   @override
   String get editorAddTag => 'Add tag';
+
+  @override
+  String get commonCancel => 'Cancel';
+
+  @override
+  String get commonSave => 'Save';
+
+  @override
+  String get collectionDefaultName => 'My collection';
+
+  @override
+  String get settingsNoteTypes => 'Note types';
+
+  @override
+  String get noteTypesEmpty => 'No note types yet.';
+
+  @override
+  String get noteTypesAdd => 'New note type';
+
+  @override
+  String get noteTypeDefaultName => 'New note type';
+
+  @override
+  String get noteTypeDefaultFront => 'Front';
+
+  @override
+  String get noteTypeDefaultBack => 'Back';
+
+  @override
+  String noteTypeDefaultField(int number) {
+    return 'Field $number';
+  }
+
+  @override
+  String noteTypeDefaultCard(int number) {
+    return 'Card $number';
+  }
+
+  @override
+  String noteTypeSummary(int fieldCount, int cardCount) {
+    String _temp0 = intl.Intl.pluralLogic(
+      fieldCount,
+      locale: localeName,
+      other: '$fieldCount fields',
+      one: '1 field',
+    );
+    String _temp1 = intl.Intl.pluralLogic(
+      cardCount,
+      locale: localeName,
+      other: '$cardCount cards',
+      one: '1 card',
+    );
+    return '$_temp0 · $_temp1';
+  }
+
+  @override
+  String get noteTypeName => 'Name';
+
+  @override
+  String get noteTypeFields => 'Fields';
+
+  @override
+  String get noteTypeCards => 'Cards';
+
+  @override
+  String get noteTypeAddField => 'Add field';
+
+  @override
+  String get noteTypeAddCard => 'Add card';
+
+  @override
+  String get noteTypeFieldName => 'Field name';
+
+  @override
+  String get noteTypeCardName => 'Card name';
+
+  @override
+  String get noteTypeFieldSettings => 'Settings';
+
+  @override
+  String get noteTypeFieldLanguage => 'Language';
+
+  @override
+  String get noteTypeFieldLanguageHint => 'A language tag, such as ja';
+
+  @override
+  String get noteTypeFieldRequired => 'Required';
+
+  @override
+  String get noteTypeFieldDuplicates => 'Check for duplicates';
+
+  @override
+  String get noteTypeFieldMarks => 'Marks';
+
+  @override
+  String get noteTypeFieldAllMarks => 'All';
+
+  @override
+  String get noteTypeRemoveField => 'Remove field';
+
+  @override
+  String noteTypeRemoveFieldTitle(String name) {
+    return 'Remove $name?';
+  }
+
+  @override
+  String noteTypeRemoveFieldUsed(String cards) {
+    return 'It is taken out of $cards. Notes keep its values, hidden.';
+  }
+
+  @override
+  String get noteTypeRemoveFieldUnused => 'Notes keep its values, hidden.';
+
+  @override
+  String get noteTypeRemove => 'Remove';
+
+  @override
+  String get noteTypeRemoveCard => 'Remove card';
+
+  @override
+  String get noteTypeDelete => 'Delete note type';
+
+  @override
+  String noteTypeDeleteTitle(String name) {
+    return 'Delete $name?';
+  }
+
+  @override
+  String get noteTypeDeleteBody => 'Its fields and cards go with it.';
+
+  @override
+  String get noteTypeDeleteConfirm => 'Delete';
+
+  @override
+  String get noteTypeInUse =>
+      'Notes use this note type, so it cannot be deleted.';
+
+  @override
+  String get noteTypeCardStudied =>
+      'A removed card has been studied, so it cannot be removed.';
+
+  @override
+  String get noteTypeDiscardTitle => 'Discard changes?';
+
+  @override
+  String get noteTypeDiscardBody =>
+      'Your changes to this note type are not saved.';
+
+  @override
+  String get noteTypeDiscard => 'Discard';
+
+  @override
+  String get noteTypeNameEmpty => 'A name is needed.';
+
+  @override
+  String get noteTypeNameTaken => 'Another one has this name.';
+
+  @override
+  String noteTypeMissingFields(String card, String fields) {
+    return '$card shows fields this note type does not have: $fields';
+  }
+
+  @override
+  String noteTypeCardProblem(String card) {
+    return '$card needs a front and a back, with nothing outside them.';
+  }
+
+  @override
+  String get noteTypePreview => 'Preview';
+
+  @override
+  String get noteTypeVisual => 'Visual';
+
+  @override
+  String get noteTypeNotArrangeable =>
+      'This card can only be arranged visually once it has one front and one back, with nothing else outside them but requires and comments.';
 }

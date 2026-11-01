@@ -63,13 +63,14 @@ class NoteTypeRepository {
             id: noteType.id,
             collectionId: noteType.collectionId,
             name: noteType.name,
+            duplicateCheck: Value(noteType.duplicateCheck),
             hlc: hlc,
           ),
         );
     await _writeParts(noteType, hlc);
   });
 
-  /// Saves the note type's name, fields, and templates.
+  /// Saves the note type's name, duplicate check, fields, and templates.
   ///
   /// Removing a field hides its values in all notes; adding it back with the
   /// same ID shows them again. Removing a template that still has cards is
@@ -128,11 +129,16 @@ class NoteTypeRepository {
       );
     }
 
-    if (current.name != noteType.name) {
+    if (current.name != noteType.name ||
+        current.duplicateCheck != noteType.duplicateCheck) {
       await (_db.update(
         _db.noteTypes,
       )..where((t) => t.id.equalsValue(noteType.id))).write(
-        NoteTypesCompanion(name: Value(noteType.name), hlc: Value(hlc)),
+        NoteTypesCompanion(
+          name: Value(noteType.name),
+          duplicateCheck: Value(noteType.duplicateCheck),
+          hlc: Value(hlc),
+        ),
       );
     }
 
@@ -212,13 +218,18 @@ class NoteTypeRepository {
           final current? =>
             current.position != i ||
                 current.name != field.name ||
-                current.type != field.type,
+                current.type != field.type ||
+                current.language != field.language ||
+                current.required != field.isRequired ||
+                !_sameKeys(current.allowedMarks, field.allowedMarks),
           null => true,
         };
     bool templateChanged(int i, StudyCardTemplate template) =>
         switch (currentTemplates[template.id]) {
           final current? =>
-            current.position != i || current.name != template.name,
+            current.position != i ||
+                current.name != template.name ||
+                current.source != template.source,
           null => true,
         };
     b.insertAllOnConflictUpdate(_db.fieldDefinitions, [
@@ -230,6 +241,9 @@ class NoteTypeRepository {
             position: i,
             name: field.name,
             type: field.type,
+            language: Value(field.language),
+            required: Value(field.isRequired),
+            allowedMarks: Value(field.allowedMarks),
             hlc: hlc,
             deleted: const Value(false),
           ),
@@ -242,6 +256,7 @@ class NoteTypeRepository {
             noteTypeId: noteType.id,
             position: i,
             name: template.name,
+            source: Value(template.source),
             hlc: hlc,
             deleted: const Value(false),
           ),
@@ -279,17 +294,35 @@ class NoteTypeRepository {
           fields: [
             for (final f in fields)
               if (f.noteTypeId == row.id)
-                FieldDefinition(id: f.id, name: f.name, type: f.type),
+                FieldDefinition(
+                  id: f.id,
+                  name: f.name,
+                  type: f.type,
+                  language: f.language,
+                  isRequired: f.required,
+                  allowedMarks: f.allowedMarks,
+                ),
           ],
           templates: [
             for (final t in templates)
               if (t.noteTypeId == row.id)
-                StudyCardTemplate(id: t.id, name: t.name),
+                StudyCardTemplate(id: t.id, name: t.name, source: t.source),
           ],
+          // A field removed on another device may still be named here.
+          duplicateCheck:
+              fields.any(
+                (f) => f.noteTypeId == row.id && f.id == row.duplicateCheck,
+              )
+              ? row.duplicateCheck
+              : null,
         ),
     ];
   }
 }
+
+bool _sameKeys(Set<String>? a, Set<String>? b) => a == null
+    ? b == null
+    : b != null && a.length == b.length && a.containsAll(b);
 
 EntityNotFoundException _notFound(NoteTypeId id) =>
     EntityNotFoundException('Note type $id does not exist');

@@ -15,7 +15,12 @@ T _$identity<T>(T value) => value;
 /// @nodoc
 mixin _$FieldDefinition {
 
- FieldDefinitionId get id; String get name; FieldType get type;
+ FieldDefinitionId get id; String get name; FieldType get type;/// The language of its values, as a BCP 47 tag such as ja; a `lang`
+/// mark overrides it for a span. Null when it is not set.
+ String? get language;/// Whether a note must fill it.
+ bool get isRequired;/// The kinds of mark its values may hold, or null for all. Marks inside
+/// one it allows, such as a list's items, go with it.
+ Set<String>? get allowedMarks;
 /// Create a copy of FieldDefinition
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -27,20 +32,20 @@ $FieldDefinitionCopyWith<FieldDefinition> get copyWith => _$FieldDefinitionCopyW
 @override
 bool operator ==(Object other) {
   final _this = this as FieldDefinition;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is FieldDefinition&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.type, _this.type) || other.type == _this.type));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is FieldDefinition&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.type, _this.type) || other.type == _this.type)&&(identical(other.language, _this.language) || other.language == _this.language)&&(identical(other.isRequired, _this.isRequired) || other.isRequired == _this.isRequired)&&const DeepCollectionEquality().equals(other.allowedMarks, _this.allowedMarks));
 }
 
 
 @override
 int get hashCode {
   final _this = this as FieldDefinition;
-  return Object.hash(runtimeType,_this.id,_this.name,_this.type);
+  return Object.hash(runtimeType,_this.id,_this.name,_this.type,_this.language,_this.isRequired,const DeepCollectionEquality().hash(_this.allowedMarks));
 }
 
 @override
 String toString() {
   final _this = this as FieldDefinition;
-  return 'FieldDefinition(id: ${_this.id}, name: ${_this.name}, type: ${_this.type})';
+  return 'FieldDefinition(id: ${_this.id}, name: ${_this.name}, type: ${_this.type}, language: ${_this.language}, isRequired: ${_this.isRequired}, allowedMarks: ${_this.allowedMarks})';
 }
 
 
@@ -51,7 +56,7 @@ abstract mixin class $FieldDefinitionCopyWith<$Res>  {
   factory $FieldDefinitionCopyWith(FieldDefinition value, $Res Function(FieldDefinition) _then) = _$FieldDefinitionCopyWithImpl;
 @useResult
 $Res call({
- FieldDefinitionId id, String name, FieldType type
+ FieldDefinitionId id, String name, FieldType type, String? language, bool isRequired, Set<String>? allowedMarks
 });
 
 
@@ -68,12 +73,15 @@ class _$FieldDefinitionCopyWithImpl<$Res>
 
 /// Create a copy of FieldDefinition
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? type = null,Object? language = freezed,Object? isRequired = null,Object? allowedMarks = freezed,}) {
   return _then(FieldDefinition(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as FieldDefinitionId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as FieldType,
+as FieldType,language: freezed == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String?,isRequired: null == isRequired ? _self.isRequired : isRequired // ignore: cast_nullable_to_non_nullable
+as bool,allowedMarks: freezed == allowedMarks ? _self.allowedMarks : allowedMarks // ignore: cast_nullable_to_non_nullable
+as Set<String>?,
   ));
 }
 
@@ -158,10 +166,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( FieldDefinitionId id,  String name,  FieldType type)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( FieldDefinitionId id,  String name,  FieldType type,  String? language,  bool isRequired,  Set<String>? allowedMarks)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _FieldDefinition() when $default != null:
-return $default(_that.id,_that.name,_that.type);case _:
+return $default(_that.id,_that.name,_that.type,_that.language,_that.isRequired,_that.allowedMarks);case _:
   return orElse();
 
 }
@@ -179,10 +187,10 @@ return $default(_that.id,_that.name,_that.type);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( FieldDefinitionId id,  String name,  FieldType type)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( FieldDefinitionId id,  String name,  FieldType type,  String? language,  bool isRequired,  Set<String>? allowedMarks)  $default,) {final _that = this;
 switch (_that) {
 case _FieldDefinition():
-return $default(_that.id,_that.name,_that.type);case _:
+return $default(_that.id,_that.name,_that.type,_that.language,_that.isRequired,_that.allowedMarks);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -199,10 +207,10 @@ return $default(_that.id,_that.name,_that.type);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( FieldDefinitionId id,  String name,  FieldType type)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( FieldDefinitionId id,  String name,  FieldType type,  String? language,  bool isRequired,  Set<String>? allowedMarks)?  $default,) {final _that = this;
 switch (_that) {
 case _FieldDefinition() when $default != null:
-return $default(_that.id,_that.name,_that.type);case _:
+return $default(_that.id,_that.name,_that.type,_that.language,_that.isRequired,_that.allowedMarks);case _:
   return null;
 
 }
@@ -214,12 +222,30 @@ return $default(_that.id,_that.name,_that.type);case _:
 
 
 class _FieldDefinition extends FieldDefinition {
-   _FieldDefinition({required this.id, required this.name, this.type = FieldType.text}): super._();
+   _FieldDefinition({required this.id, required this.name, this.type = FieldType.text, this.language, this.isRequired = false,  Set<String>? allowedMarks}): _allowedMarks = allowedMarks,super._();
   
 
 @override final  FieldDefinitionId id;
 @override final  String name;
 @override@JsonKey() final  FieldType type;
+/// The language of its values, as a BCP 47 tag such as ja; a `lang`
+/// mark overrides it for a span. Null when it is not set.
+@override final  String? language;
+/// Whether a note must fill it.
+@override@JsonKey() final  bool isRequired;
+/// The kinds of mark its values may hold, or null for all. Marks inside
+/// one it allows, such as a list's items, go with it.
+ final  Set<String>? _allowedMarks;
+/// The kinds of mark its values may hold, or null for all. Marks inside
+/// one it allows, such as a list's items, go with it.
+@override Set<String>? get allowedMarks {
+  final value = _allowedMarks;
+  if (value == null) return null;
+  if (_allowedMarks is EqualUnmodifiableSetView) return _allowedMarks;
+  // ignore: implicit_dynamic_type
+  return EqualUnmodifiableSetView(value);
+}
+
 
 /// Create a copy of FieldDefinition
 /// with the given fields replaced by the non-null parameter values.
@@ -231,18 +257,18 @@ _$FieldDefinitionCopyWith<_FieldDefinition> get copyWith => __$FieldDefinitionCo
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FieldDefinition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _FieldDefinition&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.type, type) || other.type == type)&&(identical(other.language, language) || other.language == language)&&(identical(other.isRequired, isRequired) || other.isRequired == isRequired)&&const DeepCollectionEquality().equals(other.allowedMarks, _allowedMarks));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name,type);
+    return Object.hash(runtimeType,id,name,type,language,isRequired,const DeepCollectionEquality().hash(_allowedMarks));
 }
 
 @override
 String toString() {
-    return 'FieldDefinition(id: $id, name: $name, type: $type)';
+    return 'FieldDefinition(id: $id, name: $name, type: $type, language: $language, isRequired: $isRequired, allowedMarks: $allowedMarks)';
 }
 
 
@@ -253,7 +279,7 @@ abstract mixin class _$FieldDefinitionCopyWith<$Res> implements $FieldDefinition
   factory _$FieldDefinitionCopyWith(_FieldDefinition value, $Res Function(_FieldDefinition) _then) = __$FieldDefinitionCopyWithImpl;
 @override @useResult
 $Res call({
- FieldDefinitionId id, String name, FieldType type
+ FieldDefinitionId id, String name, FieldType type, String? language, bool isRequired, Set<String>? allowedMarks
 });
 
 
@@ -270,12 +296,15 @@ class __$FieldDefinitionCopyWithImpl<$Res>
 
 /// Create a copy of FieldDefinition
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? type = null,Object? language = freezed,Object? isRequired = null,Object? allowedMarks = freezed,}) {
   return _then(_FieldDefinition(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as FieldDefinitionId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,type: null == type ? _self.type : type // ignore: cast_nullable_to_non_nullable
-as FieldType,
+as FieldType,language: freezed == language ? _self.language : language // ignore: cast_nullable_to_non_nullable
+as String?,isRequired: null == isRequired ? _self.isRequired : isRequired // ignore: cast_nullable_to_non_nullable
+as bool,allowedMarks: freezed == allowedMarks ? _self._allowedMarks : allowedMarks // ignore: cast_nullable_to_non_nullable
+as Set<String>?,
   ));
 }
 
@@ -285,7 +314,9 @@ as FieldType,
 /// @nodoc
 mixin _$StudyCardTemplate {
 
- StudyCardTemplateId get id; String get name;
+ StudyCardTemplateId get id; String get name;/// What the card shows, in the content format: a `front` and a `back`
+/// that place the note's fields by name.
+ String get source;
 /// Create a copy of StudyCardTemplate
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -297,20 +328,20 @@ $StudyCardTemplateCopyWith<StudyCardTemplate> get copyWith => _$StudyCardTemplat
 @override
 bool operator ==(Object other) {
   final _this = this as StudyCardTemplate;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is StudyCardTemplate&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is StudyCardTemplate&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.name, _this.name) || other.name == _this.name)&&(identical(other.source, _this.source) || other.source == _this.source));
 }
 
 
 @override
 int get hashCode {
   final _this = this as StudyCardTemplate;
-  return Object.hash(runtimeType,_this.id,_this.name);
+  return Object.hash(runtimeType,_this.id,_this.name,_this.source);
 }
 
 @override
 String toString() {
   final _this = this as StudyCardTemplate;
-  return 'StudyCardTemplate(id: ${_this.id}, name: ${_this.name})';
+  return 'StudyCardTemplate(id: ${_this.id}, name: ${_this.name}, source: ${_this.source})';
 }
 
 
@@ -321,7 +352,7 @@ abstract mixin class $StudyCardTemplateCopyWith<$Res>  {
   factory $StudyCardTemplateCopyWith(StudyCardTemplate value, $Res Function(StudyCardTemplate) _then) = _$StudyCardTemplateCopyWithImpl;
 @useResult
 $Res call({
- StudyCardTemplateId id, String name
+ StudyCardTemplateId id, String name, String source
 });
 
 
@@ -338,10 +369,11 @@ class _$StudyCardTemplateCopyWithImpl<$Res>
 
 /// Create a copy of StudyCardTemplate
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? name = null,Object? source = null,}) {
   return _then(StudyCardTemplate(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as StudyCardTemplateId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -427,10 +459,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( StudyCardTemplateId id,  String name)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( StudyCardTemplateId id,  String name,  String source)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _StudyCardTemplate() when $default != null:
-return $default(_that.id,_that.name);case _:
+return $default(_that.id,_that.name,_that.source);case _:
   return orElse();
 
 }
@@ -448,10 +480,10 @@ return $default(_that.id,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( StudyCardTemplateId id,  String name)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( StudyCardTemplateId id,  String name,  String source)  $default,) {final _that = this;
 switch (_that) {
 case _StudyCardTemplate():
-return $default(_that.id,_that.name);case _:
+return $default(_that.id,_that.name,_that.source);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -468,10 +500,10 @@ return $default(_that.id,_that.name);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( StudyCardTemplateId id,  String name)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( StudyCardTemplateId id,  String name,  String source)?  $default,) {final _that = this;
 switch (_that) {
 case _StudyCardTemplate() when $default != null:
-return $default(_that.id,_that.name);case _:
+return $default(_that.id,_that.name,_that.source);case _:
   return null;
 
 }
@@ -483,11 +515,14 @@ return $default(_that.id,_that.name);case _:
 
 
 class _StudyCardTemplate extends StudyCardTemplate {
-   _StudyCardTemplate({required this.id, required this.name}): super._();
+   _StudyCardTemplate({required this.id, required this.name, this.source = StudyCardTemplate.blank}): super._();
   
 
 @override final  StudyCardTemplateId id;
 @override final  String name;
+/// What the card shows, in the content format: a `front` and a `back`
+/// that place the note's fields by name.
+@override@JsonKey() final  String source;
 
 /// Create a copy of StudyCardTemplate
 /// with the given fields replaced by the non-null parameter values.
@@ -499,18 +534,18 @@ _$StudyCardTemplateCopyWith<_StudyCardTemplate> get copyWith => __$StudyCardTemp
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StudyCardTemplate&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _StudyCardTemplate&&(identical(other.id, id) || other.id == id)&&(identical(other.name, name) || other.name == name)&&(identical(other.source, source) || other.source == source));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,name);
+    return Object.hash(runtimeType,id,name,source);
 }
 
 @override
 String toString() {
-    return 'StudyCardTemplate(id: $id, name: $name)';
+    return 'StudyCardTemplate(id: $id, name: $name, source: $source)';
 }
 
 
@@ -521,7 +556,7 @@ abstract mixin class _$StudyCardTemplateCopyWith<$Res> implements $StudyCardTemp
   factory _$StudyCardTemplateCopyWith(_StudyCardTemplate value, $Res Function(_StudyCardTemplate) _then) = __$StudyCardTemplateCopyWithImpl;
 @override @useResult
 $Res call({
- StudyCardTemplateId id, String name
+ StudyCardTemplateId id, String name, String source
 });
 
 
@@ -538,10 +573,11 @@ class __$StudyCardTemplateCopyWithImpl<$Res>
 
 /// Create a copy of StudyCardTemplate
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? name = null,Object? source = null,}) {
   return _then(_StudyCardTemplate(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as StudyCardTemplateId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
+as String,source: null == source ? _self.source : source // ignore: cast_nullable_to_non_nullable
 as String,
   ));
 }
@@ -552,7 +588,9 @@ as String,
 /// @nodoc
 mixin _$NoteType {
 
- NoteTypeId get id; CollectionId get collectionId; String get name; List<FieldDefinition> get fields; List<StudyCardTemplate> get templates;
+ NoteTypeId get id; CollectionId get collectionId; String get name; List<FieldDefinition> get fields; List<StudyCardTemplate> get templates;/// The field whose plain text is compared across notes, to warn of
+/// duplicates. Null when none is.
+ FieldDefinitionId? get duplicateCheck;
 /// Create a copy of NoteType
 /// with the given fields replaced by the non-null parameter values.
 @JsonKey(includeFromJson: false, includeToJson: false)
@@ -564,20 +602,20 @@ $NoteTypeCopyWith<NoteType> get copyWith => _$NoteTypeCopyWithImpl<NoteType>(thi
 @override
 bool operator ==(Object other) {
   final _this = this as NoteType;
-  return identical(this, other) || (other.runtimeType == runtimeType&&other is NoteType&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.collectionId, _this.collectionId) || other.collectionId == _this.collectionId)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.fields, _this.fields)&&const DeepCollectionEquality().equals(other.templates, _this.templates));
+  return identical(this, other) || (other.runtimeType == runtimeType&&other is NoteType&&(identical(other.id, _this.id) || other.id == _this.id)&&(identical(other.collectionId, _this.collectionId) || other.collectionId == _this.collectionId)&&(identical(other.name, _this.name) || other.name == _this.name)&&const DeepCollectionEquality().equals(other.fields, _this.fields)&&const DeepCollectionEquality().equals(other.templates, _this.templates)&&(identical(other.duplicateCheck, _this.duplicateCheck) || other.duplicateCheck == _this.duplicateCheck));
 }
 
 
 @override
 int get hashCode {
   final _this = this as NoteType;
-  return Object.hash(runtimeType,_this.id,_this.collectionId,_this.name,const DeepCollectionEquality().hash(_this.fields),const DeepCollectionEquality().hash(_this.templates));
+  return Object.hash(runtimeType,_this.id,_this.collectionId,_this.name,const DeepCollectionEquality().hash(_this.fields),const DeepCollectionEquality().hash(_this.templates),_this.duplicateCheck);
 }
 
 @override
 String toString() {
   final _this = this as NoteType;
-  return 'NoteType(id: ${_this.id}, collectionId: ${_this.collectionId}, name: ${_this.name}, fields: ${_this.fields}, templates: ${_this.templates})';
+  return 'NoteType(id: ${_this.id}, collectionId: ${_this.collectionId}, name: ${_this.name}, fields: ${_this.fields}, templates: ${_this.templates}, duplicateCheck: ${_this.duplicateCheck})';
 }
 
 
@@ -588,7 +626,7 @@ abstract mixin class $NoteTypeCopyWith<$Res>  {
   factory $NoteTypeCopyWith(NoteType value, $Res Function(NoteType) _then) = _$NoteTypeCopyWithImpl;
 @useResult
 $Res call({
- NoteTypeId id, CollectionId collectionId, String name, List<FieldDefinition> fields, List<StudyCardTemplate> templates
+ NoteTypeId id, CollectionId collectionId, String name, List<FieldDefinition> fields, List<StudyCardTemplate> templates, FieldDefinitionId? duplicateCheck
 });
 
 
@@ -605,14 +643,15 @@ class _$NoteTypeCopyWithImpl<$Res>
 
 /// Create a copy of NoteType
 /// with the given fields replaced by the non-null parameter values.
-@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? collectionId = null,Object? name = null,Object? fields = null,Object? templates = null,}) {
+@pragma('vm:prefer-inline') @override $Res call({Object? id = null,Object? collectionId = null,Object? name = null,Object? fields = null,Object? templates = null,Object? duplicateCheck = freezed,}) {
   return _then(NoteType(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as NoteTypeId,collectionId: null == collectionId ? _self.collectionId : collectionId // ignore: cast_nullable_to_non_nullable
 as CollectionId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,fields: null == fields ? _self.fields : fields // ignore: cast_nullable_to_non_nullable
 as List<FieldDefinition>,templates: null == templates ? _self.templates : templates // ignore: cast_nullable_to_non_nullable
-as List<StudyCardTemplate>,
+as List<StudyCardTemplate>,duplicateCheck: freezed == duplicateCheck ? _self.duplicateCheck : duplicateCheck // ignore: cast_nullable_to_non_nullable
+as FieldDefinitionId?,
   ));
 }
 
@@ -697,10 +736,10 @@ return $default(_that);case _:
 /// }
 /// ```
 
-@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<StudyCardTemplate> templates)?  $default,{required TResult orElse(),}) {final _that = this;
+@optionalTypeArgs TResult maybeWhen<TResult extends Object?>(TResult Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<StudyCardTemplate> templates,  FieldDefinitionId? duplicateCheck)?  $default,{required TResult orElse(),}) {final _that = this;
 switch (_that) {
 case _NoteType() when $default != null:
-return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templates);case _:
+return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templates,_that.duplicateCheck);case _:
   return orElse();
 
 }
@@ -718,10 +757,10 @@ return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templa
 /// }
 /// ```
 
-@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<StudyCardTemplate> templates)  $default,) {final _that = this;
+@optionalTypeArgs TResult when<TResult extends Object?>(TResult Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<StudyCardTemplate> templates,  FieldDefinitionId? duplicateCheck)  $default,) {final _that = this;
 switch (_that) {
 case _NoteType():
-return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templates);case _:
+return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templates,_that.duplicateCheck);case _:
   throw StateError('Unexpected subclass');
 
 }
@@ -738,10 +777,10 @@ return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templa
 /// }
 /// ```
 
-@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<StudyCardTemplate> templates)?  $default,) {final _that = this;
+@optionalTypeArgs TResult? whenOrNull<TResult extends Object?>(TResult? Function( NoteTypeId id,  CollectionId collectionId,  String name,  List<FieldDefinition> fields,  List<StudyCardTemplate> templates,  FieldDefinitionId? duplicateCheck)?  $default,) {final _that = this;
 switch (_that) {
 case _NoteType() when $default != null:
-return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templates);case _:
+return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templates,_that.duplicateCheck);case _:
   return null;
 
 }
@@ -753,7 +792,7 @@ return $default(_that.id,_that.collectionId,_that.name,_that.fields,_that.templa
 
 
 class _NoteType extends NoteType {
-   _NoteType({required this.id, required this.collectionId, required this.name, required  List<FieldDefinition> fields, required  List<StudyCardTemplate> templates}): _fields = fields,_templates = templates,super._();
+   _NoteType({required this.id, required this.collectionId, required this.name, required  List<FieldDefinition> fields, required  List<StudyCardTemplate> templates, this.duplicateCheck}): _fields = fields,_templates = templates,super._();
   
 
 @override final  NoteTypeId id;
@@ -773,6 +812,9 @@ class _NoteType extends NoteType {
   return EqualUnmodifiableListView(_templates);
 }
 
+/// The field whose plain text is compared across notes, to warn of
+/// duplicates. Null when none is.
+@override final  FieldDefinitionId? duplicateCheck;
 
 /// Create a copy of NoteType
 /// with the given fields replaced by the non-null parameter values.
@@ -784,18 +826,18 @@ _$NoteTypeCopyWith<_NoteType> get copyWith => __$NoteTypeCopyWithImpl<_NoteType>
 
 @override
 bool operator ==(Object other) {
-    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NoteType&&(identical(other.id, id) || other.id == id)&&(identical(other.collectionId, collectionId) || other.collectionId == collectionId)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.fields, _fields)&&const DeepCollectionEquality().equals(other.templates, _templates));
+    return identical(this, other) || (other.runtimeType == runtimeType&&other is _NoteType&&(identical(other.id, id) || other.id == id)&&(identical(other.collectionId, collectionId) || other.collectionId == collectionId)&&(identical(other.name, name) || other.name == name)&&const DeepCollectionEquality().equals(other.fields, _fields)&&const DeepCollectionEquality().equals(other.templates, _templates)&&(identical(other.duplicateCheck, duplicateCheck) || other.duplicateCheck == duplicateCheck));
 }
 
 
 @override
 int get hashCode {
-    return Object.hash(runtimeType,id,collectionId,name,const DeepCollectionEquality().hash(_fields),const DeepCollectionEquality().hash(_templates));
+    return Object.hash(runtimeType,id,collectionId,name,const DeepCollectionEquality().hash(_fields),const DeepCollectionEquality().hash(_templates),duplicateCheck);
 }
 
 @override
 String toString() {
-    return 'NoteType(id: $id, collectionId: $collectionId, name: $name, fields: $fields, templates: $templates)';
+    return 'NoteType(id: $id, collectionId: $collectionId, name: $name, fields: $fields, templates: $templates, duplicateCheck: $duplicateCheck)';
 }
 
 
@@ -806,7 +848,7 @@ abstract mixin class _$NoteTypeCopyWith<$Res> implements $NoteTypeCopyWith<$Res>
   factory _$NoteTypeCopyWith(_NoteType value, $Res Function(_NoteType) _then) = __$NoteTypeCopyWithImpl;
 @override @useResult
 $Res call({
- NoteTypeId id, CollectionId collectionId, String name, List<FieldDefinition> fields, List<StudyCardTemplate> templates
+ NoteTypeId id, CollectionId collectionId, String name, List<FieldDefinition> fields, List<StudyCardTemplate> templates, FieldDefinitionId? duplicateCheck
 });
 
 
@@ -823,14 +865,15 @@ class __$NoteTypeCopyWithImpl<$Res>
 
 /// Create a copy of NoteType
 /// with the given fields replaced by the non-null parameter values.
-@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? collectionId = null,Object? name = null,Object? fields = null,Object? templates = null,}) {
+@override @pragma('vm:prefer-inline') $Res call({Object? id = null,Object? collectionId = null,Object? name = null,Object? fields = null,Object? templates = null,Object? duplicateCheck = freezed,}) {
   return _then(_NoteType(
 id: null == id ? _self.id : id // ignore: cast_nullable_to_non_nullable
 as NoteTypeId,collectionId: null == collectionId ? _self.collectionId : collectionId // ignore: cast_nullable_to_non_nullable
 as CollectionId,name: null == name ? _self.name : name // ignore: cast_nullable_to_non_nullable
 as String,fields: null == fields ? _self._fields : fields // ignore: cast_nullable_to_non_nullable
 as List<FieldDefinition>,templates: null == templates ? _self._templates : templates // ignore: cast_nullable_to_non_nullable
-as List<StudyCardTemplate>,
+as List<StudyCardTemplate>,duplicateCheck: freezed == duplicateCheck ? _self.duplicateCheck : duplicateCheck // ignore: cast_nullable_to_non_nullable
+as FieldDefinitionId?,
   ));
 }
 

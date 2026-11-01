@@ -1,6 +1,6 @@
 import 'package:drift/drift.dart';
 
-import '../../domain/note_type.dart' show FieldType;
+import '../../domain/note_type.dart' show FieldType, StudyCardTemplate;
 import '../converters.dart';
 import 'collection_tables.dart';
 import 'sync_tables.dart';
@@ -13,6 +13,11 @@ class NoteTypes extends Table with SyncedColumns {
   BlobColumn get collectionId =>
       blob().map(collectionIdConverter).references(Collections, #id)();
   TextColumn get name => text()();
+
+  /// The field checked for duplicates. It may name a field that was
+  /// removed, on this device or another; then none is checked.
+  BlobColumn get duplicateCheck =>
+      blob().map(fieldDefinitionIdConverter).nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -36,6 +41,12 @@ class FieldDefinitions extends Table with SyncedColumns {
   IntColumn get position => integer()();
   TextColumn get name => text()();
   TextColumn get type => textEnum<FieldType>()();
+  TextColumn get language => text().nullable()();
+  BoolColumn get required => boolean().withDefault(const Constant(false))();
+
+  /// The mark keys its values may hold, or null for all.
+  TextColumn get allowedMarks =>
+      text().map(const KeySetConverter()).nullable()();
 
   @override
   Set<Column> get primaryKey => {id};
@@ -52,6 +63,10 @@ class StudyCardTemplates extends Table with SyncedColumns {
       .references(NoteTypes, #id, onDelete: KeyAction.cascade)();
   IntColumn get position => integer()();
   TextColumn get name => text()();
+
+  /// What the card shows, in the content format.
+  TextColumn get source =>
+      text().withDefault(const Constant(StudyCardTemplate.blank))();
 
   @override
   Set<Column> get primaryKey => {id};

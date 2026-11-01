@@ -1609,7 +1609,26 @@ class $NoteTypesTable extends NoteTypes
     requiredDuringInsert: true,
   );
   @override
-  List<GeneratedColumn> get $columns => [hlc, deleted, id, collectionId, name];
+  late final GeneratedColumnWithTypeConverter<FieldDefinitionId?, Uint8List>
+  duplicateCheck =
+      GeneratedColumn<Uint8List>(
+        'duplicate_check',
+        aliasedName,
+        true,
+        type: DriftSqlType.blob,
+        requiredDuringInsert: false,
+      ).withConverter<FieldDefinitionId?>(
+        $NoteTypesTable.$converterduplicateCheckn,
+      );
+  @override
+  List<GeneratedColumn> get $columns => [
+    hlc,
+    deleted,
+    id,
+    collectionId,
+    name,
+    duplicateCheck,
+  ];
   @override
   String get aliasedName => _alias ?? actualTableName;
   @override
@@ -1675,6 +1694,12 @@ class $NoteTypesTable extends NoteTypes
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      duplicateCheck: $NoteTypesTable.$converterduplicateCheckn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.blob,
+          data['${effectivePrefix}duplicate_check'],
+        ),
+      ),
     );
   }
 
@@ -1688,6 +1713,12 @@ class $NoteTypesTable extends NoteTypes
       noteTypeIdConverter;
   static TypeConverter<CollectionId, Uint8List> $convertercollectionId =
       collectionIdConverter;
+  static TypeConverter<FieldDefinitionId, Uint8List> $converterduplicateCheck =
+      fieldDefinitionIdConverter;
+  static TypeConverter<FieldDefinitionId?, Uint8List?>
+  $converterduplicateCheckn = NullAwareTypeConverter.wrap(
+    $converterduplicateCheck,
+  );
 }
 
 class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
@@ -1696,12 +1727,17 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
   final NoteTypeId id;
   final CollectionId collectionId;
   final String name;
+
+  /// The field checked for duplicates. It may name a field that was
+  /// removed, on this device or another; then none is checked.
+  final FieldDefinitionId? duplicateCheck;
   const NoteTypeRow({
     required this.hlc,
     required this.deleted,
     required this.id,
     required this.collectionId,
     required this.name,
+    this.duplicateCheck,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -1719,6 +1755,11 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
       );
     }
     map['name'] = Variable<String>(name);
+    if (!nullToAbsent || duplicateCheck != null) {
+      map['duplicate_check'] = Variable<Uint8List>(
+        $NoteTypesTable.$converterduplicateCheckn.toSql(duplicateCheck),
+      );
+    }
     return map;
   }
 
@@ -1729,6 +1770,9 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
       id: Value(id),
       collectionId: Value(collectionId),
       name: Value(name),
+      duplicateCheck: duplicateCheck == null && nullToAbsent
+          ? const Value.absent()
+          : Value(duplicateCheck),
     );
   }
 
@@ -1743,6 +1787,9 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
       id: serializer.fromJson<NoteTypeId>(json['id']),
       collectionId: serializer.fromJson<CollectionId>(json['collectionId']),
       name: serializer.fromJson<String>(json['name']),
+      duplicateCheck: serializer.fromJson<FieldDefinitionId?>(
+        json['duplicateCheck'],
+      ),
     );
   }
   @override
@@ -1754,6 +1801,7 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
       'id': serializer.toJson<NoteTypeId>(id),
       'collectionId': serializer.toJson<CollectionId>(collectionId),
       'name': serializer.toJson<String>(name),
+      'duplicateCheck': serializer.toJson<FieldDefinitionId?>(duplicateCheck),
     };
   }
 
@@ -1763,12 +1811,16 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
     NoteTypeId? id,
     CollectionId? collectionId,
     String? name,
+    Value<FieldDefinitionId?> duplicateCheck = const Value.absent(),
   }) => NoteTypeRow(
     hlc: hlc ?? this.hlc,
     deleted: deleted ?? this.deleted,
     id: id ?? this.id,
     collectionId: collectionId ?? this.collectionId,
     name: name ?? this.name,
+    duplicateCheck: duplicateCheck.present
+        ? duplicateCheck.value
+        : this.duplicateCheck,
   );
   NoteTypeRow copyWithCompanion(NoteTypesCompanion data) {
     return NoteTypeRow(
@@ -1779,6 +1831,9 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
           ? data.collectionId.value
           : this.collectionId,
       name: data.name.present ? data.name.value : this.name,
+      duplicateCheck: data.duplicateCheck.present
+          ? data.duplicateCheck.value
+          : this.duplicateCheck,
     );
   }
 
@@ -1789,13 +1844,15 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
           ..write('deleted: $deleted, ')
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('duplicateCheck: $duplicateCheck')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(hlc, deleted, id, collectionId, name);
+  int get hashCode =>
+      Object.hash(hlc, deleted, id, collectionId, name, duplicateCheck);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -1804,7 +1861,8 @@ class NoteTypeRow extends DataClass implements Insertable<NoteTypeRow> {
           other.deleted == this.deleted &&
           other.id == this.id &&
           other.collectionId == this.collectionId &&
-          other.name == this.name);
+          other.name == this.name &&
+          other.duplicateCheck == this.duplicateCheck);
 }
 
 class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
@@ -1813,6 +1871,7 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
   final Value<NoteTypeId> id;
   final Value<CollectionId> collectionId;
   final Value<String> name;
+  final Value<FieldDefinitionId?> duplicateCheck;
   final Value<int> rowid;
   const NoteTypesCompanion({
     this.hlc = const Value.absent(),
@@ -1820,6 +1879,7 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
     this.id = const Value.absent(),
     this.collectionId = const Value.absent(),
     this.name = const Value.absent(),
+    this.duplicateCheck = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   NoteTypesCompanion.insert({
@@ -1828,6 +1888,7 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
     required NoteTypeId id,
     required CollectionId collectionId,
     required String name,
+    this.duplicateCheck = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : hlc = Value(hlc),
        id = Value(id),
@@ -1839,6 +1900,7 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
     Expression<Uint8List>? id,
     Expression<Uint8List>? collectionId,
     Expression<String>? name,
+    Expression<Uint8List>? duplicateCheck,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -1847,6 +1909,7 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
       if (id != null) 'id': id,
       if (collectionId != null) 'collection_id': collectionId,
       if (name != null) 'name': name,
+      if (duplicateCheck != null) 'duplicate_check': duplicateCheck,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -1857,6 +1920,7 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
     Value<NoteTypeId>? id,
     Value<CollectionId>? collectionId,
     Value<String>? name,
+    Value<FieldDefinitionId?>? duplicateCheck,
     Value<int>? rowid,
   }) {
     return NoteTypesCompanion(
@@ -1865,6 +1929,7 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
       id: id ?? this.id,
       collectionId: collectionId ?? this.collectionId,
       name: name ?? this.name,
+      duplicateCheck: duplicateCheck ?? this.duplicateCheck,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -1893,6 +1958,11 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (duplicateCheck.present) {
+      map['duplicate_check'] = Variable<Uint8List>(
+        $NoteTypesTable.$converterduplicateCheckn.toSql(duplicateCheck.value),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -1907,6 +1977,7 @@ class NoteTypesCompanion extends UpdateCompanion<NoteTypeRow> {
           ..write('id: $id, ')
           ..write('collectionId: $collectionId, ')
           ..write('name: $name, ')
+          ..write('duplicateCheck: $duplicateCheck, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2076,6 +2147,41 @@ class $FieldDefinitionsTable extends FieldDefinitions
         type: DriftSqlType.string,
         requiredDuringInsert: true,
       ).withConverter<FieldType>($FieldDefinitionsTable.$convertertype);
+  static const VerificationMeta _languageMeta = const VerificationMeta(
+    'language',
+  );
+  @override
+  late final GeneratedColumn<String> language = GeneratedColumn<String>(
+    'language',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  );
+  static const VerificationMeta _requiredMeta = const VerificationMeta(
+    'required',
+  );
+  @override
+  late final GeneratedColumn<bool> required = GeneratedColumn<bool>(
+    'required',
+    aliasedName,
+    false,
+    type: DriftSqlType.bool,
+    requiredDuringInsert: false,
+    defaultConstraints: GeneratedColumn.constraintIsAlways(
+      'CHECK ("required" IN (0, 1))',
+    ),
+    defaultValue: const Constant(false),
+  );
+  @override
+  late final GeneratedColumnWithTypeConverter<Set<String>?, String>
+  allowedMarks = GeneratedColumn<String>(
+    'allowed_marks',
+    aliasedName,
+    true,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+  ).withConverter<Set<String>?>($FieldDefinitionsTable.$converterallowedMarksn);
   @override
   List<GeneratedColumn> get $columns => [
     hlc,
@@ -2085,6 +2191,9 @@ class $FieldDefinitionsTable extends FieldDefinitions
     position,
     name,
     type,
+    language,
+    required,
+    allowedMarks,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2119,6 +2228,18 @@ class $FieldDefinitionsTable extends FieldDefinitions
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('language')) {
+      context.handle(
+        _languageMeta,
+        language.isAcceptableOrUnknown(data['language']!, _languageMeta),
+      );
+    }
+    if (data.containsKey('required')) {
+      context.handle(
+        _requiredMeta,
+        required.isAcceptableOrUnknown(data['required']!, _requiredMeta),
+      );
     }
     return context;
   }
@@ -2165,6 +2286,20 @@ class $FieldDefinitionsTable extends FieldDefinitions
           data['${effectivePrefix}type'],
         )!,
       ),
+      language: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}language'],
+      ),
+      required: attachedDatabase.typeMapping.read(
+        DriftSqlType.bool,
+        data['${effectivePrefix}required'],
+      )!,
+      allowedMarks: $FieldDefinitionsTable.$converterallowedMarksn.fromSql(
+        attachedDatabase.typeMapping.read(
+          DriftSqlType.string,
+          data['${effectivePrefix}allowed_marks'],
+        ),
+      ),
     );
   }
 
@@ -2180,6 +2315,10 @@ class $FieldDefinitionsTable extends FieldDefinitions
       noteTypeIdConverter;
   static JsonTypeConverter2<FieldType, String, String> $convertertype =
       const EnumNameConverter<FieldType>(FieldType.values);
+  static TypeConverter<Set<String>, String> $converterallowedMarks =
+      const KeySetConverter();
+  static TypeConverter<Set<String>?, String?> $converterallowedMarksn =
+      NullAwareTypeConverter.wrap($converterallowedMarks);
 }
 
 class FieldDefinitionRow extends DataClass
@@ -2191,6 +2330,11 @@ class FieldDefinitionRow extends DataClass
   final int position;
   final String name;
   final FieldType type;
+  final String? language;
+  final bool required;
+
+  /// The mark keys its values may hold, or null for all.
+  final Set<String>? allowedMarks;
   const FieldDefinitionRow({
     required this.hlc,
     required this.deleted,
@@ -2199,6 +2343,9 @@ class FieldDefinitionRow extends DataClass
     required this.position,
     required this.name,
     required this.type,
+    this.language,
+    required this.required,
+    this.allowedMarks,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2226,6 +2373,15 @@ class FieldDefinitionRow extends DataClass
         $FieldDefinitionsTable.$convertertype.toSql(type),
       );
     }
+    if (!nullToAbsent || language != null) {
+      map['language'] = Variable<String>(language);
+    }
+    map['required'] = Variable<bool>(required);
+    if (!nullToAbsent || allowedMarks != null) {
+      map['allowed_marks'] = Variable<String>(
+        $FieldDefinitionsTable.$converterallowedMarksn.toSql(allowedMarks),
+      );
+    }
     return map;
   }
 
@@ -2238,6 +2394,13 @@ class FieldDefinitionRow extends DataClass
       position: Value(position),
       name: Value(name),
       type: Value(type),
+      language: language == null && nullToAbsent
+          ? const Value.absent()
+          : Value(language),
+      required: Value(required),
+      allowedMarks: allowedMarks == null && nullToAbsent
+          ? const Value.absent()
+          : Value(allowedMarks),
     );
   }
 
@@ -2256,6 +2419,9 @@ class FieldDefinitionRow extends DataClass
       type: $FieldDefinitionsTable.$convertertype.fromJson(
         serializer.fromJson<String>(json['type']),
       ),
+      language: serializer.fromJson<String?>(json['language']),
+      required: serializer.fromJson<bool>(json['required']),
+      allowedMarks: serializer.fromJson<Set<String>?>(json['allowedMarks']),
     );
   }
   @override
@@ -2271,6 +2437,9 @@ class FieldDefinitionRow extends DataClass
       'type': serializer.toJson<String>(
         $FieldDefinitionsTable.$convertertype.toJson(type),
       ),
+      'language': serializer.toJson<String?>(language),
+      'required': serializer.toJson<bool>(required),
+      'allowedMarks': serializer.toJson<Set<String>?>(allowedMarks),
     };
   }
 
@@ -2282,6 +2451,9 @@ class FieldDefinitionRow extends DataClass
     int? position,
     String? name,
     FieldType? type,
+    Value<String?> language = const Value.absent(),
+    bool? required,
+    Value<Set<String>?> allowedMarks = const Value.absent(),
   }) => FieldDefinitionRow(
     hlc: hlc ?? this.hlc,
     deleted: deleted ?? this.deleted,
@@ -2290,6 +2462,9 @@ class FieldDefinitionRow extends DataClass
     position: position ?? this.position,
     name: name ?? this.name,
     type: type ?? this.type,
+    language: language.present ? language.value : this.language,
+    required: required ?? this.required,
+    allowedMarks: allowedMarks.present ? allowedMarks.value : this.allowedMarks,
   );
   FieldDefinitionRow copyWithCompanion(FieldDefinitionsCompanion data) {
     return FieldDefinitionRow(
@@ -2302,6 +2477,11 @@ class FieldDefinitionRow extends DataClass
       position: data.position.present ? data.position.value : this.position,
       name: data.name.present ? data.name.value : this.name,
       type: data.type.present ? data.type.value : this.type,
+      language: data.language.present ? data.language.value : this.language,
+      required: data.required.present ? data.required.value : this.required,
+      allowedMarks: data.allowedMarks.present
+          ? data.allowedMarks.value
+          : this.allowedMarks,
     );
   }
 
@@ -2314,14 +2494,27 @@ class FieldDefinitionRow extends DataClass
           ..write('noteTypeId: $noteTypeId, ')
           ..write('position: $position, ')
           ..write('name: $name, ')
-          ..write('type: $type')
+          ..write('type: $type, ')
+          ..write('language: $language, ')
+          ..write('required: $required, ')
+          ..write('allowedMarks: $allowedMarks')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode =>
-      Object.hash(hlc, deleted, id, noteTypeId, position, name, type);
+  int get hashCode => Object.hash(
+    hlc,
+    deleted,
+    id,
+    noteTypeId,
+    position,
+    name,
+    type,
+    language,
+    required,
+    allowedMarks,
+  );
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2332,7 +2525,10 @@ class FieldDefinitionRow extends DataClass
           other.noteTypeId == this.noteTypeId &&
           other.position == this.position &&
           other.name == this.name &&
-          other.type == this.type);
+          other.type == this.type &&
+          other.language == this.language &&
+          other.required == this.required &&
+          other.allowedMarks == this.allowedMarks);
 }
 
 class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
@@ -2343,6 +2539,9 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
   final Value<int> position;
   final Value<String> name;
   final Value<FieldType> type;
+  final Value<String?> language;
+  final Value<bool> required;
+  final Value<Set<String>?> allowedMarks;
   final Value<int> rowid;
   const FieldDefinitionsCompanion({
     this.hlc = const Value.absent(),
@@ -2352,6 +2551,9 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
     this.position = const Value.absent(),
     this.name = const Value.absent(),
     this.type = const Value.absent(),
+    this.language = const Value.absent(),
+    this.required = const Value.absent(),
+    this.allowedMarks = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   FieldDefinitionsCompanion.insert({
@@ -2362,6 +2564,9 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
     required int position,
     required String name,
     required FieldType type,
+    this.language = const Value.absent(),
+    this.required = const Value.absent(),
+    this.allowedMarks = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : hlc = Value(hlc),
        id = Value(id),
@@ -2377,6 +2582,9 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
     Expression<int>? position,
     Expression<String>? name,
     Expression<String>? type,
+    Expression<String>? language,
+    Expression<bool>? required,
+    Expression<String>? allowedMarks,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2387,6 +2595,9 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
       if (position != null) 'position': position,
       if (name != null) 'name': name,
       if (type != null) 'type': type,
+      if (language != null) 'language': language,
+      if (required != null) 'required': required,
+      if (allowedMarks != null) 'allowed_marks': allowedMarks,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2399,6 +2610,9 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
     Value<int>? position,
     Value<String>? name,
     Value<FieldType>? type,
+    Value<String?>? language,
+    Value<bool>? required,
+    Value<Set<String>?>? allowedMarks,
     Value<int>? rowid,
   }) {
     return FieldDefinitionsCompanion(
@@ -2409,6 +2623,9 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
       position: position ?? this.position,
       name: name ?? this.name,
       type: type ?? this.type,
+      language: language ?? this.language,
+      required: required ?? this.required,
+      allowedMarks: allowedMarks ?? this.allowedMarks,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2445,6 +2662,19 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
         $FieldDefinitionsTable.$convertertype.toSql(type.value),
       );
     }
+    if (language.present) {
+      map['language'] = Variable<String>(language.value);
+    }
+    if (required.present) {
+      map['required'] = Variable<bool>(required.value);
+    }
+    if (allowedMarks.present) {
+      map['allowed_marks'] = Variable<String>(
+        $FieldDefinitionsTable.$converterallowedMarksn.toSql(
+          allowedMarks.value,
+        ),
+      );
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2461,6 +2691,9 @@ class FieldDefinitionsCompanion extends UpdateCompanion<FieldDefinitionRow> {
           ..write('position: $position, ')
           ..write('name: $name, ')
           ..write('type: $type, ')
+          ..write('language: $language, ')
+          ..write('required: $required, ')
+          ..write('allowedMarks: $allowedMarks, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -2628,6 +2861,16 @@ class $StudyCardTemplatesTable extends StudyCardTemplates
     type: DriftSqlType.string,
     requiredDuringInsert: true,
   );
+  static const VerificationMeta _sourceMeta = const VerificationMeta('source');
+  @override
+  late final GeneratedColumn<String> source = GeneratedColumn<String>(
+    'source',
+    aliasedName,
+    false,
+    type: DriftSqlType.string,
+    requiredDuringInsert: false,
+    defaultValue: const Constant(StudyCardTemplate.blank),
+  );
   @override
   List<GeneratedColumn> get $columns => [
     hlc,
@@ -2636,6 +2879,7 @@ class $StudyCardTemplatesTable extends StudyCardTemplates
     noteTypeId,
     position,
     name,
+    source,
   ];
   @override
   String get aliasedName => _alias ?? actualTableName;
@@ -2670,6 +2914,12 @@ class $StudyCardTemplatesTable extends StudyCardTemplates
       );
     } else if (isInserting) {
       context.missing(_nameMeta);
+    }
+    if (data.containsKey('source')) {
+      context.handle(
+        _sourceMeta,
+        source.isAcceptableOrUnknown(data['source']!, _sourceMeta),
+      );
     }
     return context;
   }
@@ -2710,6 +2960,10 @@ class $StudyCardTemplatesTable extends StudyCardTemplates
         DriftSqlType.string,
         data['${effectivePrefix}name'],
       )!,
+      source: attachedDatabase.typeMapping.read(
+        DriftSqlType.string,
+        data['${effectivePrefix}source'],
+      )!,
     );
   }
 
@@ -2733,6 +2987,9 @@ class StudyCardTemplateRow extends DataClass
   final NoteTypeId noteTypeId;
   final int position;
   final String name;
+
+  /// What the card shows, in the content format.
+  final String source;
   const StudyCardTemplateRow({
     required this.hlc,
     required this.deleted,
@@ -2740,6 +2997,7 @@ class StudyCardTemplateRow extends DataClass
     required this.noteTypeId,
     required this.position,
     required this.name,
+    required this.source,
   });
   @override
   Map<String, Expression> toColumns(bool nullToAbsent) {
@@ -2762,6 +3020,7 @@ class StudyCardTemplateRow extends DataClass
     }
     map['position'] = Variable<int>(position);
     map['name'] = Variable<String>(name);
+    map['source'] = Variable<String>(source);
     return map;
   }
 
@@ -2773,6 +3032,7 @@ class StudyCardTemplateRow extends DataClass
       noteTypeId: Value(noteTypeId),
       position: Value(position),
       name: Value(name),
+      source: Value(source),
     );
   }
 
@@ -2788,6 +3048,7 @@ class StudyCardTemplateRow extends DataClass
       noteTypeId: serializer.fromJson<NoteTypeId>(json['noteTypeId']),
       position: serializer.fromJson<int>(json['position']),
       name: serializer.fromJson<String>(json['name']),
+      source: serializer.fromJson<String>(json['source']),
     );
   }
   @override
@@ -2800,6 +3061,7 @@ class StudyCardTemplateRow extends DataClass
       'noteTypeId': serializer.toJson<NoteTypeId>(noteTypeId),
       'position': serializer.toJson<int>(position),
       'name': serializer.toJson<String>(name),
+      'source': serializer.toJson<String>(source),
     };
   }
 
@@ -2810,6 +3072,7 @@ class StudyCardTemplateRow extends DataClass
     NoteTypeId? noteTypeId,
     int? position,
     String? name,
+    String? source,
   }) => StudyCardTemplateRow(
     hlc: hlc ?? this.hlc,
     deleted: deleted ?? this.deleted,
@@ -2817,6 +3080,7 @@ class StudyCardTemplateRow extends DataClass
     noteTypeId: noteTypeId ?? this.noteTypeId,
     position: position ?? this.position,
     name: name ?? this.name,
+    source: source ?? this.source,
   );
   StudyCardTemplateRow copyWithCompanion(StudyCardTemplatesCompanion data) {
     return StudyCardTemplateRow(
@@ -2828,6 +3092,7 @@ class StudyCardTemplateRow extends DataClass
           : this.noteTypeId,
       position: data.position.present ? data.position.value : this.position,
       name: data.name.present ? data.name.value : this.name,
+      source: data.source.present ? data.source.value : this.source,
     );
   }
 
@@ -2839,13 +3104,15 @@ class StudyCardTemplateRow extends DataClass
           ..write('id: $id, ')
           ..write('noteTypeId: $noteTypeId, ')
           ..write('position: $position, ')
-          ..write('name: $name')
+          ..write('name: $name, ')
+          ..write('source: $source')
           ..write(')'))
         .toString();
   }
 
   @override
-  int get hashCode => Object.hash(hlc, deleted, id, noteTypeId, position, name);
+  int get hashCode =>
+      Object.hash(hlc, deleted, id, noteTypeId, position, name, source);
   @override
   bool operator ==(Object other) =>
       identical(this, other) ||
@@ -2855,7 +3122,8 @@ class StudyCardTemplateRow extends DataClass
           other.id == this.id &&
           other.noteTypeId == this.noteTypeId &&
           other.position == this.position &&
-          other.name == this.name);
+          other.name == this.name &&
+          other.source == this.source);
 }
 
 class StudyCardTemplatesCompanion
@@ -2866,6 +3134,7 @@ class StudyCardTemplatesCompanion
   final Value<NoteTypeId> noteTypeId;
   final Value<int> position;
   final Value<String> name;
+  final Value<String> source;
   final Value<int> rowid;
   const StudyCardTemplatesCompanion({
     this.hlc = const Value.absent(),
@@ -2874,6 +3143,7 @@ class StudyCardTemplatesCompanion
     this.noteTypeId = const Value.absent(),
     this.position = const Value.absent(),
     this.name = const Value.absent(),
+    this.source = const Value.absent(),
     this.rowid = const Value.absent(),
   });
   StudyCardTemplatesCompanion.insert({
@@ -2883,6 +3153,7 @@ class StudyCardTemplatesCompanion
     required NoteTypeId noteTypeId,
     required int position,
     required String name,
+    this.source = const Value.absent(),
     this.rowid = const Value.absent(),
   }) : hlc = Value(hlc),
        id = Value(id),
@@ -2896,6 +3167,7 @@ class StudyCardTemplatesCompanion
     Expression<Uint8List>? noteTypeId,
     Expression<int>? position,
     Expression<String>? name,
+    Expression<String>? source,
     Expression<int>? rowid,
   }) {
     return RawValuesInsertable({
@@ -2905,6 +3177,7 @@ class StudyCardTemplatesCompanion
       if (noteTypeId != null) 'note_type_id': noteTypeId,
       if (position != null) 'position': position,
       if (name != null) 'name': name,
+      if (source != null) 'source': source,
       if (rowid != null) 'rowid': rowid,
     });
   }
@@ -2916,6 +3189,7 @@ class StudyCardTemplatesCompanion
     Value<NoteTypeId>? noteTypeId,
     Value<int>? position,
     Value<String>? name,
+    Value<String>? source,
     Value<int>? rowid,
   }) {
     return StudyCardTemplatesCompanion(
@@ -2925,6 +3199,7 @@ class StudyCardTemplatesCompanion
       noteTypeId: noteTypeId ?? this.noteTypeId,
       position: position ?? this.position,
       name: name ?? this.name,
+      source: source ?? this.source,
       rowid: rowid ?? this.rowid,
     );
   }
@@ -2956,6 +3231,9 @@ class StudyCardTemplatesCompanion
     if (name.present) {
       map['name'] = Variable<String>(name.value);
     }
+    if (source.present) {
+      map['source'] = Variable<String>(source.value);
+    }
     if (rowid.present) {
       map['rowid'] = Variable<int>(rowid.value);
     }
@@ -2971,6 +3249,7 @@ class StudyCardTemplatesCompanion
           ..write('noteTypeId: $noteTypeId, ')
           ..write('position: $position, ')
           ..write('name: $name, ')
+          ..write('source: $source, ')
           ..write('rowid: $rowid')
           ..write(')'))
         .toString();
@@ -11667,6 +11946,7 @@ typedef $$NoteTypesTableCreateCompanionBuilder = NoteTypesCompanion Function({
   required NoteTypeId id,
   required CollectionId collectionId,
   required String name,
+  Value<FieldDefinitionId?> duplicateCheck,
   Value<int> rowid,
 });
 typedef $$NoteTypesTableUpdateCompanionBuilder = NoteTypesCompanion Function({
@@ -11675,6 +11955,7 @@ typedef $$NoteTypesTableUpdateCompanionBuilder = NoteTypesCompanion Function({
   Value<NoteTypeId> id,
   Value<CollectionId> collectionId,
   Value<String> name,
+  Value<FieldDefinitionId?> duplicateCheck,
   Value<int> rowid,
 });
 
@@ -11774,6 +12055,16 @@ class $$NoteTypesTableFilterComposer
   ColumnFilters<String> get name => $composableBuilder(
     column: $table.name,
     builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<
+    FieldDefinitionId?,
+    FieldDefinitionId,
+    Uint8List
+  >
+  get duplicateCheck => $composableBuilder(
+    column: $table.duplicateCheck,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
   );
 
   $$CollectionsTableFilterComposer get collectionId {
@@ -11879,6 +12170,11 @@ class $$NoteTypesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<Uint8List> get duplicateCheck => $composableBuilder(
+    column: $table.duplicateCheck,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$CollectionsTableOrderingComposer get collectionId {
     final $$CollectionsTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -11923,6 +12219,12 @@ class $$NoteTypesTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<FieldDefinitionId?, Uint8List>
+  get duplicateCheck => $composableBuilder(
+    column: $table.duplicateCheck,
+    builder: (column) => column,
+  );
 
   $$CollectionsTableAnnotationComposer get collectionId {
     final $$CollectionsTableAnnotationComposer composer = $composerBuilder(
@@ -12036,6 +12338,7 @@ class $$NoteTypesTableTableManager
                 Value<NoteTypeId> id = const Value.absent(),
                 Value<CollectionId> collectionId = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<FieldDefinitionId?> duplicateCheck = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteTypesCompanion(
                 hlc: hlc,
@@ -12043,6 +12346,7 @@ class $$NoteTypesTableTableManager
                 id: id,
                 collectionId: collectionId,
                 name: name,
+                duplicateCheck: duplicateCheck,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12052,6 +12356,7 @@ class $$NoteTypesTableTableManager
                 required NoteTypeId id,
                 required CollectionId collectionId,
                 required String name,
+                Value<FieldDefinitionId?> duplicateCheck = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => NoteTypesCompanion.insert(
                 hlc: hlc,
@@ -12059,6 +12364,7 @@ class $$NoteTypesTableTableManager
                 id: id,
                 collectionId: collectionId,
                 name: name,
+                duplicateCheck: duplicateCheck,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -12188,6 +12494,9 @@ typedef $$FieldDefinitionsTableCreateCompanionBuilder =
       required int position,
       required String name,
       required FieldType type,
+      Value<String?> language,
+      Value<bool> required,
+      Value<Set<String>?> allowedMarks,
       Value<int> rowid,
     });
 typedef $$FieldDefinitionsTableUpdateCompanionBuilder =
@@ -12199,6 +12508,9 @@ typedef $$FieldDefinitionsTableUpdateCompanionBuilder =
       Value<int> position,
       Value<String> name,
       Value<FieldType> type,
+      Value<String?> language,
+      Value<bool> required,
+      Value<Set<String>?> allowedMarks,
       Value<int> rowid,
     });
 
@@ -12297,6 +12609,22 @@ class $$FieldDefinitionsTableFilterComposer
         builder: (column) => ColumnWithTypeConverterFilters(column),
       );
 
+  ColumnFilters<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnFilters<bool> get required => $composableBuilder(
+    column: $table.required,
+    builder: (column) => ColumnFilters(column),
+  );
+
+  ColumnWithTypeConverterFilters<Set<String>?, Set<String>, String>
+  get allowedMarks => $composableBuilder(
+    column: $table.allowedMarks,
+    builder: (column) => ColumnWithTypeConverterFilters(column),
+  );
+
   $$NoteTypesTableFilterComposer get noteTypeId {
     final $$NoteTypesTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -12385,6 +12713,21 @@ class $$FieldDefinitionsTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get language => $composableBuilder(
+    column: $table.language,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<bool> get required => $composableBuilder(
+    column: $table.required,
+    builder: (column) => ColumnOrderings(column),
+  );
+
+  ColumnOrderings<String> get allowedMarks => $composableBuilder(
+    column: $table.allowedMarks,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$NoteTypesTableOrderingComposer get noteTypeId {
     final $$NoteTypesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -12435,6 +12778,18 @@ class $$FieldDefinitionsTableAnnotationComposer
 
   GeneratedColumnWithTypeConverter<FieldType, String> get type =>
       $composableBuilder(column: $table.type, builder: (column) => column);
+
+  GeneratedColumn<String> get language =>
+      $composableBuilder(column: $table.language, builder: (column) => column);
+
+  GeneratedColumn<bool> get required =>
+      $composableBuilder(column: $table.required, builder: (column) => column);
+
+  GeneratedColumnWithTypeConverter<Set<String>?, String> get allowedMarks =>
+      $composableBuilder(
+        column: $table.allowedMarks,
+        builder: (column) => column,
+      );
 
   $$NoteTypesTableAnnotationComposer get noteTypeId {
     final $$NoteTypesTableAnnotationComposer composer = $composerBuilder(
@@ -12522,6 +12877,9 @@ class $$FieldDefinitionsTableTableManager
                 Value<int> position = const Value.absent(),
                 Value<String> name = const Value.absent(),
                 Value<FieldType> type = const Value.absent(),
+                Value<String?> language = const Value.absent(),
+                Value<bool> required = const Value.absent(),
+                Value<Set<String>?> allowedMarks = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FieldDefinitionsCompanion(
                 hlc: hlc,
@@ -12531,6 +12889,9 @@ class $$FieldDefinitionsTableTableManager
                 position: position,
                 name: name,
                 type: type,
+                language: language,
+                required: required,
+                allowedMarks: allowedMarks,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12542,6 +12903,9 @@ class $$FieldDefinitionsTableTableManager
                 required int position,
                 required String name,
                 required FieldType type,
+                Value<String?> language = const Value.absent(),
+                Value<bool> required = const Value.absent(),
+                Value<Set<String>?> allowedMarks = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => FieldDefinitionsCompanion.insert(
                 hlc: hlc,
@@ -12551,6 +12915,9 @@ class $$FieldDefinitionsTableTableManager
                 position: position,
                 name: name,
                 type: type,
+                language: language,
+                required: required,
+                allowedMarks: allowedMarks,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0
@@ -12650,6 +13017,7 @@ typedef $$StudyCardTemplatesTableCreateCompanionBuilder =
       required NoteTypeId noteTypeId,
       required int position,
       required String name,
+      Value<String> source,
       Value<int> rowid,
     });
 typedef $$StudyCardTemplatesTableUpdateCompanionBuilder =
@@ -12660,6 +13028,7 @@ typedef $$StudyCardTemplatesTableUpdateCompanionBuilder =
       Value<NoteTypeId> noteTypeId,
       Value<int> position,
       Value<String> name,
+      Value<String> source,
       Value<int> rowid,
     });
 
@@ -12752,6 +13121,11 @@ class $$StudyCardTemplatesTableFilterComposer
     builder: (column) => ColumnFilters(column),
   );
 
+  ColumnFilters<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnFilters(column),
+  );
+
   $$NoteTypesTableFilterComposer get noteTypeId {
     final $$NoteTypesTableFilterComposer composer = $composerBuilder(
       composer: this,
@@ -12835,6 +13209,11 @@ class $$StudyCardTemplatesTableOrderingComposer
     builder: (column) => ColumnOrderings(column),
   );
 
+  ColumnOrderings<String> get source => $composableBuilder(
+    column: $table.source,
+    builder: (column) => ColumnOrderings(column),
+  );
+
   $$NoteTypesTableOrderingComposer get noteTypeId {
     final $$NoteTypesTableOrderingComposer composer = $composerBuilder(
       composer: this,
@@ -12882,6 +13261,9 @@ class $$StudyCardTemplatesTableAnnotationComposer
 
   GeneratedColumn<String> get name =>
       $composableBuilder(column: $table.name, builder: (column) => column);
+
+  GeneratedColumn<String> get source =>
+      $composableBuilder(column: $table.source, builder: (column) => column);
 
   $$NoteTypesTableAnnotationComposer get noteTypeId {
     final $$NoteTypesTableAnnotationComposer composer = $composerBuilder(
@@ -12971,6 +13353,7 @@ class $$StudyCardTemplatesTableTableManager
                 Value<NoteTypeId> noteTypeId = const Value.absent(),
                 Value<int> position = const Value.absent(),
                 Value<String> name = const Value.absent(),
+                Value<String> source = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudyCardTemplatesCompanion(
                 hlc: hlc,
@@ -12979,6 +13362,7 @@ class $$StudyCardTemplatesTableTableManager
                 noteTypeId: noteTypeId,
                 position: position,
                 name: name,
+                source: source,
                 rowid: rowid,
               ),
           createCompanionCallback:
@@ -12989,6 +13373,7 @@ class $$StudyCardTemplatesTableTableManager
                 required NoteTypeId noteTypeId,
                 required int position,
                 required String name,
+                Value<String> source = const Value.absent(),
                 Value<int> rowid = const Value.absent(),
               }) => StudyCardTemplatesCompanion.insert(
                 hlc: hlc,
@@ -12997,6 +13382,7 @@ class $$StudyCardTemplatesTableTableManager
                 noteTypeId: noteTypeId,
                 position: position,
                 name: name,
+                source: source,
                 rowid: rowid,
               ),
           withReferenceMapper: (p0) => p0

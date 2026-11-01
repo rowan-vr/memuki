@@ -2,6 +2,7 @@ import 'package:flutter/material.dart';
 import 'package:flutter_riverpod/flutter_riverpod.dart';
 import 'package:go_router/go_router.dart';
 
+import '../../domain/ids.dart';
 import '../catalogue/catalogue_screen.dart';
 import '../catalogue/concepts/concepts_screen.dart';
 import '../decks/decks_screen.dart';
@@ -9,6 +10,8 @@ import '../developer/content_playground_screen.dart';
 import '../developer/developer_screen.dart';
 import '../developer/developer_tools_provider.dart';
 import '../home/home_screen.dart';
+import '../note_types/note_type_editor_screen.dart';
+import '../note_types/note_types_screen.dart';
 import '../settings/appearance_screen.dart';
 import '../settings/settings_screen.dart';
 import '../shell/app_shell.dart';
@@ -38,7 +41,13 @@ final routerProvider = Provider<GoRouter>((ref) {
       routes: [
         TypedGoRoute<SettingsRoute>(
           path: '/settings',
-          routes: [TypedGoRoute<AppearanceRoute>(path: 'appearance')],
+          routes: [
+            TypedGoRoute<AppearanceRoute>(path: 'appearance'),
+            TypedGoRoute<NoteTypesRoute>(
+              path: 'note-types',
+              routes: [TypedGoRoute<NoteTypeRoute>(path: ':id')],
+            ),
+          ],
         ),
       ],
     ),
@@ -115,6 +124,26 @@ class AppearanceRoute extends GoRouteData with $AppearanceRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const AppearanceScreen();
+}
+
+/// The note types of the active collection.
+class NoteTypesRoute extends GoRouteData with $NoteTypesRoute {
+  const NoteTypesRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const NoteTypesScreen();
+}
+
+/// One note type's fields and cards.
+class NoteTypeRoute extends GoRouteData with $NoteTypeRoute {
+  const NoteTypeRoute({required this.id});
+
+  final String id;
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      NoteTypeEditorScreen(id: NoteTypeId.parse(id));
 }
 
 /// Development tools; redirects home when they are not available.

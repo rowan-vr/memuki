@@ -45,6 +45,14 @@ class SettingsScreen extends ConsumerWidget {
                       subtitle: mode,
                       onTap: () => const AppearanceRoute().go(context),
                     ),
+                    ListRow(
+                      leading: Icon(
+                        MemukiIcons.library,
+                        color: context.colors.textMuted,
+                      ),
+                      title: l10n.settingsNoteTypes,
+                      onTap: () => const NoteTypesRoute().go(context),
+                    ),
                   ],
                 ),
               ),

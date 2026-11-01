@@ -30,6 +30,7 @@ class FieldEditor extends StatefulWidget {
     this.kinds,
     this.editing,
     this.blocks,
+    this.allowedMarks,
   });
 
   final FieldController controller;
@@ -46,6 +47,11 @@ class FieldEditor extends StatefulWidget {
   /// Empty, there is no toolbox, and blocks are shown as text.
   final Map<String, BlockEditing>? blocks;
 
+  /// The kinds of mark the field allows, or null for all; see
+  /// `FieldDefinition.allowedMarks`. Only those are offered. Marks of other
+  /// kinds already in the content are kept.
+  final Set<String>? allowedMarks;
+
   @override
   State<FieldEditor> createState() => _FieldEditorState();
 }
@@ -58,6 +64,7 @@ class _FieldEditorState extends State<FieldEditor> {
     kinds: widget.kinds ?? MarkKinds.builtIn,
     editing: widget.editing ?? MarkEditing.builtIn,
     blocks: widget.blocks ?? BlockEditing.builtIn,
+    allowed: widget.allowedMarks,
   );
 
   @override
@@ -66,7 +73,8 @@ class _FieldEditorState extends State<FieldEditor> {
     if (old.controller != widget.controller ||
         old.kinds != widget.kinds ||
         old.editing != widget.editing ||
-        old.blocks != widget.blocks) {
+        old.blocks != widget.blocks ||
+        !setEquals(old.allowedMarks, widget.allowedMarks)) {
       final previous = _session;
       _session = _newSession();
       WidgetsBinding.instance.addPostFrameCallback((_) => previous.dispose());
@@ -96,7 +104,9 @@ class _FieldEditorState extends State<FieldEditor> {
           crossAxisAlignment: CrossAxisAlignment.stretch,
           children: [
             _Toolbar(session: _session),
-            if (_session.blocks.values.any(_inToolbox)) ...[
+            if (_session.blocks.entries.any(
+              (e) => _inToolbox(_session, e.key, e.value),
+            )) ...[
               const SizedBox(height: Spacing.xs),
               _Toolbox(session: _session),
             ],
@@ -128,8 +138,9 @@ class _FieldEditorState extends State<FieldEditor> {
   }
 }
 
-/// Whether the toolbox offers [entry].
-bool _inToolbox(BlockEditing entry) => entry.offered && entry.create != null;
+/// Whether the toolbox of [session] offers [entry], the kind [key].
+bool _inToolbox(FieldSession session, String key, BlockEditing entry) =>
+    entry.offered && entry.create != null && session.allows(key);
 
 /// Buttons for the marks within text, lit while the selection in the text
 /// editor last focused has them, then undo and redo.
@@ -262,7 +273,7 @@ class _Toolbox extends StatelessWidget {
             style: context.type.caption.copyWith(color: colors.textFaint),
           ),
           for (final MapEntry(:key, value: entry) in session.blocks.entries)
-            if (_inToolbox(entry))
+            if (_inToolbox(session, key, entry))
               _ToolboxItem(
                 drag: ToolboxDrag(key),
                 label: entry.label(l10n),

@@ -5,9 +5,10 @@ import 'package:logging/logging.dart';
 import 'package:meta/meta.dart';
 import 'package:path/path.dart' as p;
 
+import '../domain/content/field_references.dart' show basicTemplateSource;
 import '../domain/ids.dart';
 import '../domain/note.dart' show SourceKind;
-import '../domain/note_type.dart' show FieldType;
+import '../domain/note_type.dart' show FieldType, StudyCardTemplate;
 import '../domain/preset.dart'
     show LearningSiblingBury, NewCardMix, NewCardOrder, PresetVersion;
 import '../domain/review.dart';
@@ -81,7 +82,7 @@ class MemukiDatabase extends _$MemukiDatabase {
   HlcClock get clock => _clock;
 
   @override
-  int get schemaVersion => 8;
+  int get schemaVersion => 9;
 
   /// Opens the database now rather than on the first query, creating or
   /// upgrading the schema. Throws [DatabaseTooNewException] or
@@ -159,6 +160,7 @@ class MemukiDatabase extends _$MemukiDatabase {
           from5To6: _from5To6,
           from6To7: _from6To7,
           from7To8: _from7To8,
+          from8To9: _from8To9,
         ),
       );
 
@@ -452,6 +454,61 @@ class MemukiDatabase extends _$MemukiDatabase {
       schema.presetVersions,
       schema.presetVersions.buryLearningSiblings,
     );
+  }
+
+  /// Adds field languages and validation, the duplicate check of note
+  /// types, and what each card template shows. No field has a language, is
+  /// required, or limits its marks, and no note type checks for duplicates.
+  /// Each existing template asks with its note type's first field and
+  /// answers with the rest, as a new note type's does; every device derives
+  /// the same source, so the templates keep their timestamps.
+  Future<void> _from8To9(Migrator m, Schema9 schema) async {
+    final fields = schema.fieldDefinitions;
+    await m.addColumn(fields, fields.language);
+    await m.addColumn(fields, fields.required);
+    await m.addColumn(fields, fields.allowedMarks);
+    await m.addColumn(schema.noteTypes, schema.noteTypes.duplicateCheck);
+
+    // Read as SQL against the v8 schema, so later changes to the tables do
+    // not change this step.
+    final names = <String, List<String>>{};
+    for (final row in await customSelect(
+      'SELECT hex(note_type_id) AS note_type, name FROM field_definitions '
+      'WHERE deleted = 0 ORDER BY note_type_id, position',
+    ).get()) {
+      (names[row.read<String>('note_type')] ??= []).add(
+        row.read<String>('name'),
+      );
+    }
+    await customStatement(
+      'CREATE TEMP TABLE template_source '
+      '(note_type TEXT PRIMARY KEY, source TEXT NOT NULL)',
+    );
+    for (final MapEntry(key: noteType, value: fields) in names.entries) {
+      await customInsert(
+        'INSERT INTO template_source (note_type, source) VALUES (?, ?)',
+        variables: [
+          Variable.withString(noteType),
+          Variable.withString(basicTemplateSource(fields)),
+        ],
+      );
+    }
+    final templates = schema.studyCardTemplates;
+    final source = templates.columnsByName['source']!;
+    await m.alterTable(
+      TableMigration(
+        templates,
+        columnTransformer: {
+          source: const CustomExpression<String>(
+            '(SELECT coalesce((SELECT s.source FROM template_source s '
+            'WHERE s.note_type = hex(study_card_templates.note_type_id)), '
+            "'${StudyCardTemplate.blank}'))",
+          ),
+        },
+        newColumns: [source],
+      ),
+    );
+    await customStatement('DROP TABLE template_source');
   }
 
   /// The state before each review event, by replaying each card's history.

@@ -62,6 +62,20 @@ class JsonMapConverter extends TypeConverter<Map<String, Object?>, String> {
   String toSql(Map<String, Object?> value) => jsonEncode(value);
 }
 
+/// Stores a set of mark keys separated by spaces, which keys cannot hold.
+class KeySetConverter extends TypeConverter<Set<String>, String> {
+  const KeySetConverter();
+
+  @override
+  Set<String> fromSql(String fromDb) => {
+    for (final key in fromDb.split(' '))
+      if (key.isNotEmpty) key,
+  };
+
+  @override
+  String toSql(Set<String> value) => (value.toList()..sort()).join(' ');
+}
+
 /// Stores a [Duration] as whole minutes.
 class DurationMinutesConverter extends TypeConverter<Duration, int> {
   const DurationMinutesConverter();

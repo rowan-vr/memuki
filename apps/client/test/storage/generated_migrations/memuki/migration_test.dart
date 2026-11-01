@@ -3,7 +3,9 @@
 import 'package:drift/drift.dart' hide isNull;
 import 'package:drift_dev/api/migrations_native.dart';
 import 'package:flutter_test/flutter_test.dart';
+import 'package:memuki/domain/content/field_references.dart';
 import 'package:memuki/domain/ids.dart';
+import 'package:memuki/domain/note_type.dart';
 import 'package:memuki/domain/preset.dart';
 import 'package:memuki/domain/review.dart';
 import 'package:memuki/scheduler/schedulers.dart';
@@ -609,6 +611,63 @@ void main() {
       expect(settings.buryReviewSiblings, isTrue);
       expect(settings.buryLearningSiblings, LearningSiblingBury.session);
     });
+
+    test('v8 to v9 gives templates a basic source from their fields, and '
+        'fields no settings', () async {
+      final schema = await seeded(8);
+      for (final (position, name, deleted) in [
+        (0, 'Word', 0),
+        (1, 'Removed', 1),
+        (2, 'Example sentence', 0),
+      ]) {
+        schema.rawDatabase.execute(
+          'INSERT INTO field_definitions (id, note_type_id, position, name, '
+          "type, hlc, deleted) VALUES (?, ?, ?, ?, 'text', ?, ?)",
+          [
+            fieldDefinitionIdConverter.toSql(FieldDefinitionId.generate()),
+            noteTypeIdConverter.toSql(noteType),
+            position,
+            name,
+            hlc,
+            deleted,
+          ],
+        );
+      }
+
+      final db = MemukiDatabase(schema.newConnection());
+      addTearDown(db.close);
+      await verifier.migrateAndValidate(db, 9);
+
+      final migrated = (await Repositories(db).noteTypes.noteType(noteType))!;
+      expect(
+        migrated.templates.single.source,
+        basicTemplateSource(['Word', 'Example sentence']),
+      );
+      expect(migrated.duplicateCheck, isNull);
+      for (final field in migrated.fields) {
+        expect(field.language, isNull);
+        expect(field.isRequired, isFalse);
+        expect(field.allowedMarks, isNull);
+      }
+      final stamp = await db
+          .customSelect('SELECT hlc FROM study_card_templates')
+          .getSingle();
+      expect(stamp.read<String>('hlc'), hlc);
+    });
+
+    test(
+      'v8 to v9 leaves templates of a note type without fields blank',
+      () async {
+        final schema = await seeded(8);
+        final db = MemukiDatabase(schema.newConnection());
+        addTearDown(db.close);
+        await verifier.migrateAndValidate(db, 9);
+        final row = await db
+            .customSelect('SELECT source FROM study_card_templates')
+            .getSingle();
+        expect(row.read<String>('source'), StudyCardTemplate.blank);
+      },
+    );
   });
 }
 
