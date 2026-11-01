@@ -5,6 +5,7 @@ import 'package:go_router/go_router.dart';
 import '../catalogue/catalogue_screen.dart';
 import '../catalogue/concepts/concepts_screen.dart';
 import '../decks/decks_screen.dart';
+import '../developer/content_playground_screen.dart';
 import '../developer/developer_screen.dart';
 import '../developer/developer_tools_provider.dart';
 import '../home/home_screen.dart';
@@ -48,6 +49,7 @@ final routerProvider = Provider<GoRouter>((ref) {
           routes: [
             TypedGoRoute<CatalogueRoute>(path: 'catalogue'),
             TypedGoRoute<ConceptsRoute>(path: 'concepts'),
+            TypedGoRoute<ContentPlaygroundRoute>(path: 'content'),
           ],
         ),
       ],
@@ -146,4 +148,13 @@ class ConceptsRoute extends GoRouteData with $ConceptsRoute {
   @override
   Widget build(BuildContext context, GoRouterState state) =>
       const ConceptsScreen();
+}
+
+/// The content format with the registered mark kinds, a development tool.
+class ContentPlaygroundRoute extends GoRouteData with $ContentPlaygroundRoute {
+  const ContentPlaygroundRoute();
+
+  @override
+  Widget build(BuildContext context, GoRouterState state) =>
+      const ContentPlaygroundScreen();
 }

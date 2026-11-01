@@ -62,6 +62,11 @@ RouteBase get $shellRouteData => StatefulShellRouteData.$route(
               hasOverriddenOnExit: false,
               factory: $ConceptsRoute._fromState,
             ),
+            GoRouteData.$route(
+              path: 'content',
+              hasOverriddenOnExit: false,
+              factory: $ContentPlaygroundRoute._fromState,
+            ),
           ],
         ),
       ],
@@ -202,6 +207,27 @@ mixin $ConceptsRoute on GoRouteData {
 
   @override
   String get location => GoRouteData.$location('/developer/concepts');
+
+  @override
+  void go(BuildContext context) => context.go(location);
+
+  @override
+  Future<T?> push<T>(BuildContext context) => context.push<T>(location);
+
+  @override
+  void pushReplacement(BuildContext context) =>
+      context.pushReplacement(location);
+
+  @override
+  void replace(BuildContext context) => context.replace(location);
+}
+
+mixin $ContentPlaygroundRoute on GoRouteData {
+  static ContentPlaygroundRoute _fromState(GoRouterState state) =>
+      const ContentPlaygroundRoute();
+
+  @override
+  String get location => GoRouteData.$location('/developer/content');
 
   @override
   void go(BuildContext context) => context.go(location);
